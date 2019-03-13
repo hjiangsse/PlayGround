@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>XADD – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>XADD</span>
+            <span class='arg'>key</span>
+            <span class='arg'>ID</span>
+            <span class='arg'>field string [field string ...]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 5.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1)</p>
+              </div>
+              <p>Appends the specified stream entry to the stream at the specified key.
+              If the key does not exist, as a side effect of running this command the
+              key is created with a stream value.</p>
+              
+              <p>An entry is composed of a set of field-value pairs, it is basically a
+              small dictionary. The field-value pairs are stored in the same order
+              they are given by the user, and commands to read the stream such as
+              <a href="/commands/xrange">XRANGE</a> or <a href="/commands/xread">XREAD</a> are guaranteed to return the fields and values
+              exactly in the same order they were added by <a href="/commands/xadd">XADD</a>.</p>
+              
+              <p><a href="/commands/xadd">XADD</a> is the <em>only Redis command</em> that can add data to a stream, but 
+              there are other commands, such as <a href="/commands/xdel">XDEL</a> and <a href="/commands/xtrim">XTRIM</a>, that are able to
+              remove data from a stream.</p>
+              
+              <span id="specifying-a-stream-id-as-an-argument" class=anchor></span><h2 ><a href="#specifying-a-stream-id-as-an-argument" class=anchor-link>*</a>Specifying a Stream ID as an argument</h2>
+              
+              <p>A stream entry ID identifies a given entry inside a stream.
+              The <a href="/commands/xadd">XADD</a> command will auto-generate a unique ID for you if the ID argument
+              specified is the <code>*</code> character (asterisk ASCII character). However, while
+              useful only in very rare cases, it is possible to specify a well-formed ID, so
+              that the new entry will be added exactly with the specified ID.</p>
+              
+              <p>IDs are specified by two numbers separated by a <code>-</code> character:</p>
+              
+              <pre><code>1526919030474-55&#x000A;</code></pre>
+              
+              <p>Both quantities are 64-bit numbers. When an ID is auto-generated, the
+              first part is the Unix time in milliseconds of the Redis instance generating
+              the ID. The second part is just a sequence number and is used in order to
+              distinguish IDs generated in the same millisecond.</p>
+              
+              <p>IDs are guaranteed to be always incremental: If you compare the ID of the
+              entry just inserted it will be greater than any other past ID, so entries
+              are totally ordered inside a stream. In order to guarantee this property,
+              if the current top ID in the stream has a time greater than the current
+              local time of the instance, the top entry time will be used instead, and
+              the sequence part of the ID incremented. This may happen when, for instance,
+              the local clock jumps backward, or if after a failover the new master has
+              a different absolute time.</p>
+              
+              <p>When a user specified an explicit ID to <a href="/commands/xadd">XADD</a>, the minimum valid ID is
+              <code>0-1</code>, and the user <em>must</em> specify an ID which is greater than any other
+              ID currently inside the stream, otherwise the command will fail. Usually
+              resorting to specific IDs is useful only if you have another system generating
+              unique IDs (for instance an SQL table) and you really want the Redis stream
+              IDs to match the one of this other system.</p>
+              
+              <span id="capped-streams" class=anchor></span><h2 ><a href="#capped-streams" class=anchor-link>*</a>Capped streams</h2>
+              
+              <p>It is possible to limit the size of the stream to a maximum number of
+              elements using the <strong>MAXLEN</strong> option. </p>
+              
+              <p>Trimming with <strong>MAXLEN</strong> can be expensive compared to just adding entries with 
+              <a href="/commands/xadd">XADD</a>: streams are represented by macro nodes into a radix tree, in order to
+              be very memory efficient. Altering the single macro node, consisting of a few
+              tens of elements, is not optimal. So it is possible to give the command in the
+              following special form:</p>
+              
+              <pre><code>XADD mystream MAXLEN ~ 1000 * ... entry fields here ...&#x000A;</code></pre>
+              
+              <p>The <code>~</code> argument between the <strong>MAXLEN</strong> option and the actual count means that
+              the user is not really requesting that the stream length is exactly 1000 items,
+              but instead it could be a few tens of entries more, but never less than 1000
+              items. When this option modifier is used, the trimming is performed only when
+              Redis is able to remove a whole macro node. This makes it much more efficient,
+              and it is usually what you want.</p>
+              
+              <span id="additional-information-about-streams" class=anchor></span><h2 ><a href="#additional-information-about-streams" class=anchor-link>*</a>Additional information about streams</h2>
+              
+              <p>For further information about Redis streams please check our
+              <a href="/topics/streams-intro">introduction to Redis Streams document</a>.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#bulk-string-reply">Bulk string reply</a>, specifically:</p>
+              
+              <p>The command returns the ID of the added entry. The ID is the one auto-generated
+              if <code>*</code> is passed as ID argument, otherwise the command just returns the same ID
+              specified by the user during insertion.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='aa1d01b771fc828135aed313fe2a852e'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD mystream * name Sara surname OConnor</span>
+                <pre>"1552459515880-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD mystream * field1 value1 field2 value2 field3 value3</span>
+                <pre>"1552459515881-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XLEN mystream</span>
+                <pre>(integer) 2</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XRANGE mystream - +</span>
+                <pre>1) 1) "1552459515880-0"&#x000A;   2) 1) "name"&#x000A;      2) "Sara"&#x000A;      3) "surname"&#x000A;      4) "OConnor"&#x000A;2) 1) "1552459515881-0"&#x000A;   2) 1) "field1"&#x000A;      2) "value1"&#x000A;      3) "field2"&#x000A;      4) "value2"&#x000A;      5) "field3"&#x000A;      6) "value3"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/xack'>
+                      XACK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xadd'>
+                      <strong>XADD</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xclaim'>
+                      XCLAIM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xdel'>
+                      XDEL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xgroup'>
+                      XGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xinfo'>
+                      XINFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xlen'>
+                      XLEN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xpending'>
+                      XPENDING
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrange'>
+                      XRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xread'>
+                      XREAD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xreadgroup'>
+                      XREADGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrevrange'>
+                      XREVRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xtrim'>
+                      XTRIM
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

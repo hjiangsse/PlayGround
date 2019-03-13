@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>MIGRATE – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>MIGRATE</span>
+            <span class='arg'>host</span>
+            <span class='arg'>port</span>
+            <span class='arg'>key|""</span>
+            <span class='arg'>destination-db</span>
+            <span class='arg'>timeout</span>
+            <span class='arg'>[COPY]</span>
+            <span class='arg'>[REPLACE]</span>
+            <span class='arg'>[KEYS key [key ...]]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 2.6.0.</strong></p>
+                <p><strong>Time complexity:</strong> This command actually executes a DUMP+DEL in the source instance, and a RESTORE in the target instance. See the pages of these commands for time complexity. Also an O(N) data transfer between the two instances is performed.</p>
+              </div>
+              <p>Atomically transfer a key from a source Redis instance to a destination Redis
+              instance.
+              On success the key is deleted from the original instance and is guaranteed to
+              exist in the target instance.</p>
+              
+              <p>The command is atomic and blocks the two instances for the time required to
+              transfer the key, at any given time the key will appear to exist in a given
+              instance or in the other instance, unless a timeout error occurs. In 3.2 and
+              above, multiple keys can be pipelined in a single call to <a href="/commands/migrate">MIGRATE</a> by passing
+              the empty string (&quot;&quot;) as key and adding the <a href="/commands/keys">KEYS</a> clause.</p>
+              
+              <p>The command internally uses <a href="/commands/dump">DUMP</a> to generate the serialized version of the key
+              value, and <a href="/commands/restore">RESTORE</a> in order to synthesize the key in the target instance.
+              The source instance acts as a client for the target instance.
+              If the target instance returns OK to the <a href="/commands/restore">RESTORE</a> command, the source instance
+              deletes the key using <a href="/commands/del">DEL</a>.</p>
+              
+              <p>The timeout specifies the maximum idle time in any moment of the communication
+              with the destination instance in milliseconds.
+              This means that the operation does not need to be completed within the specified
+              amount of milliseconds, but that the transfer should make progresses without
+              blocking for more than the specified amount of milliseconds.</p>
+              
+              <p><a href="/commands/migrate">MIGRATE</a> needs to perform I/O operations and to honor the specified timeout.
+              When there is an I/O error during the transfer or if the timeout is reached the
+              operation is aborted and the special error - <code>IOERR</code> returned.
+              When this happens the following two cases are possible:</p>
+              
+              <ul>
+              <li>The key may be on both the instances.</li>
+              <li>The key may be only in the source instance.</li>
+              </ul>
+              
+              <p>It is not possible for the key to get lost in the event of a timeout, but the
+              client calling <a href="/commands/migrate">MIGRATE</a>, in the event of a timeout error, should check if the
+              key is <em>also</em> present in the target instance and act accordingly.</p>
+              
+              <p>When any other error is returned (starting with <code>ERR</code>) <a href="/commands/migrate">MIGRATE</a> guarantees that
+              the key is still only present in the originating instance (unless a key with the
+              same name was also <em>already</em> present on the target instance).</p>
+              
+              <p>If there are no keys to migrate in the source instance <code>NOKEY</code> is returned.
+              Because missing keys are possible in normal conditions, from expiry for example,
+              <code>NOKEY</code> isn&#39;t an error. </p>
+              
+              <span id="migrating-multiple-keys-with-a-single-command-call" class=anchor></span><h2 ><a href="#migrating-multiple-keys-with-a-single-command-call" class=anchor-link>*</a>Migrating multiple keys with a single command call</h2>
+              
+              <p>Starting with Redis 3.0.6 <a href="/commands/migrate">MIGRATE</a> supports a new bulk-migration mode that
+              uses pipelining in order to migrate multiple keys between instances without
+              incurring in the round trip time latency and other overheads that there are
+              when moving each key with a single <a href="/commands/migrate">MIGRATE</a> call.</p>
+              
+              <p>In order to enable this form, the <a href="/commands/keys">KEYS</a> option is used, and the normal <em>key</em>
+              argument is set to an empty string. The actual key names will be provided
+              after the <a href="/commands/keys">KEYS</a> argument itself, like in the following example:</p>
+              
+              <pre><code>MIGRATE 192.168.1.34 6379 &quot;&quot; 0 5000 KEYS key1 key2 key3&#x000A;</code></pre>
+              
+              <p>When this form is used the <code>NOKEY</code> status code is only returned when none
+              of the keys is present in the instance, otherwise the command is executed, even if
+              just a single key exists.</p>
+              
+              <span id="options" class=anchor></span><h2 ><a href="#options" class=anchor-link>*</a>Options</h2>
+              
+              <ul>
+              <li><code>COPY</code> -- Do not remove the key from the local instance.</li>
+              <li><code>REPLACE</code> -- Replace existing key on the remote instance.</li>
+              <li><a href="/commands/keys">KEYS</a> -- If the key argument is an empty string, the command will instead migrate all the keys that follow the <a href="/commands/keys">KEYS</a> option (see the above section for more info).</li>
+              </ul>
+              
+              <p><code>COPY</code> and <code>REPLACE</code> are available only in 3.0 and above.
+              <a href="/commands/keys">KEYS</a> is available starting with Redis 3.0.6.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#simple-string-reply">Simple string reply</a>: The command returns OK on success, or <code>NOKEY</code> if no keys were
+              found in the source instance.  </p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/del'>
+                      DEL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/dump'>
+                      DUMP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/exists'>
+                      EXISTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/expire'>
+                      EXPIRE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/expireat'>
+                      EXPIREAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/keys'>
+                      KEYS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/migrate'>
+                      <strong>MIGRATE</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/move'>
+                      MOVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/object'>
+                      OBJECT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/persist'>
+                      PERSIST
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pexpire'>
+                      PEXPIRE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pexpireat'>
+                      PEXPIREAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pttl'>
+                      PTTL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/randomkey'>
+                      RANDOMKEY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rename'>
+                      RENAME
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/renamenx'>
+                      RENAMENX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/restore'>
+                      RESTORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/scan'>
+                      SCAN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/sort'>
+                      SORT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/touch'>
+                      TOUCH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/ttl'>
+                      TTL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/type'>
+                      TYPE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/unlink'>
+                      UNLINK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/wait'>
+                      WAIT
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

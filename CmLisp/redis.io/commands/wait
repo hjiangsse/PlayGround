@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>WAIT – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>WAIT</span>
+            <span class='arg'>numreplicas</span>
+            <span class='arg'>timeout</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1)</p>
+              </div>
+              <p>This command blocks the current client until all the previous write commands
+              are successfully transferred and acknowledged by at least the specified number
+              of replicas. If the timeout, specified in milliseconds, is reached, the command
+              returns even if the specified number of replicas were not yet reached.</p>
+              
+              <p>The command <strong>will always return</strong> the number of replicas that acknowledged
+              the write commands sent before the <a href="/commands/wait">WAIT</a> command, both in the case where
+              the specified number of replicas are reached, or when the timeout is reached.</p>
+              
+              <p>A few remarks:</p>
+              
+              <ol>
+              <li>When <a href="/commands/wait">WAIT</a> returns, all the previous write commands sent in the context of the current connection are guaranteed to be received by the number of replicas returned by <a href="/commands/wait">WAIT</a>.</li>
+              <li>If the command is sent as part of a <a href="/commands/multi">MULTI</a> transaction, the command does not block but instead just return ASAP the number of replicas that acknowledged the previous write commands.</li>
+              <li>A timeout of 0 means to block forever.</li>
+              <li>Since <a href="/commands/wait">WAIT</a> returns the number of replicas reached both in case of failure and success, the client should check that the returned value is equal or greater to the replication level it demanded.</li>
+              </ol>
+              
+              <span id="consistency-and-wait" class=anchor></span><h2 ><a href="#consistency-and-wait" class=anchor-link>*</a>Consistency and WAIT</h2>
+              
+              <p>Note that <a href="/commands/wait">WAIT</a> does not make Redis a strongly consistent store: while synchronous replication is part of a replicated state machine, it is not the only thing needed. However in the context of Sentinel or Redis Cluster failover, <a href="/commands/wait">WAIT</a> improves the real world data safety.</p>
+              
+              <p>Specifically if a given write is transferred to one or more replicas, it is more likely (but not guaranteed) that if the master fails, we&#39;ll be able to promote, during a failover, a replica that received the write: both Sentinel and Redis Cluster will do a best-effort attempt to promote the best replica among the set of available replicas.</p>
+              
+              <p>However this is just a best-effort attempt so it is possible to still lose a write synchronously replicated to multiple replicas.</p>
+              
+              <span id="implementation-details" class=anchor></span><h2 ><a href="#implementation-details" class=anchor-link>*</a>Implementation details</h2>
+              
+              <p>Since the introduction of partial resynchronization with replicas (PSYNC feature) Redis replicas asynchronously ping their master with the offset they already processed in the replication stream. This is used in multiple ways:</p>
+              
+              <ol>
+              <li>Detect timed out replicas.</li>
+              <li>Perform a partial resynchronization after a disconnection.</li>
+              <li>Implement <a href="/commands/wait">WAIT</a>.</li>
+              </ol>
+              
+              <p>In the specific case of the implementation of <a href="/commands/wait">WAIT</a>, Redis remembers, for each client, the replication offset of the produced replication stream when a given
+              write command was executed in the context of a given client. When <a href="/commands/wait">WAIT</a> is
+              called Redis checks if the specified number of replicas already acknowledged
+              this offset or a greater one.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>: The command returns the number of replicas reached by all the writes performed in the context of the current connection.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <pre><code>&gt; SET foo bar&#x000A;OK&#x000A;&gt; WAIT 1 0&#x000A;(integer) 1&#x000A;&gt; WAIT 2 1000&#x000A;(integer) 1&#x000A;</code></pre>
+              
+              <p>In the following example the first call to <a href="/commands/wait">WAIT</a> does not use a timeout and asks for the write to reach 1 replica. It returns with success. In the second attempt instead we put a timeout, and ask for the replication of the write to two replicas. Since there is a single replica available, after one second <a href="/commands/wait">WAIT</a> unblocks and returns 1, the number of replicas reached.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/del'>
+                      DEL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/dump'>
+                      DUMP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/exists'>
+                      EXISTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/expire'>
+                      EXPIRE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/expireat'>
+                      EXPIREAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/keys'>
+                      KEYS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/migrate'>
+                      MIGRATE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/move'>
+                      MOVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/object'>
+                      OBJECT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/persist'>
+                      PERSIST
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pexpire'>
+                      PEXPIRE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pexpireat'>
+                      PEXPIREAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pttl'>
+                      PTTL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/randomkey'>
+                      RANDOMKEY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rename'>
+                      RENAME
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/renamenx'>
+                      RENAMENX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/restore'>
+                      RESTORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/scan'>
+                      SCAN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/sort'>
+                      SORT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/touch'>
+                      TOUCH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/ttl'>
+                      TTL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/type'>
+                      TYPE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/unlink'>
+                      UNLINK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/wait'>
+                      <strong>WAIT</strong>
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

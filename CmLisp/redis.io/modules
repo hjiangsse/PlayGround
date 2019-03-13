@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <section id='clients'>
+            <span id="redis-modules" class=anchor></span><h1 ><a href="#redis-modules" class=anchor-link>*</a>Redis Modules</h1>
+            <p>
+              This is a list of Redis modules, for Redis v4.0 or greater, ordered by Github stars. This list contains two set of modules: modules under an OSI approved license, and modules that are under some proprietary license. Non OSI modules are clearly flagged as not open source. Also to have the source code hosted at Github is currently mandatory. To add your module here please send a pull request for <a href="https://github.com/antirez/redis-doc/blob/master/modules.json">the modules.json file</a> in the <a href="https://github.com/antirez/redis-doc">Redis-doc</a> repository.
+            </p>
+            <table>
+              <col class='name'>
+              <col class='license'>
+              <col class='stars'>
+              <col class='repository'>
+              <col class='description'>
+              <col class='authors'>
+              <tr>
+                <td>
+                  neural-redis
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/antirez/neural-redis'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Online trainable neural networks as Redis data types.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/antirez'>antirez</a>
+                </td>
+                <td>
+                  BSD
+                </td>
+                <td>
+                  2073
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  RediSearch
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/RediSearch'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Full-Text search over Redis
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/dvirsky'>dvirsky</a>
+                  <a href='https://github.com/RedisLabs'>RedisLabs</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  1323
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  RedisJSON
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/redisjson'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  A JSON data type for Redis
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/itamarhaber'>itamarhaber</a>
+                  <a href='https://github.com/RedisLabs'>RedisLabs</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  641
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  rediSQL
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedBeardLab/rediSQL'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  A redis module that provide full SQL capabilities embedding SQLite
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/siscia'>siscia</a>
+                  <a href='https://github.com/RedBeardLab'>RedBeardLab</a>
+                </td>
+                <td>
+                  AGPL-3.0
+                </td>
+                <td>
+                  613
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  redis-cell
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/brandur/redis-cell'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  A Redis module that provides rate limiting in Redis as a single command.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/brandur'>brandur</a>
+                </td>
+                <td>
+                  MIT
+                </td>
+                <td>
+                  403
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  RedisGraph
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/redis-graph'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  A graph database with a Cypher-based querying language using sparse adjacency matrices
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/swilly22'>swilly22</a>
+                  <a href='https://github.com/RedisLabs'>RedisLabs</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  401
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  RedisML
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/redisml'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Machine Learning Model Server
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/shaynativ'>shaynativ</a>
+                  <a href='https://github.com/RedisLabs'>RedisLabs</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  212
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  RedisTimeSeries
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/RedisTimeSeries'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Time-series data structure for redis
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/danni-m'>danni-m</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  186
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  RedisBloom
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/redisbloom'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Scalable Bloom filters
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/mnunberg'>mnunberg</a>
+                  <a href='https://github.com/RedisLabs'>RedisLabs</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  136
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  cthulhu
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/sklivvz/cthulhu'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Extend Redis with JavaScript modules
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/sklivvz'>sklivvz</a>
+                </td>
+                <td>
+                  BSD
+                </td>
+                <td>
+                  117
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  redis-cuckoofilter
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/kristoff-it/redis-cuckoofilter'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Hashing-function agnostic Cuckoo filters.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/kristoff-it'>kristoff-it</a>
+                </td>
+                <td>
+                  MIT
+                </td>
+                <td>
+                  66
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  RedisAI
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisAI/RedisAI'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  A Redis module for serving tensors and executing deep learning graphs
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/lantiga'>lantiga</a>
+                </td>
+                <td>
+                  AGPL
+                </td>
+                <td>
+                  61
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  redis-roaring
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/aviggiano/redis-roaring'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Uses the CRoaring library to implement roaring bitmap commands for Redis.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/aviggiano'>aviggiano</a>
+                </td>
+                <td>
+                  MIT
+                </td>
+                <td>
+                  60
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  redis-tdigest
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/usmanm/redis-tdigest'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  t-digest data structure wich can be used for accurate online accumulation of rank-based statistics such as quantiles and cumulative distribution at a point.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/usmanm'>usmanm</a>
+                </td>
+                <td>
+                  MIT
+                </td>
+                <td>
+                  45
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Session Gate
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/f0rmiga/sessiongate'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Session management with multiple payloads using cryptographically signed tokens.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/f0rmiga'>f0rmiga</a>
+                </td>
+                <td>
+                  MIT
+                </td>
+                <td>
+                  32
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  countminsketch
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/countminsketch'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  An apporximate frequency counter
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/itamarhaber'>itamarhaber</a>
+                  <a href='https://github.com/RedisLabs'>RedisLabs</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  31
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  ReDe
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/TamarLabs/ReDe'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Low Latancy timed queues (Dehydrators) as Redis data types.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/daTokenizer'>daTokenizer</a>
+                </td>
+                <td>
+                  MIT
+                </td>
+                <td>
+                  23
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  topk
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/RedisLabsModules/topk'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  An almost deterministic top k elements counter
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/itamarhaber'>itamarhaber</a>
+                  <a href='https://github.com/RedisLabs'>RedisLabs</a>
+                </td>
+                <td>
+                  Redis Source Available License
+                </td>
+                <td>
+                  21
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  commentDis
+                </td>
+                <td>
+                  <a class='icon' href='https://github.com/picotera/commentDis'>
+                    <i class='fa fa-home'></i>
+                  </a>
+                </td>
+                <td class='description'>
+                  Add comment syntax to your redis-cli scripts.
+                </td>
+                <td class='authors'>
+                  <a href='https://github.com/daTokenizer'>daTokenizer</a>
+                </td>
+                <td>
+                  MIT
+                </td>
+                <td>
+                  6
+                  <i class='fa fa-star icon-star'></i>
+                </td>
+              </tr>
+            </table>
+          </section>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

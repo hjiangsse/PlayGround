@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>BITPOS – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>BITPOS</span>
+            <span class='arg'>key</span>
+            <span class='arg'>bit</span>
+            <span class='arg'>[start]</span>
+            <span class='arg'>[end]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 2.8.7.</strong></p>
+                <p><strong>Time complexity:</strong> O(N)</p>
+              </div>
+              <p>Return the position of the first bit set to 1 or 0 in a string.</p>
+              
+              <p>The position is returned, thinking of the string as an array of bits from left to
+              right, where the first byte&#39;s most significant bit is at position 0, the second
+              byte&#39;s most significant bit is at position 8, and so forth.</p>
+              
+              <p>The same bit position convention is followed by <a href="/commands/getbit">GETBIT</a> and <a href="/commands/setbit">SETBIT</a>.</p>
+              
+              <p>By default, all the bytes contained in the string are examined.
+              It is possible to look for bits only in a specified interval passing the additional arguments <em>start</em> and <em>end</em> (it is possible to just pass <em>start</em>, the operation will assume that the end is the last byte of the string. However there are semantic differences as explained later). The range is interpreted as a range of bytes and not a range of bits, so <code>start=0</code> and <code>end=2</code> means to look at the first three bytes.</p>
+              
+              <p>Note that bit positions are returned always as absolute values starting from bit zero even when <em>start</em> and <em>end</em> are used to specify a range.</p>
+              
+              <p>Like for the <a href="/commands/getrange">GETRANGE</a> command start and end can contain negative values in
+              order to index bytes starting from the end of the string, where -1 is the last
+              byte, -2 is the penultimate, and so forth.</p>
+              
+              <p>Non-existent keys are treated as empty strings.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a></p>
+              
+              <p>The command returns the position of the first bit set to 1 or 0 according to the request.</p>
+              
+              <p>If we look for set bits (the bit argument is 1) and the string is empty or composed of just zero bytes, -1 is returned.</p>
+              
+              <p>If we look for clear bits (the bit argument is 0) and the string only contains bit set to 1, the function returns the first bit not part of the string on the right. So if the string is three bytes set to the value <code>0xff</code> the command <code>BITPOS key 0</code> will return 24, since up to bit 23 all the bits are 1.</p>
+              
+              <p>Basically, the function considers the right of the string as padded with zeros if you look for clear bits and specify no range or the <em>start</em> argument <strong>only</strong>.</p>
+              
+              <p>However, this behavior changes if you are looking for clear bits and specify a range with both <strong>start</strong> and <strong>end</strong>. If no clear bit is found in the specified range, the function returns -1 as the user specified a clear range and there are no 0 bits in that range.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='a22afa94b73bdc783a8237e213a2a3c6'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>SET mykey &quot;\xff\xf0\x00&quot;</span>
+                <pre>"OK"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>BITPOS mykey 0</span>
+                <pre>(integer) 12</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>SET mykey &quot;\x00\xff\xf0&quot;</span>
+                <pre>"OK"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>BITPOS mykey 1 0</span>
+                <pre>(integer) 8</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>BITPOS mykey 1 2</span>
+                <pre>(integer) 16</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>set mykey &quot;\x00\x00\x00&quot;</span>
+                <pre>"OK"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>BITPOS mykey 1</span>
+                <pre>(integer) -1</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/append'>
+                      APPEND
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitcount'>
+                      BITCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitfield'>
+                      BITFIELD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitop'>
+                      BITOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitpos'>
+                      <strong>BITPOS</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decr'>
+                      DECR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decrby'>
+                      DECRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/get'>
+                      GET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getbit'>
+                      GETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getrange'>
+                      GETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getset'>
+                      GETSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incr'>
+                      INCR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrby'>
+                      INCRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrbyfloat'>
+                      INCRBYFLOAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mget'>
+                      MGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mset'>
+                      MSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/msetnx'>
+                      MSETNX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/psetex'>
+                      PSETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/set'>
+                      SET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setbit'>
+                      SETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setex'>
+                      SETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setnx'>
+                      SETNX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setrange'>
+                      SETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/strlen'>
+                      STRLEN
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

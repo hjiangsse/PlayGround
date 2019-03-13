@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>LRANGE – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>LRANGE</span>
+            <span class='arg'>key</span>
+            <span class='arg'>start</span>
+            <span class='arg'>stop</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 1.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(S+N) where S is the distance of start offset from HEAD for small lists, from nearest end (HEAD or TAIL) for large lists; and N is the number of elements in the specified range.</p>
+              </div>
+              <p>Returns the specified elements of the list stored at <code>key</code>.
+              The offsets <code>start</code> and <code>stop</code> are zero-based indexes, with <code>0</code> being the first
+              element of the list (the head of the list), <code>1</code> being the next element and so
+              on.</p>
+              
+              <p>These offsets can also be negative numbers indicating offsets starting at the
+              end of the list.
+              For example, <code>-1</code> is the last element of the list, <code>-2</code> the penultimate, and so
+              on.</p>
+              
+              <span id="consistency-with-range-functions-in-various-programming-languages" class=anchor></span><h2 ><a href="#consistency-with-range-functions-in-various-programming-languages" class=anchor-link>*</a>Consistency with range functions in various programming languages</h2>
+              
+              <p>Note that if you have a list of numbers from 0 to 100, <code>LRANGE list 0 10</code> will
+              return 11 elements, that is, the rightmost item is included.
+              This <strong>may or may not</strong> be consistent with behavior of range-related functions
+              in your programming language of choice (think Ruby&#39;s <code>Range.new</code>, <code>Array#slice</code>
+              or Python&#39;s <code>range()</code> function).</p>
+              
+              <span id="out-of-range-indexes" class=anchor></span><h2 ><a href="#out-of-range-indexes" class=anchor-link>*</a>Out-of-range indexes</h2>
+              
+              <p>Out of range indexes will not produce an error.
+              If <code>start</code> is larger than the end of the list, an empty list is returned.
+              If <code>stop</code> is larger than the actual end of the list, Redis will treat it like
+              the last element of the list.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>: list of elements in the specified range.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='615e9268dbce8f2145cf4c2266e5fd14'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>RPUSH mylist &quot;one&quot;</span>
+                <pre>(integer) 1</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>RPUSH mylist &quot;two&quot;</span>
+                <pre>(integer) 2</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>RPUSH mylist &quot;three&quot;</span>
+                <pre>(integer) 3</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>LRANGE mylist 0 0</span>
+                <pre>1) "one"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>LRANGE mylist -3 2</span>
+                <pre>1) "one"&#x000A;2) "two"&#x000A;3) "three"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>LRANGE mylist -100 100</span>
+                <pre>1) "one"&#x000A;2) "two"&#x000A;3) "three"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>LRANGE mylist 5 10</span>
+                <pre>(empty list or set)</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/blpop'>
+                      BLPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/brpop'>
+                      BRPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/brpoplpush'>
+                      BRPOPLPUSH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lindex'>
+                      LINDEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/linsert'>
+                      LINSERT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/llen'>
+                      LLEN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lpop'>
+                      LPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lpush'>
+                      LPUSH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lpushx'>
+                      LPUSHX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lrange'>
+                      <strong>LRANGE</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lrem'>
+                      LREM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lset'>
+                      LSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/ltrim'>
+                      LTRIM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpop'>
+                      RPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpoplpush'>
+                      RPOPLPUSH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpush'>
+                      RPUSH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpushx'>
+                      RPUSHX
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

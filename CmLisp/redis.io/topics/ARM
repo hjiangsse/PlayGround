@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Redis on ARM – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics ARM'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="redis-on-arm" class=anchor></span><h1 ><a href="#redis-on-arm" class=anchor-link>*</a>Redis on ARM</h1>
+            
+            <p>Both Redis 4 and Redis 5 versions supports the ARM processor in general, and
+            the Raspberry Pi specifically, as a main platform, exactly like it happens
+            for Linux/x86. It means that every new release of Redis is tested on the Pi
+            environment, and that we take this documentation page updated with information
+            about supported devices and other useful info. While Redis already runs on
+            Android, in the future we look forward to extend our testing efforts to Android
+            to also make it an officially supported platform.</p>
+            
+            <p>We believe that Redis is ideal for IoT and Embedded devices for several
+            reasons:</p>
+            
+            <ul>
+            <li>Redis has a very small memory footprint and CPU requirements. Can run in small devices like the Raspberry Pi Zero without impacting the overall performance, using a small amount of memory, while delivering good performance for many use cases.</li>
+            <li>The data structures of Redis are often a good way to model IoT/embedded use cases. For example in order to accumulate time series data, to receive or queue commands to execute or responses to send back to the remote servers and so forth.</li>
+            <li>Modeling data inside Redis can be very useful in order to make in-device decisions for appliances that must respond very quickly or when the remote servers are offline.</li>
+            <li>Redis can be used as an interprocess communication system between the processes running in the device.</li>
+            <li>The append only file storage of Redis is well suited for the SSD cards.</li>
+            <li>The Redis 5 stream data structure was specifically designed for time series applications and has a very low memory overhead.</li>
+            </ul>
+            
+            <span id="redis-proccpualignment-requirements" class=anchor></span><h2 ><a href="#redis-proccpualignment-requirements" class=anchor-link>*</a>Redis /proc/cpu/alignment requirements</h2>
+            
+            <p>Linux on ARM allows to trap unaligned accesses and fix them inside the kernel
+            in order to continue the execution of the offending program instead of
+            generating a SIGBUS. Redis 4.0 and greater are fixed in order to avoid any kind
+            of unaligned access, so there is no need to have a specific value for this
+            kernel configuration. Even when kernel alignment fixing is disabled Redis should
+            run as expected.</p>
+            
+            <span id="building-redis-in-the-pi" class=anchor></span><h2 ><a href="#building-redis-in-the-pi" class=anchor-link>*</a>Building Redis in the Pi</h2>
+            
+            <ul>
+            <li>Download Redis verison 4 or 5.</li>
+            <li>Just use <code>make</code> as usually to create the executable.</li>
+            </ul>
+            
+            <p>There is nothing special in the process. The only difference is that by
+            default, Redis uses the libc allocator instead of defaulting to Jemalloc
+            as it does in other Linux based environments. This is because we believe
+            that for the small use cases inside embedded devices, memory fragmentation
+            is unlikely to be a problem. Moreover Jemalloc on ARM may not be as tested
+            as the libc allocator.</p>
+            
+            <span id="performance" class=anchor></span><h2 ><a href="#performance" class=anchor-link>*</a>Performance</h2>
+            
+            <p>Performance testing of Redis was performed in the Raspberry Pi 3 and in the
+            original model B Pi. The difference between the two Pis in terms of
+            delivered performance is quite big. The benchmarks were performed via the
+            loopback interface, since most use cases will probably use Redis from within
+            the device and not via the network. The following numbers were obtained using
+            Redis 4.</p>
+            
+            <p>Raspberry Pi 3:</p>
+            
+            <ul>
+            <li>Test 1 : 5 millions writes with 1 million keys (even distribution among keys).  No persistence, no pipelining. 28,000 ops/sec.</li>
+            <li>Test 2: Like test 1 but with pipelining using groups of 8 operations: 80,000 ops/sec.</li>
+            <li>Test 3: Like test 1 but with AOF enabled, fsync 1 sec: 23,000 ops/sec</li>
+            <li>Test 4: Like test 3, but with an AOF rewrite in progress: 21,000 ops/sec</li>
+            </ul>
+            
+            <p>Raspberry Pi 1 model B:</p>
+            
+            <ul>
+            <li>Test 1 : 5 millions writes with 1 million keys (even distribution among keys).  No persistence, no pipelining.  2,200 ops/sec.</li>
+            <li>Test 2: Like test 1 but with pipelining using groups of 8 operations: 8,500 ops/sec.</li>
+            <li>Test 3: Like test 1 but with AOF enabled, fsync 1 sec: 1,820 ops/sec</li>
+            <li>Test 4: Like test 3, but with an AOF rewrite in progress: 1,000 ops/sec</li>
+            </ul>
+            
+            <p>The benchmarks above are referring to simple SET/GET operations. The performance is similar for all the Redis fast operations (not running in linear time). However sorted sets may show slightly slow numbers.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

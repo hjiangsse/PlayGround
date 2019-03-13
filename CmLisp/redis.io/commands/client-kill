@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>CLIENT KILL – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>CLIENT KILL</span>
+            <span class='arg'>[ip:port]</span>
+            <span class='arg'>[ID client-id]</span>
+            <span class='arg'>[TYPE normal|master|slave|pubsub]</span>
+            <span class='arg'>[ADDR ip:port]</span>
+            <span class='arg'>[SKIPME yes/no]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 2.4.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) where N is the number of client connections</p>
+              </div>
+              <p>The <a href="/commands/client-kill">CLIENT KILL</a> command closes a given client connection. Up to Redis 2.8.11 it was possible to close a connection only by client address, using the following form:</p>
+              
+              <pre><code>CLIENT KILL addr:port&#x000A;</code></pre>
+              
+              <p>The <code>ip:port</code> should match a line returned by the <a href="/commands/client-list">CLIENT LIST</a> command (<code>addr</code> field).</p>
+              
+              <p>However starting with Redis 2.8.12 or greater, the command accepts the following
+              form:</p>
+              
+              <pre><code>CLIENT KILL &lt;filter&gt; &lt;value&gt; ... ... &lt;filter&gt; &lt;value&gt;&#x000A;</code></pre>
+              
+              <p>With the new form it is possible to kill clients by different attributes
+              instead of killing just by address. The following filters are available:</p>
+              
+              <ul>
+              <li><code>CLIENT KILL ADDR ip:port</code>. This is exactly the same as the old three-arguments behavior.</li>
+              <li><code>CLIENT KILL ID client-id</code>. Allows to kill a client by its unique <code>ID</code> field, which was introduced in the <a href="/commands/client-list">CLIENT LIST</a> command starting from Redis 2.8.12.</li>
+              <li><code>CLIENT KILL TYPE type</code>, where <em>type</em> is one of <code>normal</code>, <code>master</code>, <code>slave</code> and <code>pubsub</code> (the <code>master</code> type is available from v3.2). This closes the connections of <strong>all the clients</strong> in the specified class. Note that clients blocked into the <a href="/commands/monitor">MONITOR</a> command are considered to belong to the <code>normal</code> class.</li>
+              <li><code>CLIENT KILL SKIPME yes/no</code>. By default this option is set to <code>yes</code>, that is, the client calling the command will not get killed, however setting this option to <code>no</code> will have the effect of also killing the client calling the command.</li>
+              </ul>
+              
+              <p><strong>Note: starting with Redis 5 the project is no longer using the slave word. You can use <code>TYPE replica</code> instead, however the old form is still supported for backward compatibility.</strong></p>
+              
+              <p>It is possible to provide multiple filters at the same time. The command will handle multiple filters via logical AND. For example:</p>
+              
+              <pre><code>CLIENT KILL addr 127.0.0.1:12345 type pubsub&#x000A;</code></pre>
+              
+              <p>is valid and will kill only a pubsub client with the specified address. This format containing multiple filters is rarely useful currently.</p>
+              
+              <p>When the new form is used the command no longer returns <code>OK</code> or an error, but instead the number of killed clients, that may be zero.</p>
+              
+              <span id="client-kill-and-redis-sentinel" class=anchor></span><h2 ><a href="#client-kill-and-redis-sentinel" class=anchor-link>*</a>CLIENT KILL and Redis Sentinel</h2>
+              
+              <p>Recent versions of Redis Sentinel (Redis 2.8.12 or greater) use CLIENT KILL
+              in order to kill clients when an instance is reconfigured, in order to
+              force clients to perform the handshake with one Sentinel again and update
+              its configuration.</p>
+              
+              <span id="notes" class=anchor></span><h2 ><a href="#notes" class=anchor-link>*</a>Notes</h2>
+              
+              <p>Due to the single-threaded nature of Redis, it is not possible to
+              kill a client connection while it is executing a command. From
+              the client point of view, the connection can never be closed
+              in the middle of the execution of a command. However, the client
+              will notice the connection has been closed only when the
+              next command is sent (and results in network error).</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p>When called with the three arguments format:</p>
+              
+              <p><a href="/topics/protocol#simple-string-reply">Simple string reply</a>: <code>OK</code> if the connection exists and has been closed</p>
+              
+              <p>When called with the filter / value format:</p>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>: the number of clients killed.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/bgrewriteaof'>
+                      BGREWRITEAOF
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bgsave'>
+                      BGSAVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-getname'>
+                      CLIENT GETNAME
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-id'>
+                      CLIENT ID
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-kill'>
+                      <strong>CLIENT KILL</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-list'>
+                      CLIENT LIST
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-pause'>
+                      CLIENT PAUSE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-reply'>
+                      CLIENT REPLY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-setname'>
+                      CLIENT SETNAME
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-unblock'>
+                      CLIENT UNBLOCK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command'>
+                      COMMAND
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command-count'>
+                      COMMAND COUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command-getkeys'>
+                      COMMAND GETKEYS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command-info'>
+                      COMMAND INFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-get'>
+                      CONFIG GET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-resetstat'>
+                      CONFIG RESETSTAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-rewrite'>
+                      CONFIG REWRITE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-set'>
+                      CONFIG SET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/dbsize'>
+                      DBSIZE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/debug-object'>
+                      DEBUG OBJECT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/debug-segfault'>
+                      DEBUG SEGFAULT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/flushall'>
+                      FLUSHALL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/flushdb'>
+                      FLUSHDB
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/info'>
+                      INFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lastsave'>
+                      LASTSAVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-doctor'>
+                      MEMORY DOCTOR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-help'>
+                      MEMORY HELP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-malloc-stats'>
+                      MEMORY MALLOC-STATS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-purge'>
+                      MEMORY PURGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-stats'>
+                      MEMORY STATS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-usage'>
+                      MEMORY USAGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/monitor'>
+                      MONITOR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/replicaof'>
+                      REPLICAOF
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/role'>
+                      ROLE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/save'>
+                      SAVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/shutdown'>
+                      SHUTDOWN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/slaveof'>
+                      SLAVEOF
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/slowlog'>
+                      SLOWLOG
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/sync'>
+                      SYNC
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/time'>
+                      TIME
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

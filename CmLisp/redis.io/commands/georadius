@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>GEORADIUS – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>GEORADIUS</span>
+            <span class='arg'>key</span>
+            <span class='arg'>longitude</span>
+            <span class='arg'>latitude</span>
+            <span class='arg'>radius</span>
+            <span class='arg'>m|km|ft|mi</span>
+            <span class='arg'>[WITHCOORD]</span>
+            <span class='arg'>[WITHDIST]</span>
+            <span class='arg'>[WITHHASH]</span>
+            <span class='arg'>[COUNT count]</span>
+            <span class='arg'>[ASC|DESC]</span>
+            <span class='arg'>[STORE key]</span>
+            <span class='arg'>[STOREDIST key]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.2.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N+log(M)) where N is the number of elements inside the bounding box of the circular area delimited by center and radius and M is the number of items inside the index.</p>
+              </div>
+              <p>Return the members of a sorted set populated with geospatial information using <a href="/commands/geoadd">GEOADD</a>, which are within the borders of the area specified with the center location and the maximum distance from the center (the radius).</p>
+              
+              <p>This manual page also covers the <code>GEORADIUS_RO</code> and <code>GEORADIUSBYMEMBER_RO</code> variants (see the section below for more information).</p>
+              
+              <p>The common use case for this command is to retrieve geospatial items near a specified point not farther than a given amount of meters (or other units). This allows, for example, to suggest mobile users of an application nearby places.</p>
+              
+              <p>The radius is specified in one of the following units:</p>
+              
+              <ul>
+              <li><strong>m</strong> for meters.</li>
+              <li><strong>km</strong> for kilometers.</li>
+              <li><strong>mi</strong> for miles.</li>
+              <li><strong>ft</strong> for feet.</li>
+              </ul>
+              
+              <p>The command optionally returns additional information using the following options:</p>
+              
+              <ul>
+              <li><code>WITHDIST</code>: Also return the distance of the returned items from the specified center. The distance is returned in the same unit as the unit specified as the radius argument of the command.</li>
+              <li><code>WITHCOORD</code>: Also return the longitude,latitude coordinates of the matching items.</li>
+              <li><code>WITHHASH</code>: Also return the raw geohash-encoded sorted set score of the item, in the form of a 52 bit unsigned integer. This is only useful for low level hacks or debugging and is otherwise of little interest for the general user.</li>
+              </ul>
+              
+              <p>The command default is to return unsorted items. Two different sorting methods can be invoked using the following two options:</p>
+              
+              <ul>
+              <li><code>ASC</code>: Sort returned items from the nearest to the farthest, relative to the center.</li>
+              <li><code>DESC</code>: Sort returned items from the farthest to the nearest, relative to the center.</li>
+              </ul>
+              
+              <p>By default all the matching items are returned. It is possible to limit the results to the first N matching items by using the <strong>COUNT <code>&lt;count&gt;</code></strong> option. However note that internally the command needs to perform an effort proportional to the number of items matching the specified area, so to query very large areas with a very small <code>COUNT</code> option may be slow even if just a few results are returned. On the other hand <code>COUNT</code> can be a very effective way to reduce bandwidth usage if normally just the first results are used.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>, specifically:</p>
+              
+              <ul>
+              <li>Without any <code>WITH</code> option specified, the command just returns a linear array like [&quot;New York&quot;,&quot;Milan&quot;,&quot;Paris&quot;].</li>
+              <li>If <code>WITHCOORD</code>, <code>WITHDIST</code> or <code>WITHHASH</code> options are specified, the command returns an array of arrays, where each sub-array represents a single item.</li>
+              </ul>
+              
+              <p>When additional information is returned as an array of arrays for each item, the first item in the sub-array is always the name of the returned item. The other information is returned in the following order as successive elements of the sub-array.</p>
+              
+              <ol>
+              <li>The distance from the center as a floating point number, in the same unit specified in the radius.</li>
+              <li>The geohash integer.</li>
+              <li>The coordinates as a two items x,y array (longitude,latitude).</li>
+              </ol>
+              
+              <p>So for example the command <code>GEORADIUS Sicily 15 37 200 km WITHCOORD WITHDIST</code> will return each item in the following way:</p>
+              
+              <pre><code>[&quot;Palermo&quot;,&quot;190.4424&quot;,[&quot;13.361389338970184&quot;,&quot;38.115556395496299&quot;]]&#x000A;</code></pre>
+              
+              <span id="read-only-variants" class=anchor></span><h2 ><a href="#read-only-variants" class=anchor-link>*</a>Read only variants</h2>
+              
+              <p>Since <a href="/commands/georadius">GEORADIUS</a> and <a href="/commands/georadiusbymember">GEORADIUSBYMEMBER</a> have a <code>STORE</code> and <code>STOREDIST</code> option they are technically flagged as writing commands in the Redis command table. For this reason read-only replicas will flag them, and Redis Cluster replicas will redirect them to the master instance even if the connection is in read only mode (See the <a href="/commands/readonly">READONLY</a> command of Redis Cluster).</p>
+              
+              <p>Breaking the compatibility with the past was considered but rejected, at least for Redis 4.0, so instead two read only variants of the commands were added. They are exactly like the original commands but refuse the <code>STORE</code> and <code>STOREDIST</code> options. The two variants are called <code>GEORADIUS_RO</code> and <code>GEORADIUSBYMEMBER_RO</code>, and can safely be used in replicas.</p>
+              
+              <p>Both commands were introduced in Redis 3.2.10 and Redis 4.0.0 respectively.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='80487702e0259f02b48ed3612a30e6c2'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GEOADD Sicily 13.361389 38.115556 &quot;Palermo&quot; 15.087269 37.502669 &quot;Catania&quot;</span>
+                <pre>(integer) 2</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GEORADIUS Sicily 15 37 200 km WITHDIST</span>
+                <pre>1) 1) "Palermo"&#x000A;   2) "190.4424"&#x000A;2) 1) "Catania"&#x000A;   2) "56.4413"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GEORADIUS Sicily 15 37 200 km WITHCOORD</span>
+                <pre>1) 1) "Palermo"&#x000A;   2) 1) "13.36138933897018433"&#x000A;      2) "38.11555639549629859"&#x000A;2) 1) "Catania"&#x000A;   2) 1) "15.08726745843887329"&#x000A;      2) "37.50266842333162032"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GEORADIUS Sicily 15 37 200 km WITHDIST WITHCOORD</span>
+                <pre>1) 1) "Palermo"&#x000A;   2) "190.4424"&#x000A;   3) 1) "13.36138933897018433"&#x000A;      2) "38.11555639549629859"&#x000A;2) 1) "Catania"&#x000A;   2) "56.4413"&#x000A;   3) 1) "15.08726745843887329"&#x000A;      2) "37.50266842333162032"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/geoadd'>
+                      GEOADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/geodist'>
+                      GEODIST
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/geohash'>
+                      GEOHASH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/geopos'>
+                      GEOPOS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/georadius'>
+                      <strong>GEORADIUS</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/georadiusbymember'>
+                      GEORADIUSBYMEMBER
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

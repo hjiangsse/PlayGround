@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>INCR – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>INCR</span>
+            <span class='arg'>key</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 1.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1)</p>
+              </div>
+              <p>Increments the number stored at <code>key</code> by one.
+              If the key does not exist, it is set to <code>0</code> before performing the operation.
+              An error is returned if the key contains a value of the wrong type or contains a
+              string that can not be represented as integer.
+              This operation is limited to 64 bit signed integers.</p>
+              
+              <p><strong>Note</strong>: this is a string operation because Redis does not have a dedicated
+              integer type.
+              The string stored at the key is interpreted as a base-10 <strong>64 bit signed
+              integer</strong> to execute the operation.</p>
+              
+              <p>Redis stores integers in their integer representation, so for string values
+              that actually hold an integer, there is no overhead for storing the string
+              representation of the integer.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>: the value of <code>key</code> after the increment</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='b8742e726f1782ecc8d340f686174ec2'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>SET mykey &quot;10&quot;</span>
+                <pre>"OK"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>INCR mykey</span>
+                <pre>(integer) 11</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GET mykey</span>
+                <pre>"11"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+              
+              
+              <span id="pattern-counter" class=anchor></span><h2 ><a href="#pattern-counter" class=anchor-link>*</a>Pattern: Counter</h2>
+              
+              <p>The counter pattern is the most obvious thing you can do with Redis atomic
+              increment operations.
+              The idea is simply send an <a href="/commands/incr">INCR</a> command to Redis every time an operation
+              occurs.
+              For instance in a web application we may want to know how many page views this
+              user did every day of the year.</p>
+              
+              <p>To do so the web application may simply increment a key every time the user
+              performs a page view, creating the key name concatenating the User ID and a
+              string representing the current date.</p>
+              
+              <p>This simple pattern can be extended in many ways:</p>
+              
+              <ul>
+              <li>It is possible to use <a href="/commands/incr">INCR</a> and <a href="/commands/expire">EXPIRE</a> together at every page view to have
+              a counter counting only the latest N page views separated by less than the
+              specified amount of seconds.</li>
+              <li>A client may use GETSET in order to atomically get the current counter value
+              and reset it to zero.</li>
+              <li>Using other atomic increment/decrement commands like <a href="/commands/decr">DECR</a> or <a href="/commands/incrby">INCRBY</a> it
+              is possible to handle values that may get bigger or smaller depending on the
+              operations performed by the user.
+              Imagine for instance the score of different users in an online game.</li>
+              </ul>
+              
+              <span id="pattern-rate-limiter" class=anchor></span><h2 ><a href="#pattern-rate-limiter" class=anchor-link>*</a>Pattern: Rate limiter</h2>
+              
+              <p>The rate limiter pattern is a special counter that is used to limit the rate at
+              which an operation can be performed.
+              The classical materialization of this pattern involves limiting the number of
+              requests that can be performed against a public API.</p>
+              
+              <p>We provide two implementations of this pattern using <a href="/commands/incr">INCR</a>, where we assume
+              that the problem to solve is limiting the number of API calls to a maximum of
+              <em>ten requests per second per IP address</em>.</p>
+              
+              <span id="pattern-rate-limiter-1" class=anchor></span><h2 ><a href="#pattern-rate-limiter-1" class=anchor-link>*</a>Pattern: Rate limiter 1</h2>
+              
+              <p>The more simple and direct implementation of this pattern is the following:</p>
+              
+              <pre><code>FUNCTION LIMIT_API_CALL(ip)&#x000A;ts = CURRENT_UNIX_TIME()&#x000A;keyname = ip+&quot;:&quot;+ts&#x000A;current = GET(keyname)&#x000A;IF current != NULL AND current &gt; 10 THEN&#x000A;    ERROR &quot;too many requests per second&quot;&#x000A;ELSE&#x000A;    MULTI&#x000A;        INCR(keyname,1)&#x000A;        EXPIRE(keyname,10)&#x000A;    EXEC&#x000A;    PERFORM_API_CALL()&#x000A;END&#x000A;</code></pre>
+              
+              <p>Basically we have a counter for every IP, for every different second.
+              But this counters are always incremented setting an expire of 10 seconds so that
+              they&#39;ll be removed by Redis automatically when the current second is a different
+              one.</p>
+              
+              <p>Note the used of <a href="/commands/multi">MULTI</a> and <a href="/commands/exec">EXEC</a> in order to make sure that we&#39;ll both
+              increment and set the expire at every API call.</p>
+              
+              <span id="pattern-rate-limiter-2" class=anchor></span><h2 ><a href="#pattern-rate-limiter-2" class=anchor-link>*</a>Pattern: Rate limiter 2</h2>
+              
+              <p>An alternative implementation uses a single counter, but is a bit more complex
+              to get it right without race conditions.
+              We&#39;ll examine different variants.</p>
+              
+              <pre><code>FUNCTION LIMIT_API_CALL(ip):&#x000A;current = GET(ip)&#x000A;IF current != NULL AND current &gt; 10 THEN&#x000A;    ERROR &quot;too many requests per second&quot;&#x000A;ELSE&#x000A;    value = INCR(ip)&#x000A;    IF value == 1 THEN&#x000A;        EXPIRE(ip,1)&#x000A;    END&#x000A;    PERFORM_API_CALL()&#x000A;END&#x000A;</code></pre>
+              
+              <p>The counter is created in a way that it only will survive one second, starting
+              from the first request performed in the current second.
+              If there are more than 10 requests in the same second the counter will reach a
+              value greater than 10, otherwise it will expire and start again from 0.</p>
+              
+              <p><strong>In the above code there is a race condition</strong>.
+              If for some reason the client performs the <a href="/commands/incr">INCR</a> command but does not perform
+              the <a href="/commands/expire">EXPIRE</a> the key will be leaked until we&#39;ll see the same IP address again.</p>
+              
+              <p>This can be fixed easily turning the <a href="/commands/incr">INCR</a> with optional <a href="/commands/expire">EXPIRE</a> into a Lua
+              script that is send using the <a href="/commands/eval">EVAL</a> command (only available since Redis version
+              2.6).</p>
+              
+              <pre><code>local current&#x000A;current = redis.call(&quot;incr&quot;,KEYS[1])&#x000A;if tonumber(current) == 1 then&#x000A;    redis.call(&quot;expire&quot;,KEYS[1],1)&#x000A;end&#x000A;</code></pre>
+              
+              <p>There is a different way to fix this issue without using scripting, but using
+              Redis lists instead of counters.
+              The implementation is more complex and uses more advanced features but has the
+              advantage of remembering the IP addresses of the clients currently performing an
+              API call, that may be useful or not depending on the application.</p>
+              
+              <pre><code>FUNCTION LIMIT_API_CALL(ip)&#x000A;current = LLEN(ip)&#x000A;IF current &gt; 10 THEN&#x000A;    ERROR &quot;too many requests per second&quot;&#x000A;ELSE&#x000A;    IF EXISTS(ip) == FALSE&#x000A;        MULTI&#x000A;            RPUSH(ip,ip)&#x000A;            EXPIRE(ip,1)&#x000A;        EXEC&#x000A;    ELSE&#x000A;        RPUSHX(ip,ip)&#x000A;    END&#x000A;    PERFORM_API_CALL()&#x000A;END&#x000A;</code></pre>
+              
+              <p>The <a href="/commands/rpushx">RPUSHX</a> command only pushes the element if the key already exists.</p>
+              
+              <p>Note that we have a race here, but it is not a problem: <a href="/commands/exists">EXISTS</a> may return
+              false but the key may be created by another client before we create it inside
+              the <a href="/commands/multi">MULTI</a> / <a href="/commands/exec">EXEC</a> block.
+              However this race will just miss an API call under rare conditions, so the rate
+              limiting will still work correctly.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/append'>
+                      APPEND
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitcount'>
+                      BITCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitfield'>
+                      BITFIELD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitop'>
+                      BITOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitpos'>
+                      BITPOS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decr'>
+                      DECR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decrby'>
+                      DECRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/get'>
+                      GET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getbit'>
+                      GETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getrange'>
+                      GETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getset'>
+                      GETSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incr'>
+                      <strong>INCR</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrby'>
+                      INCRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrbyfloat'>
+                      INCRBYFLOAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mget'>
+                      MGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mset'>
+                      MSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/msetnx'>
+                      MSETNX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/psetex'>
+                      PSETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/set'>
+                      SET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setbit'>
+                      SETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setex'>
+                      SETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setnx'>
+                      SETNX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setrange'>
+                      SETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/strlen'>
+                      STRLEN
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

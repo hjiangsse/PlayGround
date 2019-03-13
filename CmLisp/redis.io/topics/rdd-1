@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Redis Design Draft 1 -- Redis Design Drafts – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics rdd-1'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="redis-design-draft-1----redis-design-drafts" class=anchor></span><h1 ><a href="#redis-design-draft-1----redis-design-drafts" class=anchor-link>*</a>Redis Design Draft 1 -- Redis Design Drafts</h1>
+            
+            <ul>
+            <li>Author: Salvatore Sanfilippo <code>antirez@gmail.com</code></li>
+            <li>GitHub issue: none</li>
+            </ul>
+            
+            <span id="history-of-revisions" class=anchor></span><h2 ><a href="#history-of-revisions" class=anchor-link>*</a>History of revisions</h2>
+            
+            <p>1.0, 10 April 2013 - Initial draft.</p>
+            
+            <span id="overview" class=anchor></span><h2 ><a href="#overview" class=anchor-link>*</a>Overview</h2>
+            
+            <p>Redis Design Drafts are a way to make the community aware of designs planned
+            in order to modify or evolve Redis. Every new Redis Design Draft is published
+            in the Redis mailing list and announced on Twitter, in the hope to receive
+            feedback before implementing a given feature.</p>
+            
+            <p>The way the community can provide feedback about a RDD is simply writing
+            a message to the Redis mailing list, or commenting in the associated
+            GitHub issue if any.</p>
+            
+            <p>Drafts are published only for features already approved as potentially very
+            interesting for the project by the current Redis project maintainer.</p>
+            
+            <p>The official Redis web site includes a list of published RDDs.</p>
+            
+            <span id="format" class=anchor></span><h2 ><a href="#format" class=anchor-link>*</a>Format</h2>
+            
+            <p>The format of RDDs should reflect the format of this RDD.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

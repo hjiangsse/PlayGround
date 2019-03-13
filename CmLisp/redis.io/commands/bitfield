@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>BITFIELD – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>BITFIELD</span>
+            <span class='arg'>key</span>
+            <span class='arg'>[GET type offset]</span>
+            <span class='arg'>[SET type offset value]</span>
+            <span class='arg'>[INCRBY type offset increment]</span>
+            <span class='arg'>[OVERFLOW WRAP|SAT|FAIL]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.2.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1) for each subcommand specified</p>
+              </div>
+              <p>The command treats a Redis string as a array of bits, and is capable of addressing specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset. In practical terms using this command you can set, for example, a signed 5 bits integer at bit offset 1234 to a specific value, retrieve a 31 bit unsigned integer from offset 4567. Similarly the command handles increments and decrements of the specified integers, providing guaranteed and well specified overflow and underflow behavior that the user can configure.</p>
+              
+              <p><a href="/commands/bitfield">BITFIELD</a> is able to operate with multiple bit fields in the same command call. It takes a list of operations to perform, and returns an array of replies, where each array matches the corresponding operation in the list of arguments.</p>
+              
+              <p>For example the following command increments an 8 bit signed integer at bit offset 100, and gets the value of the 4 bit unsigned integer at bit offset 0:</p>
+              
+              <pre><code>&gt; BITFIELD mykey INCRBY i5 100 1 GET u4 0&#x000A;1) (integer) 1&#x000A;2) (integer) 0&#x000A;</code></pre>
+              
+              <p>Note that:</p>
+              
+              <ol>
+              <li>Addressing with <a href="/commands/get">GET</a> bits outside the current string length (including the case the key does not exist at all), results in the operation to be performed like the missing part all consists of bits set to 0.</li>
+              <li>Addressing with <a href="/commands/set">SET</a> or <a href="/commands/incrby">INCRBY</a> bits outside the current string length will enlarge the string, zero-padding it, as needed, for the minimal length needed, according to the most far bit touched.</li>
+              </ol>
+              
+              <span id="supported-subcommands-and-integer-types" class=anchor></span><h2 ><a href="#supported-subcommands-and-integer-types" class=anchor-link>*</a>Supported subcommands and integer types</h2>
+              
+              <p>The following is the list of supported commands.</p>
+              
+              <ul>
+              <li><strong>GET</strong> <code>&lt;type&gt;</code> <code>&lt;offset&gt;</code> -- Returns the specified bit field.</li>
+              <li><strong>SET</strong> <code>&lt;type&gt;</code> <code>&lt;offset&gt;</code> <code>&lt;value&gt;</code> -- Set the specified bit field and returns its old value.</li>
+              <li><strong>INCRBY</strong> <code>&lt;type&gt;</code> <code>&lt;offset&gt;</code> <code>&lt;increment&gt;</code> -- Increments or decrements (if a negative increment is given) the specified bit field and returns the new value.</li>
+              </ul>
+              
+              <p>There is another subcommand that only changes the behavior of successive
+              <a href="/commands/incrby">INCRBY</a> subcommand calls by setting the overflow behavior:</p>
+              
+              <ul>
+              <li><strong>OVERFLOW</strong> <code>[WRAP|SAT|FAIL]</code></li>
+              </ul>
+              
+              <p>Where an integer type is expected, it can be composed by prefixing with <code>i</code> for signed integers and <code>u</code> for unsigned integers with the number of bits of our integer type. So for example <code>u8</code> is an unsigned integer of 8 bits and <code>i16</code> is a
+              signed integer of 16 bits.</p>
+              
+              <p>The supported types are up to 64 bits for signed integers, and up to 63 bits for
+              unsigned integers. This limitation with unsigned integers is due to the fact
+              that currently the Redis protocol is unable to return 64 bit unsigned integers
+              as replies.</p>
+              
+              <span id="bits-and-positional-offsets" class=anchor></span><h2 ><a href="#bits-and-positional-offsets" class=anchor-link>*</a>Bits and positional offsets</h2>
+              
+              <p>There are two ways in order to specify offsets in the bitfield command.
+              If a number without any prefix is specified, it is used just as a zero based
+              bit offset inside the string.</p>
+              
+              <p>However if the offset is prefixed with a <code>#</code> character, the specified offset
+              is multiplied by the integer type width, so for example:</p>
+              
+              <pre><code>BITFIELD mystring SET i8 #0 100 i8 #1 200&#x000A;</code></pre>
+              
+              <p>Will set the first i8 integer at offset 0 and the second at offset 8.
+              This way you don&#39;t have to do the math yourself inside your client if what
+              you want is a plain array of integers of a given size.</p>
+              
+              <span id="overflow-control" class=anchor></span><h2 ><a href="#overflow-control" class=anchor-link>*</a>Overflow control</h2>
+              
+              <p>Using the <code>OVERFLOW</code> command the user is able to fine-tune the behavior of
+              the increment or decrement overflow (or underflow) by specifying one of
+              the following behaviors:</p>
+              
+              <ul>
+              <li><strong>WRAP</strong>: wrap around, both with signed and unsigned integers. In the case of unsigned integers, wrapping is like performing the operation modulo the maximum value the integer can contain (the C standard behavior). With signed integers instead wrapping means that overflows restart towards the most negative value and underflows towards the most positive ones, so for example if an <code>i8</code> integer is set to the value 127, incrementing it by 1 will yield <code>-128</code>.</li>
+              <li><strong>SAT</strong>: uses saturation arithmetic, that is, on underflows the value is set to the minimum integer value, and on overflows to the maximum integer value. For example incrementing an <code>i8</code> integer starting from value 120 with an increment of 10, will result into the value 127, and further increments will always keep the value at 127. The same happens on underflows, but towards the value is blocked at the most negative value.</li>
+              <li><strong>FAIL</strong>: in this mode no operation is performed on overflows or underflows detected. The corresponding return value is set to NULL to signal the condition to the caller.</li>
+              </ul>
+              
+              <p>Note that each <code>OVERFLOW</code> statement only affects the <a href="/commands/incrby">INCRBY</a> commands
+              that follow it in the list of subcommands, up to the next <code>OVERFLOW</code>
+              statement.</p>
+              
+              <p>By default, <strong>WRAP</strong> is used if not otherwise specified.</p>
+              
+              <pre><code>&gt; BITFIELD mykey incrby u2 100 1 OVERFLOW SAT incrby u2 102 1&#x000A;1) (integer) 1&#x000A;2) (integer) 1&#x000A;&gt; BITFIELD mykey incrby u2 100 1 OVERFLOW SAT incrby u2 102 1&#x000A;1) (integer) 2&#x000A;2) (integer) 2&#x000A;&gt; BITFIELD mykey incrby u2 100 1 OVERFLOW SAT incrby u2 102 1&#x000A;1) (integer) 3&#x000A;2) (integer) 3&#x000A;&gt; BITFIELD mykey incrby u2 100 1 OVERFLOW SAT incrby u2 102 1&#x000A;1) (integer) 0&#x000A;2) (integer) 3&#x000A;</code></pre>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p>The command returns an array with each entry being the corresponding result of
+              the sub command given at the same position. <code>OVERFLOW</code> subcommands don&#39;t count
+              as generating a reply.</p>
+              
+              <p>The following is an example of <code>OVERFLOW FAIL</code> returning NULL.</p>
+              
+              <pre><code>&gt; BITFIELD mykey OVERFLOW FAIL incrby u2 102 1&#x000A;1) (nil)&#x000A;</code></pre>
+              
+              <span id="motivations" class=anchor></span><h2 ><a href="#motivations" class=anchor-link>*</a>Motivations</h2>
+              
+              <p>The motivation for this command is that the ability to store many small integers
+              as a single large bitmap (or segmented over a few keys to avoid having huge keys) is extremely memory efficient, and opens new use cases for Redis to be applied, especially in the field of real time analytics. This use cases are supported by the ability to specify the overflow in a controlled way.</p>
+              
+              <p>Fun fact: Reddit&#39;s 2017 April fools&#39; project <a href="https://reddit.com/r/place">r/place</a> was <a href="https://redditblog.com/2017/04/13/how-we-built-rplace/">built using the Redis BITFIELD command</a> in order to take an in-memory representation of the collaborative canvas.</p>
+              
+              <span id="performance-considerations" class=anchor></span><h2 ><a href="#performance-considerations" class=anchor-link>*</a>Performance considerations</h2>
+              
+              <p>Usually <a href="/commands/bitfield">BITFIELD</a> is a fast command, however note that addressing far bits of currently short strings will trigger an allocation that may be more costly than executing the command on bits already existing.</p>
+              
+              <span id="orders-of-bits" class=anchor></span><h2 ><a href="#orders-of-bits" class=anchor-link>*</a>Orders of bits</h2>
+              
+              <p>The representation used by <a href="/commands/bitfield">BITFIELD</a> considers the bitmap as having the
+              bit number 0 to be the most significant bit of the first byte, and so forth, so
+              for example setting a 5 bits unsigned integer to value 23 at offset 7 into a
+              bitmap previously set to all zeroes, will produce the following representation:</p>
+              
+              <pre><code>+--------+--------+&#x000A;|00000001|01110000|&#x000A;+--------+--------+&#x000A;</code></pre>
+              
+              <p>When offsets and integer sizes are aligned to bytes boundaries, this is the
+              same as big endian, however when such alignment does not exist, its important
+              to also understand how the bits inside a byte are ordered.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/append'>
+                      APPEND
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitcount'>
+                      BITCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitfield'>
+                      <strong>BITFIELD</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitop'>
+                      BITOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitpos'>
+                      BITPOS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decr'>
+                      DECR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decrby'>
+                      DECRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/get'>
+                      GET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getbit'>
+                      GETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getrange'>
+                      GETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getset'>
+                      GETSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incr'>
+                      INCR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrby'>
+                      INCRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrbyfloat'>
+                      INCRBYFLOAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mget'>
+                      MGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mset'>
+                      MSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/msetnx'>
+                      MSETNX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/psetex'>
+                      PSETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/set'>
+                      SET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setbit'>
+                      SETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setex'>
+                      SETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setnx'>
+                      SETNX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setrange'>
+                      SETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/strlen'>
+                      STRLEN
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

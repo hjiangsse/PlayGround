@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>XCLAIM – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>XCLAIM</span>
+            <span class='arg'>key</span>
+            <span class='arg'>group</span>
+            <span class='arg'>consumer</span>
+            <span class='arg'>min-idle-time</span>
+            <span class='arg'>ID [ID ...]</span>
+            <span class='arg'>[IDLE ms]</span>
+            <span class='arg'>[TIME ms-unix-time]</span>
+            <span class='arg'>[RETRYCOUNT count]</span>
+            <span class='arg'>[FORCE]</span>
+            <span class='arg'>[JUSTID]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 5.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(log N) with N being the number of messages in the PEL of the consumer group.</p>
+              </div>
+              <p>In the context of a stream consumer group, this command changes the ownership
+              of a pending message, so that the new owner is the consumer specified as the
+              command argument. Normally this is what happens:</p>
+              
+              <ol>
+              <li>There is a stream with an associated consumer group.</li>
+              <li>Some consumer A reads a message via <a href="/commands/xreadgroup">XREADGROUP</a> from a stream, in the context of that consumer group.</li>
+              <li>As a side effect a pending message entry is created in the pending entries list (PEL) of the consumer group: it means the message was delivered to a given consumer, but it was not yet acknowledged via <a href="/commands/xack">XACK</a>.</li>
+              <li>Then suddenly that consumer fails forever.</li>
+              <li>Other consumers may inspect the list of pending messages, that are stale for quite some time, using the <a href="/commands/xpending">XPENDING</a> command. In order to continue processing such messages, they use <a href="/commands/xclaim">XCLAIM</a> to acquire the ownership of the message and continue.</li>
+              </ol>
+              
+              <p>This dynamic is clearly explained in the <a href="/topics/streams-intro">Stream intro documentation</a>.</p>
+              
+              <p>Note that the message is claimed only if its idle time is greater the minimum idle time we specify when calling <a href="/commands/xclaim">XCLAIM</a>. Because as a side effect <a href="/commands/xclaim">XCLAIM</a> will also reset the idle time (since this is a new attempt at processing the message), two consumers trying to claim a message at the same time will never both succeed: only one will successfully claim the message. This avoids that we process a given message multiple times in a trivial way (yet multiple processing is possible and unavoidable in the general case).</p>
+              
+              <p>Moreover, as a side effect, <a href="/commands/xclaim">XCLAIM</a> will increment the count of attempted
+              deliveries of the message. In this way messages that cannot be processed for
+              some reason, for instance because the consumers crash attempting to process
+              them, will start to have a larger counter and can be detected inside the system.</p>
+              
+              <span id="command-options" class=anchor></span><h2 ><a href="#command-options" class=anchor-link>*</a>Command options</h2>
+              
+              <p>The command has multiple options, however most are mainly for internal use in
+              order to transfer the effects of <a href="/commands/xclaim">XCLAIM</a> or other commands to the AOF file
+              and to propagate the same effects to the slaves, and are unlikely to be
+              useful to normal users:</p>
+              
+              <ol>
+              <li><code>IDLE &lt;ms&gt;</code>: Set the idle time (last time it was delivered) of the message. If IDLE is not specified, an IDLE of 0 is assumed, that is, the time count is reset because the message has now a new owner trying to process it.</li>
+              <li><code>TIME &lt;ms-unix-time&gt;</code>: This is the same as IDLE but instead of a relative amount of milliseconds, it sets the idle time to a specific Unix time (in milliseconds). This is useful in order to rewrite the AOF file generating <a href="/commands/xclaim">XCLAIM</a> commands.</li>
+              <li><code>RETRYCOUNT &lt;count&gt;</code>: Set the retry counter to the specified value. This counter is incremented every time a message is delivered again. Normally <a href="/commands/xclaim">XCLAIM</a> does not alter this counter, which is just served to clients when the XPENDING command is called: this way clients can detect anomalies, like messages that are never processed for some reason after a big number of delivery attempts.</li>
+              <li><code>FORCE</code>: Creates the pending message entry in the PEL even if certain specified IDs are not already in the PEL assigned to a different client. However the message must be exist in the stream, otherwise the IDs of non existing messages are ignored.</li>
+              <li><code>JUSTID</code>: Return just an array of IDs of messages successfully claimed, without returning the actual message.</li>
+              </ol>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>, specifically:</p>
+              
+              <p>The command returns all the messages successfully claimed, in the same format
+              as <a href="/commands/xrange">XRANGE</a>. However if the <code>JUSTID</code> option was specified, only the message
+              IDs are reported, without including the actual message.</p>
+              
+              <p>Example:</p>
+              
+              <pre><code>&gt; XCLAIM mystream mygroup Alice 3600000 1526569498055-0&#x000A;1) 1) 1526569498055-0&#x000A;   2) 1) &quot;message&quot;&#x000A;      2) &quot;orange&quot;&#x000A;</code></pre>
+              
+              <p>In the above example we claim the message with ID <code>1526569498055-0</code>, only if the message is idle for at least one hour without the original consumer or some other consumer making progresses (acknowledging or claiming it), and assigns the ownership to the consumer <code>Alice</code>.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/xack'>
+                      XACK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xadd'>
+                      XADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xclaim'>
+                      <strong>XCLAIM</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xdel'>
+                      XDEL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xgroup'>
+                      XGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xinfo'>
+                      XINFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xlen'>
+                      XLEN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xpending'>
+                      XPENDING
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrange'>
+                      XRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xread'>
+                      XREAD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xreadgroup'>
+                      XREADGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrevrange'>
+                      XREVRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xtrim'>
+                      XTRIM
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

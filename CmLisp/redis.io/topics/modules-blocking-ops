@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Blocking commands in Redis modules – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics modules-blocking-ops'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="blocking-commands-in-redis-modules" class=anchor></span><h1 ><a href="#blocking-commands-in-redis-modules" class=anchor-link>*</a>Blocking commands in Redis modules</h1>
+            
+            <p>Redis has a few blocking commands among the built-in set of commands.
+            One of the most used is <a href="/commands/blpop">BLPOP</a> (or the symmetric <a href="/commands/brpop">BRPOP</a>) which blocks
+            waiting for elements arriving in a list.</p>
+            
+            <p>The interesting fact about blocking commands is that they do not block
+            the whole server, but just the client calling them. Usually the reason to
+            block is that we expect some external event to happen: this can be
+            some change in the Redis data structures like in the <a href="/commands/blpop">BLPOP</a> case, a
+            long computation happening in a thread, to receive some data from the
+            network, and so forth.</p>
+            
+            <p>Redis modules have the ability to implement blocking commands as well,
+            this documentation shows how the API works and describes a few patterns
+            that can be used in order to model blocking commands.</p>
+            
+            <p>NOTE: This API si currently <em>experimental</em>, so it can only be used if
+            the macro <code>REDISMODULE_EXPERIMENTAL_API</code> is defined. This is required because
+            these calls are still not in their final stage of design, so may change
+            in the future, certain parts may be reprecated and so forth.</p>
+            
+            <p>To use this part of the modules API include the modules header like that:</p>
+            
+            <pre><code>#define REDISMODULE_EXPERIMENTAL_API&#x000A;#include &quot;redismodule.h&quot;&#x000A;</code></pre>
+            
+            <span id="how-blocking-and-resuming-works" class=anchor></span><h2 ><a href="#how-blocking-and-resuming-works" class=anchor-link>*</a>How blocking and resuming works.</h2>
+            
+            <p><em>Note: You may want to check the <code>helloblock.c</code> example in the Redis source tree
+            inside the <code>src/modules</code> directory, for a simple to understand example
+            on how the blocking API is applied.</em></p>
+            
+            <p>In Redis modules, commands are implemented by callback functions that
+            are invoked by the Redis core when the specific command is called
+            by the user. Normally the callback terminates its execution sending
+            some reply to the client. Using the following function instead, the
+            function implementing the module command may request that the client
+            is put into the blocked state:</p>
+            
+            <pre><code>RedisModuleBlockedClient *RedisModule_BlockClient(RedisModuleCtx *ctx, RedisModuleCmdFunc reply_callback, RedisModuleCmdFunc timeout_callback, void (*free_privdata)(void*), long long timeout_ms);&#x000A;</code></pre>
+            
+            <p>The function returns a <code>RedisModuleBlockedClient</code> object, which is later
+            used in order to unblock the client. The arguments have the following
+            meaning:</p>
+            
+            <ul>
+            <li><code>ctx</code> is the command execution context as usually in the rest of the API.</li>
+            <li><code>reply_callback</code> is the callback, having the same prototype of a normal command function, that is called when the client is unblocked in order to return a reply to the client.</li>
+            <li><code>timeout_callback</code> is the callback, having the same prototype of a normal command function that is called when the client reached the <code>ms</code> timeout.</li>
+            <li><code>free_privdata</code> is the callback that is called in order to free the private data. Private data is a pointer to some data that is passed between the API used to unblock the client, to the callback that will send the reply to the client. We&#39;ll see how this mechanism works later in this document.</li>
+            <li><code>ms</code> is the timeout in milliseconds. When the timeout is reached, the timeout callback is called and the client is automatically aborted.</li>
+            </ul>
+            
+            <p>Once a client is blocked, it can be unblocked with the following API:</p>
+            
+            <pre><code>int RedisModule_UnblockClient(RedisModuleBlockedClient *bc, void *privdata);&#x000A;</code></pre>
+            
+            <p>The function takes as argument the blocked client object returned by
+            the previous call to <code>RedisModule_BlockClient()</code>, and unblock the client.
+            Immediately before the client gets unblocked, the <code>reply_callback</code> function
+            specified when the client was blocked is called: this function will
+            have access to the <code>privdata</code> pointer used here.</p>
+            
+            <p>IMPORTANT: The above function is thread safe, and can be called from within
+            a thread doing some work in order to implement the command that blocked
+            the client.</p>
+            
+            <p>The <code>privdata</code> data will be freed automatically using the <code>free_privdata</code>
+            callback when the client is unblocked. This is useful <strong>since the reply
+            callback may never be called</strong> in case the client timeouts or disconnects
+            from the server, so it&#39;s important that it&#39;s up to an external function
+            to have the responsibility to free the data passed if needed.</p>
+            
+            <p>To better understand how the API works, we can imagine writing a command
+            that blocks a client for one second, and then send as reply &quot;Hello!&quot;.</p>
+            
+            <p>Note: arity checks and other non important things are not implemented
+            int his command, in order to take the example simple.</p>
+            
+            <pre><code>int Example_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv,&#x000A;                         int argc)&#x000A;{&#x000A;    RedisModuleBlockedClient *bc =&#x000A;        RedisModule_BlockClient(ctx,reply_func,timeout_func,NULL,0);&#x000A;&#x000A;    pthread_t tid;&#x000A;    pthread_create(&amp;tid,NULL,threadmain,bc);&#x000A;&#x000A;    return REDISMODULE_OK;&#x000A;}&#x000A;&#x000A;void *threadmain(void *arg) {&#x000A;    RedisModuleBlockedClient *bc = arg;&#x000A;&#x000A;    sleep(1); /* Wait one second and unblock. */&#x000A;    RedisModule_UnblockClient(bc,NULL);&#x000A;}&#x000A;</code></pre>
+            
+            <p>The above command blocks the client ASAP, spawining a thread that will
+            wait a second and will unblock the client. Let&#39;s check the reply and
+            timeout callbacks, which are in our case very similar, since they
+            just reply the client with a different reply type.</p>
+            
+            <pre><code>int reply_func(RedisModuleCtx *ctx, RedisModuleString **argv,&#x000A;               int argc)&#x000A;{&#x000A;    return RedisModule_ReplyWithSimpleString(ctx,&quot;Hello!&quot;);&#x000A;}&#x000A;&#x000A;int timeout_func(RedisModuleCtx *ctx, RedisModuleString **argv,&#x000A;               int argc)&#x000A;{&#x000A;    return RedisModule_ReplyWithNull(ctx);&#x000A;}&#x000A;</code></pre>
+            
+            <p>The reply callback just sends the &quot;Hello!&quot; string to the client.
+            The important bit here is that the reply callback is called when the
+            client is unblocked from the thread.</p>
+            
+            <p>The timeout command returns <code>NULL</code>, as it often happens with actual
+            Redis blocking commands timing out.</p>
+            
+            <span id="passing-reply-data-when-unblocking" class=anchor></span><h2 ><a href="#passing-reply-data-when-unblocking" class=anchor-link>*</a>Passing reply data when unblocking</h2>
+            
+            <p>The above example is simple to understand but lacks an important
+            real world aspect of an actual blocking command implementation: often
+            the reply function will need to know what to reply to the client,
+            and this information is often provided as the client is unblocked.</p>
+            
+            <p>We could modify the above example so that the thread generates a
+            random number after waiting one second. You can think at it as an
+            actually expansive operation of some kind. Then this random number
+            can be passed to the reply function so that we return it to the command
+            caller. In order to make this working, we modify the functions as follow:</p>
+            
+            <pre><code>void *threadmain(void *arg) {&#x000A;    RedisModuleBlockedClient *bc = arg;&#x000A;&#x000A;    sleep(1); /* Wait one second and unblock. */&#x000A;&#x000A;    long *mynumber = RedisModule_Alloc(sizeof(long));&#x000A;    *mynumber = rand();&#x000A;    RedisModule_UnblockClient(bc,mynumber);&#x000A;}&#x000A;</code></pre>
+            
+            <p>As you can see, now the unblocking call is passing some private data,
+            that is the <code>mynumber</code> pointer, to the reply callback. In order to
+            obtain this private data, the reply callback will use the following
+            fnuction:</p>
+            
+            <pre><code>void *RedisModule_GetBlockedClientPrivateData(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>So our reply callback is modified like that:</p>
+            
+            <pre><code>int reply_func(RedisModuleCtx *ctx, RedisModuleString **argv,&#x000A;               int argc)&#x000A;{&#x000A;    long *mynumber = RedisModule_GetBlockedClientPrivateData(ctx);&#x000A;    /* IMPORTANT: don&#39;t free mynumber here, but in the&#x000A;     * free privdata callback. */&#x000A;    return RedisModule_ReplyWithLongLong(ctx,mynumber);&#x000A;}&#x000A;</code></pre>
+            
+            <p>Note that we also need to pass a <code>free_privdata</code> function when blocking
+            the client with <code>RedisModule_BlockClient()</code>, since the allocated
+            long value must be freed. Our callback will look like the following:</p>
+            
+            <pre><code>void free_privdata(void *privdata) {&#x000A;    RedisModule_Free(privdata);&#x000A;}&#x000A;</code></pre>
+            
+            <p>NOTE: It is important to stress that the private data is best freed in the
+            <code>free_privdata</code> callback becaues the reply function may not be called
+            if the client disconnects or timeout.</p>
+            
+            <p>Also note that the private data is also accessible from the timeout
+            callback, always using the <code>GetBlockedClientPrivateData()</code> API.</p>
+            
+            <span id="aborting-the-blocking-of-a-client" class=anchor></span><h2 ><a href="#aborting-the-blocking-of-a-client" class=anchor-link>*</a>Aborting the blocking of a client</h2>
+            
+            <p>One problem that sometimes arises is that we need to allocate resources
+            in order to implement the non blocking command. So we block the client,
+            then, for example, try to create a thread, but the thread creation function
+            returns an error. What to do in such a condition in order to recover? We
+            don&#39;t want to take the client blocked, nor we want to call <code>UnblockClient()</code>
+            because this will trigger the reply callback to be called.</p>
+            
+            <p>In this case the best thing to do is to use the following function:</p>
+            
+            <pre><code>int RedisModule_AbortBlock(RedisModuleBlockedClient *bc);&#x000A;</code></pre>
+            
+            <p>Practically this is how to use it:</p>
+            
+            <pre><code>int Example_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv,&#x000A;                         int argc)&#x000A;{&#x000A;    RedisModuleBlockedClient *bc =&#x000A;        RedisModule_BlockClient(ctx,reply_func,timeout_func,NULL,0);&#x000A;&#x000A;    pthread_t tid;&#x000A;    if (pthread_create(&amp;tid,NULL,threadmain,bc) != 0) {&#x000A;        RedisModule_AbortBlock(bc);&#x000A;        RedisModule_ReplyWithError(ctx,&quot;Sorry can&#39;t create a thread&quot;);&#x000A;    }&#x000A;&#x000A;    return REDISMODULE_OK;&#x000A;}&#x000A;</code></pre>
+            
+            <p>The client will be unblocked but the reply callback will not be called.</p>
+            
+            <span id="implementing-the-command-reply-and-timeout-callback-using-a-single-function" class=anchor></span><h2 ><a href="#implementing-the-command-reply-and-timeout-callback-using-a-single-function" class=anchor-link>*</a>Implementing the command, reply and timeout callback using a single function</h2>
+            
+            <p>The following functions can be used in order to implement the reply and
+            callback with the same function that implements the primary command
+            function:</p>
+            
+            <pre><code>int RedisModule_IsBlockedReplyRequest(RedisModuleCtx *ctx);&#x000A;int RedisModule_IsBlockedTimeoutRequest(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>So I could rewrite the example command without using a separated
+            reply and timeout callback:</p>
+            
+            <pre><code>int Example_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv,&#x000A;                         int argc)&#x000A;{&#x000A;    if (RedisModule_IsBlockedReplyRequest(ctx)) {&#x000A;        long *mynumber = RedisModule_GetBlockedClientPrivateData(ctx);&#x000A;        return RedisModule_ReplyWithLongLong(ctx,mynumber);&#x000A;    } else if (RedisModule_IsBlockedTimeoutRequest) {&#x000A;        return RedisModule_ReplyWithNull(ctx);&#x000A;    }&#x000A;&#x000A;    RedisModuleBlockedClient *bc =&#x000A;        RedisModule_BlockClient(ctx,reply_func,timeout_func,NULL,0);&#x000A;&#x000A;    pthread_t tid;&#x000A;    if (pthread_create(&amp;tid,NULL,threadmain,bc) != 0) {&#x000A;        RedisModule_AbortBlock(bc);&#x000A;        RedisModule_ReplyWithError(ctx,&quot;Sorry can&#39;t create a thread&quot;);&#x000A;    }&#x000A;&#x000A;    return REDISMODULE_OK;&#x000A;}&#x000A;</code></pre>
+            
+            <p>Functionally is the same but there are people that will prefer the less
+            verbose implementation that concentrates most of the command logic in a
+            single function.</p>
+            
+            <span id="working-on-copies-of-data-inside-a-thread" class=anchor></span><h2 ><a href="#working-on-copies-of-data-inside-a-thread" class=anchor-link>*</a>Working on copies of data inside a thread</h2>
+            
+            <p>An interesting pattern in order to work with threads implementing the
+            slow part of a command, is to work with a copy of the data, so that
+            while some operation is performed in a key, the user continues to see
+            the old version. However when the thread terminated its work, the
+            representations are swapped and the new, processed version, is used.</p>
+            
+            <p>An example of this approach is the
+            <a href="https://github.com/antirez/neural-redis">Neural Redis module</a>
+            where neural networks are trained in different threads while the
+            user can still execute and inspect their older versions.</p>
+            
+            <span id="future-work" class=anchor></span><h2 ><a href="#future-work" class=anchor-link>*</a>Future work</h2>
+            
+            <p>An API is work in progress right now in order to allow Redis modules APIs
+            to be called in a safe way from threads, so that the threaded command
+            can access the data space and do incremental operations.</p>
+            
+            <p>There is no ETA for this feature but it may appear in the course of the
+            Redis 4.0 release at some point.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

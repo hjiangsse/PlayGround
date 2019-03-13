@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>CLUSTER INFO – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>CLUSTER INFO</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1)</p>
+              </div>
+              <p><a href="/commands/cluster-info">CLUSTER INFO</a> provides <a href="/commands/info">INFO</a> style information about Redis Cluster
+              vital parameters. The following is a sample output, followed by the
+              description of each field reported.</p>
+              
+              <pre><code>cluster_state:ok&#x000A;cluster_slots_assigned:16384&#x000A;cluster_slots_ok:16384&#x000A;cluster_slots_pfail:0&#x000A;cluster_slots_fail:0&#x000A;cluster_known_nodes:6&#x000A;cluster_size:3&#x000A;cluster_current_epoch:6&#x000A;cluster_my_epoch:2&#x000A;cluster_stats_messages_sent:1483972&#x000A;cluster_stats_messages_received:1483968&#x000A;</code></pre>
+              
+              <ul>
+              <li><code>cluster_state</code>: State is <code>ok</code> if the node is able to receive queries. <code>fail</code> if there is at least one hash slot which is unbound (no node associated), in error state (node serving it is flagged with FAIL flag), or if the majority of masters can&#39;t be reached by this node.</li>
+              <li><code>cluster_slots_assigned</code>: Number of slots which are associated to some node (not unbound). This number should be 16384 for the node to work properly, which means that each hash slot should be mapped to a node.</li>
+              <li><code>cluster_slots_ok</code>: Number of hash slots mapping to a node not in <code>FAIL</code> or <code>PFAIL</code> state.</li>
+              <li><code>cluster_slots_pfail</code>: Number of hash slots mapping to a node in <code>PFAIL</code> state. Note that those hash slots still work correctly, as long as the <code>PFAIL</code> state is not promoted to <code>FAIL</code> by the failure detection algorithm. <code>PFAIL</code> only means that we are currently not able to talk with the node, but may be just a transient error.</li>
+              <li><code>cluster_slots_fail</code>: Number of hash slots mapping to a node in <code>FAIL</code> state. If this number is not zero the node is not able to serve queries unless <code>cluster-require-full-coverage</code> is set to <code>no</code> in the configuration.</li>
+              <li><code>cluster_known_nodes</code>: The total number of known nodes in the cluster, including nodes in <code>HANDSHAKE</code> state that may not currently be proper members of the cluster.</li>
+              <li><code>cluster_size</code>: The number of master nodes serving at least one hash slot in the cluster.</li>
+              <li><code>cluster_current_epoch</code>: The local <code>Current Epoch</code> variable. This is used in order to create unique increasing version numbers during fail overs.</li>
+              <li><code>cluster_my_epoch</code>: The <code>Config Epoch</code> of the node we are talking with. This is the current configuration version assigned to this node.</li>
+              <li><code>cluster_stats_messages_sent</code>: Number of messages sent via the cluster node-to-node binary bus.</li>
+              <li><code>cluster_stats_messages_received</code>: Number of messages received via the cluster node-to-node binary bus.</li>
+              </ul>
+              
+              <p>More information about the Current Epoch and Config Epoch variables are available in the Redis Cluster specification document.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#bulk-string-reply">Bulk string reply</a>: A map between named fields and values in the form of <code>&lt;field&gt;:&lt;value&gt;</code> lines separated by newlines composed by the two bytes <code>CRLF</code>.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/cluster-addslots'>
+                      CLUSTER ADDSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-count-failure-reports'>
+                      CLUSTER COUNT-FAILURE-REPORTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-countkeysinslot'>
+                      CLUSTER COUNTKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-delslots'>
+                      CLUSTER DELSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-failover'>
+                      CLUSTER FAILOVER
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-forget'>
+                      CLUSTER FORGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-getkeysinslot'>
+                      CLUSTER GETKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-info'>
+                      <strong>CLUSTER INFO</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-keyslot'>
+                      CLUSTER KEYSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-meet'>
+                      CLUSTER MEET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-nodes'>
+                      CLUSTER NODES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicas'>
+                      CLUSTER REPLICAS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicate'>
+                      CLUSTER REPLICATE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-reset'>
+                      CLUSTER RESET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-saveconfig'>
+                      CLUSTER SAVECONFIG
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-set-config-epoch'>
+                      CLUSTER SET-CONFIG-EPOCH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-setslot'>
+                      CLUSTER SETSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slaves'>
+                      CLUSTER SLAVES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slots'>
+                      CLUSTER SLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readonly'>
+                      READONLY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readwrite'>
+                      READWRITE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>XINFO – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>XINFO</span>
+            <span class='arg'>[CONSUMERS key groupname]</span>
+            <span class='arg'>[GROUPS key]</span>
+            <span class='arg'>[STREAM key]</span>
+            <span class='arg'>[HELP]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 5.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) with N being the number of returned items for the subcommands CONSUMERS and GROUPS. The STREAM subcommand is O(log N) with N being the number of items in the stream.</p>
+              </div>
+              <p>This is an introspection command used in order to retrieve different information
+              about the streams and associated consumer groups. Three forms are possible:</p>
+              
+              <ul>
+              <li><code>XINFO STREAM &lt;key&gt;</code></li>
+              </ul>
+              
+              <p>In this form the command returns general information about the stream stored
+              at the specified key.</p>
+              
+              <pre><code>&gt; XINFO STREAM mystream&#x000A; 1) length&#x000A; 2) (integer) 2&#x000A; 3) radix-tree-keys&#x000A; 4) (integer) 1&#x000A; 5) radix-tree-nodes&#x000A; 6) (integer) 2&#x000A; 7) groups&#x000A; 8) (integer) 2&#x000A; 9) last-generated-id&#x000A;10) 1538385846314-0&#x000A;11) first-entry&#x000A;12) 1) 1538385820729-0&#x000A;    2) 1) &quot;foo&quot;&#x000A;       2) &quot;bar&quot;&#x000A;13) last-entry&#x000A;14) 1) 1538385846314-0&#x000A;    2) 1) &quot;field&quot;&#x000A;       2) &quot;value&quot;&#x000A;</code></pre>
+              
+              <p>In the above example you can see that the reported information are the number
+              of elements of the stream, details about the radix tree representing the
+              stream mostly useful for optimization and debugging tasks, the number of
+              consumer groups associated with the stream, the last generated ID that may
+              not be the same as the last entry ID in case some entry was deleted. Finally
+              the full first and last entry in the stream are shown, in order to give some
+              sense about what is the stream content.</p>
+              
+              <ul>
+              <li><code>XINFO GROUPS &lt;key&gt;</code></li>
+              </ul>
+              
+              <p>In this form we just get as output all the consumer groups associated with the
+              stream:</p>
+              
+              <pre><code>&gt; XINFO GROUPS mystream&#x000A;1) 1) name&#x000A;   2) &quot;mygroup&quot;&#x000A;   3) consumers&#x000A;   4) (integer) 2&#x000A;   5) pending&#x000A;   6) (integer) 2&#x000A;2) 1) name&#x000A;   2) &quot;some-other-group&quot;&#x000A;   3) consumers&#x000A;   4) (integer) 1&#x000A;   5) pending&#x000A;   6) (integer) 0&#x000A;</code></pre>
+              
+              <p>For each consumer group listed the command also shows the number of consumers
+              known in that group and the pending messages (delivered but not yet acknowledged)
+              in that group.</p>
+              
+              <ul>
+              <li><code>XINFO CONSUMERS &lt;key&gt; &lt;group&gt;</code></li>
+              </ul>
+              
+              <p>Finally it is possible to get the list of every consumer in a specific consumer
+              group:</p>
+              
+              <pre><code>&gt; XINFO CONSUMERS mystream mygroup&#x000A;1) 1) name&#x000A;   2) &quot;Alice&quot;&#x000A;   3) pending&#x000A;   4) (integer) 1&#x000A;   5) idle&#x000A;   6) (integer) 9104628&#x000A;2) 1) name&#x000A;   2) &quot;Bob&quot;&#x000A;   3) pending&#x000A;   4) (integer) 1&#x000A;   5) idle&#x000A;   6) (integer) 83841983&#x000A;</code></pre>
+              
+              <p>We can see the idle time in milliseconds (last field) together with the
+              consumer name and the number of pending messages for this specific
+              consumer.</p>
+              
+              <p><strong>Note that you should not rely on the fields exact position</strong>, nor on the
+              number of fields, new fields may be added in the future. So a well behaving
+              client should fetch the whole list, and report it to the user, for example,
+              as a dictionary data structure. Low level clients such as C clients where
+              the items will likely be reported back in a linear array should document
+              that the order is undefined.</p>
+              
+              <p>Finally it is possible to get help from the command, in case the user can&#39;t
+              remember the exact syntax, by using the <code>HELP</code> subcommnad:</p>
+              
+              <pre><code>&gt; XINFO HELP&#x000A;1) XINFO &lt;subcommand&gt; arg arg ... arg. Subcommands are:&#x000A;2) CONSUMERS &lt;key&gt; &lt;groupname&gt;  -- Show consumer groups of group &lt;groupname&gt;.&#x000A;3) GROUPS &lt;key&gt;                 -- Show the stream consumer groups.&#x000A;4) STREAM &lt;key&gt;                 -- Show information about the stream.&#x000A;5) HELP&#x000A;</code></pre>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/xack'>
+                      XACK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xadd'>
+                      XADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xclaim'>
+                      XCLAIM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xdel'>
+                      XDEL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xgroup'>
+                      XGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xinfo'>
+                      <strong>XINFO</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xlen'>
+                      XLEN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xpending'>
+                      XPENDING
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrange'>
+                      XRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xread'>
+                      XREAD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xreadgroup'>
+                      XREADGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrevrange'>
+                      XREVRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xtrim'>
+                      XTRIM
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

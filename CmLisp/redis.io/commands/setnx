@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>SETNX – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>SETNX</span>
+            <span class='arg'>key</span>
+            <span class='arg'>value</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 1.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1)</p>
+              </div>
+              <p>Set <code>key</code> to hold string <code>value</code> if <code>key</code> does not exist.
+              In that case, it is equal to <a href="/commands/set">SET</a>.
+              When <code>key</code> already holds a value, no operation is performed.
+              <a href="/commands/setnx">SETNX</a> is short for &quot;<strong>SET</strong> if <strong>N</strong>ot e<strong>X</strong>ists&quot;.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>, specifically:</p>
+              
+              <ul>
+              <li><code>1</code> if the key was set</li>
+              <li><code>0</code> if the key was not set</li>
+              </ul>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='02f580e758074cbd2bc822f4fc7a1135'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>SETNX mykey &quot;Hello&quot;</span>
+                <pre>(integer) 1</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>SETNX mykey &quot;World&quot;</span>
+                <pre>(integer) 0</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GET mykey</span>
+                <pre>"Hello"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+              
+              
+              <span id="design-pattern-locking-with-codesetnxcode" class=anchor></span><h2 ><a href="#design-pattern-locking-with-codesetnxcode" class=anchor-link>*</a>Design pattern: Locking with <code>SETNX</code></h2>
+              
+              <p><strong>Please note that:</strong></p>
+              
+              <ol>
+              <li>The following pattern is discouraged in favor of <a href="http://redis.io/topics/distlock">the Redlock algorithm</a> which is only a bit more complex to implement, but offers better guarantees and is fault tolerant.</li>
+              <li>We document the old pattern anyway because certain existing implementations link to this page as a reference. Moreover it is an interesting example of how Redis commands can be used in order to mount programming primitives.</li>
+              <li>Anyway even assuming a single-instance locking primitive, starting with 2.6.12 it is possible to create a much simpler locking primitive, equivalent to the one discussed here, using the <a href="/commands/set">SET</a> command to acquire the lock, and a simple Lua script to release the lock. The pattern is documented in the <a href="/commands/set">SET</a> command page.</li>
+              </ol>
+              
+              <p>That said, <a href="/commands/setnx">SETNX</a> can be used, and was historically used, as a locking primitive. For example, to acquire the lock of the key <code>foo</code>, the client could try the
+              following:</p>
+              
+              <pre><code>SETNX lock.foo &lt;current Unix time + lock timeout + 1&gt;&#x000A;</code></pre>
+              
+              <p>If <a href="/commands/setnx">SETNX</a> returns <code>1</code> the client acquired the lock, setting the <code>lock.foo</code> key
+              to the Unix time at which the lock should no longer be considered valid.
+              The client will later use <code>DEL lock.foo</code> in order to release the lock.</p>
+              
+              <p>If <a href="/commands/setnx">SETNX</a> returns <code>0</code> the key is already locked by some other client.
+              We can either return to the caller if it&#39;s a non blocking lock, or enter a loop
+              retrying to hold the lock until we succeed or some kind of timeout expires.</p>
+              
+              <span id="handling-deadlocks" class=anchor></span><h3 ><a href="#handling-deadlocks" class=anchor-link>*</a>Handling deadlocks</h3>
+              
+              <p>In the above locking algorithm there is a problem: what happens if a client
+              fails, crashes, or is otherwise not able to release the lock?
+              It&#39;s possible to detect this condition because the lock key contains a UNIX
+              timestamp.
+              If such a timestamp is equal to the current Unix time the lock is no longer
+              valid.</p>
+              
+              <p>When this happens we can&#39;t just call <a href="/commands/del">DEL</a> against the key to remove the lock
+              and then try to issue a <a href="/commands/setnx">SETNX</a>, as there is a race condition here, when
+              multiple clients detected an expired lock and are trying to release it.</p>
+              
+              <ul>
+              <li>C1 and C2 read <code>lock.foo</code> to check the timestamp, because they both received
+              <code>0</code> after executing <a href="/commands/setnx">SETNX</a>, as the lock is still held by C3 that crashed
+              after holding the lock.</li>
+              <li>C1 sends <code>DEL lock.foo</code></li>
+              <li>C1 sends <code>SETNX lock.foo</code> and it succeeds</li>
+              <li>C2 sends <code>DEL lock.foo</code></li>
+              <li>C2 sends <code>SETNX lock.foo</code> and it succeeds</li>
+              <li><strong>ERROR</strong>: both C1 and C2 acquired the lock because of the race condition.</li>
+              </ul>
+              
+              <p>Fortunately, it&#39;s possible to avoid this issue using the following algorithm.
+              Let&#39;s see how C4, our sane client, uses the good algorithm:</p>
+              
+              <ul>
+              <li><p>C4 sends <code>SETNX lock.foo</code> in order to acquire the lock</p></li>
+              <li><p>The crashed client C3 still holds it, so Redis will reply with <code>0</code> to C4.</p></li>
+              <li><p>C4 sends <code>GET lock.foo</code> to check if the lock expired.
+              If it is not, it will sleep for some time and retry from the start.</p></li>
+              <li><p>Instead, if the lock is expired because the Unix time at <code>lock.foo</code> is older
+              than the current Unix time, C4 tries to perform:</p>
+              
+              <pre><code>GETSET lock.foo &lt;current Unix timestamp + lock timeout + 1&gt;&#x000A;</code></pre></li>
+              <li><p>Because of the <a href="/commands/getset">GETSET</a> semantic, C4 can check if the old value stored at
+              <code>key</code> is still an expired timestamp.
+              If it is, the lock was acquired.</p></li>
+              <li><p>If another client, for instance C5, was faster than C4 and acquired the lock
+              with the <a href="/commands/getset">GETSET</a> operation, the C4 <a href="/commands/getset">GETSET</a> operation will return a non
+              expired timestamp.
+              C4 will simply restart from the first step.
+              Note that even if C4 set the key a bit a few seconds in the future this is
+              not a problem.</p></li>
+              </ul>
+              
+              <p>In order to make this locking algorithm more robust, a
+              client holding a lock should always check the timeout didn&#39;t expire before
+              unlocking the key with <a href="/commands/del">DEL</a> because client failures can be complex, not just
+              crashing but also blocking a lot of time against some operations and trying
+              to issue <a href="/commands/del">DEL</a> after a lot of time (when the LOCK is already held by another
+              client).</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/append'>
+                      APPEND
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitcount'>
+                      BITCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitfield'>
+                      BITFIELD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitop'>
+                      BITOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bitpos'>
+                      BITPOS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decr'>
+                      DECR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/decrby'>
+                      DECRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/get'>
+                      GET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getbit'>
+                      GETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getrange'>
+                      GETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/getset'>
+                      GETSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incr'>
+                      INCR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrby'>
+                      INCRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/incrbyfloat'>
+                      INCRBYFLOAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mget'>
+                      MGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/mset'>
+                      MSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/msetnx'>
+                      MSETNX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/psetex'>
+                      PSETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/set'>
+                      SET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setbit'>
+                      SETBIT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setex'>
+                      SETEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setnx'>
+                      <strong>SETNX</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/setrange'>
+                      SETRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/strlen'>
+                      STRLEN
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

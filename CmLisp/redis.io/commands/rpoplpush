@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>RPOPLPUSH – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>RPOPLPUSH</span>
+            <span class='arg'>source</span>
+            <span class='arg'>destination</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 1.2.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1)</p>
+              </div>
+              <p>Atomically returns and removes the last element (tail) of the list stored at
+              <code>source</code>, and pushes the element at the first element (head) of the list stored
+              at <code>destination</code>.</p>
+              
+              <p>For example: consider <code>source</code> holding the list <code>a,b,c</code>, and <code>destination</code>
+              holding the list <code>x,y,z</code>.
+              Executing <a href="/commands/rpoplpush">RPOPLPUSH</a> results in <code>source</code> holding <code>a,b</code> and <code>destination</code>
+              holding <code>c,x,y,z</code>.</p>
+              
+              <p>If <code>source</code> does not exist, the value <code>nil</code> is returned and no operation is
+              performed.
+              If <code>source</code> and <code>destination</code> are the same, the operation is equivalent to
+              removing the last element from the list and pushing it as first element of the
+              list, so it can be considered as a list rotation command.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#bulk-string-reply">Bulk string reply</a>: the element being popped and pushed.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='582dc1ba5f00b3d05fc6b7d885f7b070'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>RPUSH mylist &quot;one&quot;</span>
+                <pre>(integer) 1</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>RPUSH mylist &quot;two&quot;</span>
+                <pre>(integer) 2</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>RPUSH mylist &quot;three&quot;</span>
+                <pre>(integer) 3</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>RPOPLPUSH mylist myotherlist</span>
+                <pre>"three"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>LRANGE mylist 0 -1</span>
+                <pre>1) "one"&#x000A;2) "two"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>LRANGE myotherlist 0 -1</span>
+                <pre>1) "three"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+              
+              
+              <span id="pattern-reliable-queue" class=anchor></span><h2 ><a href="#pattern-reliable-queue" class=anchor-link>*</a>Pattern: Reliable queue</h2>
+              
+              <p>Redis is often used as a messaging server to implement processing of background
+              jobs or other kinds of messaging tasks.
+              A simple form of queue is often obtained pushing values into a list in the
+              producer side, and waiting for this values in the consumer side using <a href="/commands/rpop">RPOP</a>
+              (using polling), or <a href="/commands/brpop">BRPOP</a> if the client is better served by a blocking
+              operation.</p>
+              
+              <p>However in this context the obtained queue is not <em>reliable</em> as messages can
+              be lost, for example in the case there is a network problem or if the consumer
+              crashes just after the message is received but it is still to process.</p>
+              
+              <p><a href="/commands/rpoplpush">RPOPLPUSH</a> (or <a href="/commands/brpoplpush">BRPOPLPUSH</a> for the blocking variant) offers a way to avoid
+              this problem: the consumer fetches the message and at the same time pushes it
+              into a <em>processing</em> list.
+              It will use the <a href="/commands/lrem">LREM</a> command in order to remove the message from the
+              <em>processing</em> list once the message has been processed.</p>
+              
+              <p>An additional client may monitor the <em>processing</em> list for items that remain
+              there for too much time, and will push those timed out items into the queue
+              again if needed.</p>
+              
+              <span id="pattern-circular-list" class=anchor></span><h2 ><a href="#pattern-circular-list" class=anchor-link>*</a>Pattern: Circular list</h2>
+              
+              <p>Using <a href="/commands/rpoplpush">RPOPLPUSH</a> with the same source and destination key, a client can visit
+              all the elements of an N-elements list, one after the other, in <span class="math">O(N) </span>without
+              transferring the full list from the server to the client using a single <a href="/commands/lrange">LRANGE</a>
+              operation.</p>
+              
+              <p>The above pattern works even if the following two conditions:</p>
+              
+              <ul>
+              <li>There are multiple clients rotating the list: they&#39;ll fetch different 
+              elements, until all the elements of the list are visited, and the process 
+              restarts.</li>
+              <li>Even if other clients are actively pushing new items at the end of the list.</li>
+              </ul>
+              
+              <p>The above makes it very simple to implement a system where a set of items must
+              be processed by N workers continuously as fast as possible.
+              An example is a monitoring system that must check that a set of web sites are
+              reachable, with the smallest delay possible, using a number of parallel workers.</p>
+              
+              <p>Note that this implementation of workers is trivially scalable and reliable,
+              because even if a message is lost the item is still in the queue and will be
+              processed at the next iteration.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/blpop'>
+                      BLPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/brpop'>
+                      BRPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/brpoplpush'>
+                      BRPOPLPUSH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lindex'>
+                      LINDEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/linsert'>
+                      LINSERT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/llen'>
+                      LLEN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lpop'>
+                      LPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lpush'>
+                      LPUSH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lpushx'>
+                      LPUSHX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lrange'>
+                      LRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lrem'>
+                      LREM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lset'>
+                      LSET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/ltrim'>
+                      LTRIM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpop'>
+                      RPOP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpoplpush'>
+                      <strong>RPOPLPUSH</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpush'>
+                      RPUSH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/rpushx'>
+                      RPUSHX
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

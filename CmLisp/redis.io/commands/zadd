@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>ZADD – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>ZADD</span>
+            <span class='arg'>key</span>
+            <span class='arg'>[NX|XX]</span>
+            <span class='arg'>[CH]</span>
+            <span class='arg'>[INCR]</span>
+            <span class='arg'>score member [score member ...]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 1.2.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(log(N)) for each item added, where N is the number of elements in the sorted set.</p>
+              </div>
+              <p>Adds all the specified members with the specified scores to the sorted set
+              stored at <code>key</code>.
+              It is possible to specify multiple score / member pairs.
+              If a specified member is already a member of the sorted set, the score is
+              updated and the element reinserted at the right position to ensure the correct
+              ordering.</p>
+              
+              <p>If <code>key</code> does not exist, a new sorted set with the specified members as sole
+              members is created, like if the sorted set was empty. If the key exists but does not hold a sorted set, an error is returned.</p>
+              
+              <p>The score values should be the string representation of a double precision floating point number. <code>+inf</code> and <code>-inf</code> values are valid values as well.</p>
+              
+              <span id="zadd-options-redis-302-or-greater" class=anchor></span><h2 ><a href="#zadd-options-redis-302-or-greater" class=anchor-link>*</a>ZADD options (Redis 3.0.2 or greater)</h2>
+              
+              <p>ZADD supports a list of options, specified after the name of the key and before
+              the first score argument. Options are:</p>
+              
+              <ul>
+              <li><strong>XX</strong>: Only update elements that already exist. Never add elements.</li>
+              <li><strong>NX</strong>: Don&#39;t update already existing elements. Always add new elements.</li>
+              <li><strong>CH</strong>: Modify the return value from the number of new elements added, to the total number of elements changed (CH is an abbreviation of <em>changed</em>). Changed elements are <strong>new elements added</strong> and elements already existing for which <strong>the score was updated</strong>. So elements specified in the command line having the same score as they had in the past are not counted. Note: normally the return value of <a href="/commands/zadd">ZADD</a> only counts the number of new elements added.</li>
+              <li><strong>INCR</strong>: When this option is specified <a href="/commands/zadd">ZADD</a> acts like <a href="/commands/zincrby">ZINCRBY</a>. Only one score-element pair can be specified in this mode.</li>
+              </ul>
+              
+              <span id="range-of-integer-scores-that-can-be-expressed-precisely" class=anchor></span><h2 ><a href="#range-of-integer-scores-that-can-be-expressed-precisely" class=anchor-link>*</a>Range of integer scores that can be expressed precisely</h2>
+              
+              <p>Redis sorted sets use a <em>double 64-bit floating point number</em> to represent the score. In all the architectures we support, this is represented as an <strong>IEEE 754 floating point number</strong>, that is able to represent precisely integer numbers between <code>-(2^53)</code> and <code>+(2^53)</code> included. In more practical terms, all the integers between -9007199254740992 and 9007199254740992 are perfectly representable. Larger integers, or fractions, are internally represented in exponential form, so it is possible that you get only an approximation of the decimal number, or of the very big integer, that you set as score.</p>
+              
+              <span id="sorted-sets-101" class=anchor></span><h2 ><a href="#sorted-sets-101" class=anchor-link>*</a>Sorted sets 101</h2>
+              
+              <p>Sorted sets are sorted by their score in an ascending way.
+              The same element only exists a single time, no repeated elements are
+              permitted. The score can be modified both by <a href="/commands/zadd">ZADD</a> that will update the
+              element score, and as a side effect, its position on the sorted set, and
+              by <a href="/commands/zincrby">ZINCRBY</a> that can be used in order to update the score relatively to its
+              previous value.</p>
+              
+              <p>The current score of an element can be retrieved using the <a href="/commands/zscore">ZSCORE</a> command,
+              that can also be used to verify if an element already exists or not.</p>
+              
+              <p>For an introduction to sorted sets, see the data types page on <a href="/topics/data-types#sorted-sets">sorted
+              sets</a>.</p>
+              
+              <span id="elements-with-the-same-score" class=anchor></span><h2 ><a href="#elements-with-the-same-score" class=anchor-link>*</a>Elements with the same score</h2>
+              
+              <p>While the same element can&#39;t be repeated in a sorted set since every element
+              is unique, it is possible to add multiple different elements <em>having the same score</em>. When multiple elements have the same score, they are <em>ordered lexicographically</em> (they are still ordered by score as a first key, however, locally, all the elements with the same score are relatively ordered lexicographically).</p>
+              
+              <p>The lexicographic ordering used is binary, it compares strings as array of bytes.</p>
+              
+              <p>If the user inserts all the elements in a sorted set with the same score (for example 0), all the elements of the sorted set are sorted lexicographically, and range queries on elements are possible using the command <a href="/commands/zrangebylex">ZRANGEBYLEX</a> (Note: it is also possible to query sorted sets by range of scores using <a href="/commands/zrangebyscore">ZRANGEBYSCORE</a>).</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>, specifically:</p>
+              
+              <ul>
+              <li>The number of elements added to the sorted sets, not including elements
+              already existing for which the score was updated.</li>
+              </ul>
+              
+              <p>If the <a href="/commands/incr">INCR</a> option is specified, the return value will be <a href="/topics/protocol#bulk-string-reply">Bulk string reply</a>:</p>
+              
+              <ul>
+              <li>the new score of <code>member</code> (a double precision floating point number), represented as string.</li>
+              </ul>
+              
+              <span id="history" class=anchor></span><h2 ><a href="#history" class=anchor-link>*</a>History</h2>
+              
+              <ul>
+              <li><code>&gt;= 2.4</code>: Accepts multiple elements.
+              In Redis versions older than 2.4 it was possible to add or update a single
+              member per call.</li>
+              </ul>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='7ae66a1da5958d88609664d98a65f55c'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZADD myzset 1 &quot;one&quot;</span>
+                <pre>(integer) 1</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZADD myzset 1 &quot;uno&quot;</span>
+                <pre>(integer) 1</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZADD myzset 2 &quot;two&quot; 3 &quot;three&quot;</span>
+                <pre>(integer) 2</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZRANGE myzset 0 -1 WITHSCORES</span>
+                <pre>1) "one"&#x000A;2) "1"&#x000A;3) "uno"&#x000A;4) "1"&#x000A;5) "two"&#x000A;6) "2"&#x000A;7) "three"&#x000A;8) "3"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/bzpopmax'>
+                      BZPOPMAX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bzpopmin'>
+                      BZPOPMIN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zadd'>
+                      <strong>ZADD</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zcard'>
+                      ZCARD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zcount'>
+                      ZCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zincrby'>
+                      ZINCRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zinterstore'>
+                      ZINTERSTORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zlexcount'>
+                      ZLEXCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zpopmax'>
+                      ZPOPMAX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zpopmin'>
+                      ZPOPMIN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrange'>
+                      ZRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrangebylex'>
+                      ZRANGEBYLEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrangebyscore'>
+                      ZRANGEBYSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrank'>
+                      ZRANK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrem'>
+                      ZREM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zremrangebylex'>
+                      ZREMRANGEBYLEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zremrangebyrank'>
+                      ZREMRANGEBYRANK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zremrangebyscore'>
+                      ZREMRANGEBYSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrange'>
+                      ZREVRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrangebylex'>
+                      ZREVRANGEBYLEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrangebyscore'>
+                      ZREVRANGEBYSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrank'>
+                      ZREVRANK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zscan'>
+                      ZSCAN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zscore'>
+                      ZSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zunionstore'>
+                      ZUNIONSTORE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

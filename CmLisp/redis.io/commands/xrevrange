@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>XREVRANGE – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>XREVRANGE</span>
+            <span class='arg'>key</span>
+            <span class='arg'>end</span>
+            <span class='arg'>start</span>
+            <span class='arg'>[COUNT count]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 5.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) with N being the number of elements returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).</p>
+              </div>
+              <p>This command is exactly like <a href="/commands/xrange">XRANGE</a>, but with the notable difference of
+              returning the entries in reverse order, and also taking the start-end
+              range in reverse order: in <a href="/commands/xrevrange">XREVRANGE</a> you need to state the <em>end</em> ID
+              and later the <em>start</em> ID, and the command will produce all the element
+              between (or exactly like) the two IDs, starting from the <em>end</em> side.</p>
+              
+              <p>So for instance, to get all the elements from the higher ID to the lower
+              ID one could use:</p>
+              
+              <pre><code>XREVRANGE somestream + -&#x000A;</code></pre>
+              
+              <p>Similarly to get just the last element added into the stream it is
+              enough to send:</p>
+              
+              <pre><code>XREVRANGE somestream + - COUNT 1&#x000A;</code></pre>
+              
+              <span id="iterating-with-xrevrange" class=anchor></span><h2 ><a href="#iterating-with-xrevrange" class=anchor-link>*</a>Iterating with XREVRANGE</h2>
+              
+              <p>Like <a href="/commands/xrange">XRANGE</a> this command can be used in order to iterate the whole
+              stream content, however note that in this case, the next command calls
+              should use the ID of the last entry, with the sequence number decremneted
+              by one. However if the sequence number is already 0, the time part of the
+              ID should be decremented by 1, and the sequence part should be set to
+              the maxium possible sequence number, that is, 18446744073709551615, or
+              could be omitted at all, and the command will automatically assume it to
+              be such a number (see <a href="/commands/xrange">XRANGE</a> for more info about incomplete IDs).</p>
+              
+              <p>Example:</p>
+              
+              <pre><code>&gt; XREVRANGE writers + - COUNT 2&#x000A;1) 1) 1526985723355-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Ngozi&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Adichie&quot;&#x000A;2) 1) 1526985712947-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Agatha&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Christie&quot;&#x000A;</code></pre>
+              
+              <p>The last ID returned is <code>1526985712947-0</code>, since the sequence number is
+              already zero, the next ID I&#39;ll use instead of the <code>+</code> special ID will
+              be <code>1526985712946-18446744073709551615</code>, or just <code>18446744073709551615</code>:</p>
+              
+              <pre><code>&gt; XREVRANGE writers 1526985712946-18446744073709551615 - COUNT 2&#x000A;1) 1) 1526985691746-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Toni&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Morris&quot;&#x000A;2) 1) 1526985685298-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Jane&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Austen&quot;&#x000A;</code></pre>
+              
+              <p>And so for until the iteration is complete and no result is returned.
+              See the <a href="/commands/xrange">XRANGE</a> page about iterating for more information.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>, specifically:</p>
+              
+              <p>The command returns the entries with IDs matching the specified range,
+              from the higher ID to the lower ID matching.
+              The returned entries are complete, that means that the ID and all the fields
+              they are composed are returned. Moreover the entries are returned with
+              their fields and values in the exact same order as <a href="/commands/xadd">XADD</a> added them.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='11cc537d3569d9e7e32ec4929f85cd0e'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Virginia surname Woolf</span>
+                <pre>"1552459517070-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Jane surname Austen</span>
+                <pre>"1552459517070-1"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Toni surname Morris</span>
+                <pre>"1552459517071-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Agatha surname Christie</span>
+                <pre>"1552459517072-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Ngozi surname Adichie</span>
+                <pre>"1552459517074-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XLEN writers</span>
+                <pre>(integer) 5</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XREVRANGE writers + - COUNT 1</span>
+                <pre>1) 1) "1552459517074-0"&#x000A;   2) 1) "name"&#x000A;      2) "Ngozi"&#x000A;      3) "surname"&#x000A;      4) "Adichie"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/xack'>
+                      XACK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xadd'>
+                      XADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xclaim'>
+                      XCLAIM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xdel'>
+                      XDEL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xgroup'>
+                      XGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xinfo'>
+                      XINFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xlen'>
+                      XLEN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xpending'>
+                      XPENDING
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrange'>
+                      XRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xread'>
+                      XREAD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xreadgroup'>
+                      XREADGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrevrange'>
+                      <strong>XREVRANGE</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xtrim'>
+                      XTRIM
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

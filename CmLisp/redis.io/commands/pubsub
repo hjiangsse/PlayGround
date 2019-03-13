@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>PUBSUB – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>PUBSUB</span>
+            <span class='arg'>subcommand</span>
+            <span class='arg'>[argument [argument ...]]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 2.8.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) for the CHANNELS subcommand, where N is the number of active channels, and assuming constant time pattern matching (relatively short channels and patterns). O(N) for the NUMSUB subcommand, where N is the number of requested channels. O(1) for the NUMPAT subcommand.</p>
+              </div>
+              <p>The PUBSUB command is an introspection command that allows to inspect the
+              state of the Pub/Sub subsystem. It is composed of subcommands that are
+              documented separately. The general form is:</p>
+              
+              <pre><code>PUBSUB &lt;subcommand&gt; ... args ...&#x000A;</code></pre>
+              
+              <span id="pubsub-channels-pattern" class=anchor></span><h1 ><a href="#pubsub-channels-pattern" class=anchor-link>*</a>PUBSUB CHANNELS [pattern]</h1>
+              
+              <p>Lists the currently <em>active channels</em>. An active channel is a Pub/Sub channel
+              with one or more subscribers (not including clients subscribed to patterns).</p>
+              
+              <p>If no <code>pattern</code> is specified, all the channels are listed, otherwise if pattern
+              is specified only channels matching the specified glob-style pattern are
+              listed.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>: a list of active channels, optionally matching the specified pattern.</p>
+              
+              <span id="codepubsub-numsub-channel-1--channel-ncode" class=anchor></span><h1 ><a href="#codepubsub-numsub-channel-1--channel-ncode" class=anchor-link>*</a><code>PUBSUB NUMSUB [channel-1 ... channel-N]</code></h1>
+              
+              <p>Returns the number of subscribers (not counting clients subscribed to patterns)
+              for the specified channels.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>: a list of channels and number of subscribers for every channel. The format is channel, count, channel, count, ..., so the list is flat.
+              The order in which the channels are listed is the same as the order of the
+              channels specified in the command call.</p>
+              
+              <p>Note that it is valid to call this command without channels. In this case it
+              will just return an empty list.</p>
+              
+              <span id="codepubsub-numpatcode" class=anchor></span><h1 ><a href="#codepubsub-numpatcode" class=anchor-link>*</a><code>PUBSUB NUMPAT</code></h1>
+              
+              <p>Returns the number of subscriptions to patterns (that are performed using the
+              <a href="/commands/psubscribe">PSUBSCRIBE</a> command). Note that this is not just the count of clients subscribed
+              to patterns but the total number of patterns all the clients are subscribed to.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>: the number of patterns all the clients are subscribed to.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <span id="related-topics" class=anchor></span><h2 ><a href="#related-topics" class=anchor-link>*</a>Related topics</h2>
+                <ul>
+                  <li>
+                    <a href='/topics/pubsub'>Pub/Sub</a>
+                  </li>
+                </ul>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/psubscribe'>
+                      PSUBSCRIBE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/publish'>
+                      PUBLISH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pubsub'>
+                      <strong>PUBSUB</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/punsubscribe'>
+                      PUNSUBSCRIBE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/subscribe'>
+                      SUBSCRIBE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/unsubscribe'>
+                      UNSUBSCRIBE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

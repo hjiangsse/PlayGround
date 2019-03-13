@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Redis Administration – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics admin'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="redis-administration" class=anchor></span><h1 ><a href="#redis-administration" class=anchor-link>*</a>Redis Administration</h1>
+            
+            <p>This page contains topics related to the administration of Redis instances.
+            Every topic is self contained in form of a FAQ. New topics will be created in the future.</p>
+            
+            <span id="redis-setup-hints" class=anchor></span><h2 ><a href="#redis-setup-hints" class=anchor-link>*</a>Redis setup hints</h2>
+            
+            <ul>
+            <li>We suggest deploying Redis using the <strong>Linux operating system</strong>. Redis is also tested heavily on OS X, and tested from time to time on FreeBSD and OpenBSD systems. However Linux is where we do all the major stress testing, and where most production deployments are running.</li>
+            <li>Make sure to set the Linux kernel <strong>overcommit memory setting to 1</strong>. Add <code>vm.overcommit_memory = 1</code> to <code>/etc/sysctl.conf</code> and then reboot or run the command <code>sysctl vm.overcommit_memory=1</code> for this to take effect immediately.</li>
+            <li>Make sure to disable Linux kernel feature <em>transparent huge pages</em>, it will affect greatly both memory usage and latency in a negative way. This is accomplished with the following command: <code>echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</code>.</li>
+            <li>Make sure to <strong>setup some swap</strong> in your system (we suggest as much as swap as memory). If Linux does not have swap and your Redis instance accidentally consumes too much memory, either Redis will crash for out of memory or the Linux kernel OOM killer will kill the Redis process. When swapping is enabled Redis will work in a bad way, but you&#39;ll likely notice the latency spikes and do something before it&#39;s too late.</li>
+            <li>Set an explicit <code>maxmemory</code> option limit in your instance in order to make sure that the instance will report errors instead of failing when the system memory limit is near to be reached. Note that maxmemory should be set calculating the overhead that Redis has, other than data, and the fragmentation overhead. So if you think you have 10 GB of free memory, set it to 8 or 9.</li>
+            <li>If you are using Redis in a very write-heavy application, while saving an RDB file on disk or rewriting the AOF log <strong>Redis may use up to 2 times the memory normally used</strong>. The additional memory used is proportional to the number of memory pages modified by writes during the saving process, so it is often proportional to the number of keys (or aggregate types items) touched during this time. Make sure to size your memory accordingly.</li>
+            <li>Use <code>daemonize no</code> when running under daemontools.</li>
+            <li>Make sure to setup some non trivial replication backlog, which must be set in proportion to the amount of memory Redis is using. In a 20 GB instance it does not make sense to have just 1 MB of backlog. The backlog will allow replicas to resynchronize with the master instance much easily.</li>
+            <li>Even if you have persistence disabled, Redis will need to perform RDB saves if you use replication, unless you use the new diskless replication feature. If you have no disk usage on the master, make sure to enable diskless replication.</li>
+            <li>If you are using replication, make sure that either your master has persistence enabled, or that it does not automatically restarts on crashes: replicas will try to be an exact copy of the master, so if a master restarts with an empty data set, replicas will be wiped as well.</li>
+            <li>By default Redis does not require <strong>any authentication and listens to all the network interfaces</strong>. This is a big security issue if you leave Redis exposed on the internet or other places where attackers can reach it. See for example <a href="http://antirez.com/news/96">this attack</a> to see how dangerous it can be. Please check our <a href="/topics/security">security page</a> and the <a href="/topics/quickstart">quick start</a> for information about how to secure Redis.</li>
+            <li><code>LATENCY DOCTOR</code> and <a href="/commands/memory-doctor">MEMORY DOCTOR</a> are your friends.</li>
+            </ul>
+            
+            <span id="running-redis-on-ec2" class=anchor></span><h2 ><a href="#running-redis-on-ec2" class=anchor-link>*</a>Running Redis on EC2</h2>
+            
+            <ul>
+            <li>Use HVM based instances, not PV based instances.</li>
+            <li>Don&#39;t use old instances families, for example: use m3.medium with HVM instead of m1.medium with PV.</li>
+            <li>The use of Redis persistence with <strong>EC2 EBS volumes</strong> needs to be handled with care since sometimes EBS volumes have high latency characteristics.</li>
+            <li>You may want to try the new <strong>diskless replication</strong> if you have issues when replicas are synchronizing with the master.</li>
+            </ul>
+            
+            <span id="upgrading-or-restarting-a-redis-instance-without-downtime" class=anchor></span><h2 ><a href="#upgrading-or-restarting-a-redis-instance-without-downtime" class=anchor-link>*</a>Upgrading or restarting a Redis instance without downtime</h2>
+            
+            <p>Redis is designed to be a very long running process in your server.
+            For instance many configuration options can be modified without any kind of restart using the <a href="/commands/config-set">CONFIG SET command</a>.</p>
+            
+            <p>Starting from Redis 2.2 it is even possible to switch from AOF to RDB snapshots persistence or the other way around without restarting Redis. Check the output of the <code>CONFIG GET *</code> command for more information.</p>
+            
+            <p>However from time to time a restart is mandatory, for instance in order to upgrade the Redis process to a newer version, or when you need to modify some configuration parameter that is currently not supported by the CONFIG command.</p>
+            
+            <p>The following steps provide a very commonly used way in order to avoid any downtime.</p>
+            
+            <ul>
+            <li>Setup your new Redis instance as a slave for your current Redis instance. In order to do so you need a different server, or a server that has enough RAM to keep two instances of Redis running at the same time.</li>
+            <li>If you use a single server, make sure that the slave is started in a different port than the master instance, otherwise the slave will not be able to start at all.</li>
+            <li>Wait for the replication initial synchronization to complete (check the slave log file).</li>
+            <li>Make sure using INFO that there are the same number of keys in the master and in the slave. Check with redis-cli that the slave is working as you wish and is replying to your commands.</li>
+            <li>Allow writes to the slave using <strong>CONFIG SET slave-read-only no</strong></li>
+            <li>Configure all your clients in order to use the new instance (that is, the slave). Note that you may want to use the <a href="/commands/client-pause">CLIENT PAUSE</a> command in order to make sure that no client can write to the old master during the switch.</li>
+            <li>Once you are sure that the master is no longer receiving any query (you can check this with the <a href="/commands/monitor">MONITOR command</a>), elect the slave to master using the <strong>SLAVEOF NO ONE</strong> command, and shut down your master.</li>
+            </ul>
+            
+            <p>If you are using <a href="/topics/sentinel">Redis Sentinel</a> or <a href="/topics/cluster-tutorial">Redis Cluster</a>, the simplest way in order to upgrade to newer versions, is to upgrade a slave after the other, then perform a manual fail-over in order to promote one of the upgraded replicas as master, and finally promote the last slave.</p>
+            
+            <p>Note however that Redis Cluster 4.0 is not compatible with Redis Cluster 3.2 at cluster bus protocol level, so a mass restart is needed in this case. However Redis 5 cluster bus is backward compatible with Redis 4.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

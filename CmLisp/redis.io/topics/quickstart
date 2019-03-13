@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Redis Quick Start – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics quickstart'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="redis-quick-start" class=anchor></span><h1 ><a href="#redis-quick-start" class=anchor-link>*</a>Redis Quick Start</h1>
+            
+            <p>This is a quick start document that targets people without prior experience
+            with Redis. Reading this document will help you:</p>
+            
+            <ul>
+            <li>Download and compile Redis to start hacking.</li>
+            <li>Use <strong>redis-cli</strong> to access the server.</li>
+            <li>Use Redis from your application.</li>
+            <li>Understand how Redis persistence works.</li>
+            <li>Install Redis more properly.</li>
+            <li>Find out what to read next to understand more about Redis.</li>
+            </ul>
+            
+            <span id="installing-redis" class=anchor></span><h1 ><a href="#installing-redis" class=anchor-link>*</a>Installing Redis</h1>
+            
+            <p>The suggested way of installing Redis is compiling it from sources as
+            Redis has no dependencies other than a working GCC compiler and libc.
+            Installing it using the package manager of your Linux distribution is somewhat
+            discouraged as usually the available version is not the latest.</p>
+            
+            <p>You can either download the latest Redis tar ball from the <a href="http://redis.io">redis.io</a> web site, or you can alternatively use this special URL that always points to the latest stable Redis version, that is, <a href="http://download.redis.io/redis-stable.tar.gz">http://download.redis.io/redis-stable.tar.gz</a>.</p>
+            
+            <p>In order to compile Redis follow this simple steps:</p>
+            
+            <pre><code>wget http://download.redis.io/redis-stable.tar.gz&#x000A;tar xvzf redis-stable.tar.gz&#x000A;cd redis-stable&#x000A;make&#x000A;</code></pre>
+            
+            <p>At this point you can try if your build works correctly by typing <strong>make test</strong>, but this is an optional step. After the compilation the <strong>src</strong> directory inside the Redis distribution is populated with the different executables that are part of Redis:</p>
+            
+            <ul>
+            <li><strong>redis-server</strong> is the Redis Server itself.</li>
+            <li><strong>redis-sentinel</strong> is the Redis Sentinel executable (monitoring and failover).</li>
+            <li><strong>redis-cli</strong> is the command line interface utility to talk with Redis.</li>
+            <li><strong>redis-benchmark</strong> is used to check Redis performances.</li>
+            <li><strong>redis-check-aof</strong> and <strong>redis-check-dump</strong> are useful in the rare event of corrupted data files.</li>
+            </ul>
+            
+            <p>It is a good idea to copy both the Redis server and the command line interface in proper places, either manually using the following commands:</p>
+            
+            <ul>
+            <li>sudo cp src/redis-server /usr/local/bin/</li>
+            <li>sudo cp src/redis-cli /usr/local/bin/</li>
+            </ul>
+            
+            <p>Or just using <code>sudo make install</code>.</p>
+            
+            <p>In the following documentation we assume that /usr/local/bin is in your PATH environment variable so that you can execute both the binaries without specifying the full path.</p>
+            
+            <span id="starting-redis" class=anchor></span><h1 ><a href="#starting-redis" class=anchor-link>*</a>Starting Redis</h1>
+            
+            <p>The simplest way to start the Redis server is just executing the <strong>redis-server</strong> binary without any argument.</p>
+            
+            <pre><code>$ redis-server&#x000A;[28550] 01 Aug 19:29:28 # Warning: no config file specified, using the default config. In order to specify a config file use &#39;redis-server /path/to/redis.conf&#39;&#x000A;[28550] 01 Aug 19:29:28 * Server started, Redis version 2.2.12&#x000A;[28550] 01 Aug 19:29:28 * The server is now ready to accept connections on port 6379&#x000A;... more logs ...&#x000A;</code></pre>
+            
+            <p>In the above example Redis was started without any explicit configuration file, so all the parameters will use the internal default.
+            This is perfectly fine if you are starting Redis just to play a bit with it or for development, but for production environments you should use a configuration file.</p>
+            
+            <p>In order to start Redis with a configuration file use the full path of the configuration file as first argument, like in the following example: <strong>redis-server /etc/redis.conf</strong>. You should use the <code>redis.conf</code> file included in the root directory of the Redis source code distribution as a template to write your configuration file.</p>
+            
+            <span id="check-if-redis-is-working" class=anchor></span><h1 ><a href="#check-if-redis-is-working" class=anchor-link>*</a>Check if Redis is working</h1>
+            
+            <p>External programs talk to Redis using a TCP socket and a Redis specific protocol. This protocol is implemented in the Redis client libraries for the different programming languages. However to make hacking with Redis simpler Redis provides a command line utility that can be used to send commands to Redis. This program is called <strong>redis-cli</strong>.</p>
+            
+            <p>The first thing to do in order to check if Redis is working properly is sending a <strong>PING</strong> command using redis-cli:</p>
+            
+            <pre><code>$ redis-cli ping&#x000A;PONG&#x000A;</code></pre>
+            
+            <p>Running <strong>redis-cli</strong> followed by a command name and its arguments will send this command to the Redis instance running on localhost at port 6379. You can change the host and port used by redis-cli, just try the --help option to check the usage information.</p>
+            
+            <p>Another interesting way to run redis-cli is without arguments: the program will start in interactive mode, you can type different commands and see their replies.</p>
+            
+            <pre><code>$ redis-cli                                                                &#x000A;redis 127.0.0.1:6379&gt; ping&#x000A;PONG&#x000A;redis 127.0.0.1:6379&gt; set mykey somevalue&#x000A;OK&#x000A;redis 127.0.0.1:6379&gt; get mykey&#x000A;&quot;somevalue&quot;&#x000A;</code></pre>
+            
+            <p>At this point you are able to talk with Redis. It is the right time to pause a bit with this tutorial and start the <a href="http://redis.io/topics/data-types-intro">fifteen minutes introduction to Redis data types</a> in order to learn a few Redis commands. Otherwise if you already know a few basic Redis commands you can keep reading.</p>
+            
+            <span id="securing-redis" class=anchor></span><h1 ><a href="#securing-redis" class=anchor-link>*</a>Securing Redis</h1>
+            
+            <p>By default Redis binds to <strong>all the interfaces</strong> and has no authentication at
+            all. If you use Redis into a very controlled environment, separated from the
+            external internet and in general from attackers, that&#39;s fine. However if Redis
+            without any hardening is exposed to the internet, it is a big security
+            concern. If you are not 100% sure your environment is secured properly, please
+            check the following steps in order to make Redis more secure, which are
+            enlisted in order of increased security.</p>
+            
+            <ol>
+            <li>Make sure the port Redis uses to listen for connections (by default 6379 and additionally 16379 if you run Redis in cluster mode, plus 26379 for Sentinel) is firewalled, so that it is not possible to contact Redis from the outside world.</li>
+            <li>Use a configuration file where the <code>bind</code> directive is set in order to guarantee that Redis listens just in as little network interfaces you are using. For example only the loopback interface (127.0.0.1) if you are accessing Redis just locally from the same computer, and so forth.</li>
+            <li>Use the <code>requirepass</code> option in order to add an additional layer of security so that clients will require to authenticate using the <a href="/commands/auth">AUTH</a> command.</li>
+            <li>Use <a href="http://www.tarsnap.com/spiped.html">spiped</a> or another SSL tunnelling software in order to encrypt traffic between Redis servers and Redis clients if your environment requires encryption.</li>
+            </ol>
+            
+            <p>Note that a Redis exposed to the internet without any security <a href="http://antirez.com/news/96">is very simple to exploit</a>, so make sure you understand the above and apply <strong>at least</strong> a firewalling layer. After the firewalling is in place, try to connect with <code>redis-cli</code> from an external host in order to prove yourself the instance is actually not reachable.</p>
+            
+            <span id="using-redis-from-your-application" class=anchor></span><h1 ><a href="#using-redis-from-your-application" class=anchor-link>*</a>Using Redis from your application</h1>
+            
+            <p>Of course using Redis just from the command line interface is not enough as
+            the goal is to use it from your application. In order to do so you need to
+            download and install a Redis client library for your programming language.
+            You&#39;ll find a <a href="http://redis.io/clients">full list of clients for different languages in this page</a>.</p>
+            
+            <p>For instance if you happen to use the Ruby programming language our best advice
+            is to use the <a href="https://github.com/redis/redis-rb">Redis-rb</a> client.
+            You can install it using the command <strong>gem install redis</strong>.</p>
+            
+            <p>These instructions are Ruby specific but actually many library clients for
+            popular languages look quite similar: you create a Redis object and execute
+            commands calling methods. A short interactive example using Ruby:</p>
+            
+            <pre><code>&gt;&gt; require &#39;rubygems&#39;&#x000A;=&gt; false&#x000A;&gt;&gt; require &#39;redis&#39;&#x000A;=&gt; true&#x000A;&gt;&gt; r = Redis.new&#x000A;=&gt; #&lt;Redis client v2.2.1 connected to redis://127.0.0.1:6379/0 (Redis v2.3.8)&gt;&#x000A;&gt;&gt; r.ping&#x000A;=&gt; &quot;PONG&quot;&#x000A;&gt;&gt; r.set(&#39;foo&#39;,&#39;bar&#39;)&#x000A;=&gt; &quot;OK&quot;&#x000A;&gt;&gt; r.get(&#39;foo&#39;)&#x000A;=&gt; &quot;bar&quot;&#x000A;</code></pre>
+            
+            <span id="redis-persistence" class=anchor></span><h1 ><a href="#redis-persistence" class=anchor-link>*</a>Redis persistence</h1>
+            
+            <p>You can learn <a href="http://redis.io/topics/persistence">how Redis persistence works on this page</a>, however what is important to understand for a quick start is that by default, if you start Redis with the default configuration, Redis will spontaneously save the dataset only from time to time (for instance after at least five minutes if you have at least 100 changes in your data), so if you want your database to persist and be reloaded after a restart make sure to call the <strong>SAVE</strong> command manually every time you want to force a data set snapshot. Otherwise make sure to shutdown the database using the <strong>SHUTDOWN</strong> command:</p>
+            
+            <pre><code>$ redis-cli shutdown&#x000A;</code></pre>
+            
+            <p>This way Redis will make sure to save the data on disk before quitting.
+            Reading the <a href="http://redis.io/topics/persistence">persistence page</a> is strongly suggested in order to better understand how Redis persistence works.</p>
+            
+            <span id="installing-redis-more-properly" class=anchor></span><h1 ><a href="#installing-redis-more-properly" class=anchor-link>*</a>Installing Redis more properly</h1>
+            
+            <p>Running Redis from the command line is fine just to hack a bit with it or for
+            development. However at some point you&#39;ll have some actual application to run
+            on a real server. For this kind of usage you have two different choices:</p>
+            
+            <ul>
+            <li>Run Redis using screen.</li>
+            <li>Install Redis in your Linux box in a proper way using an init script, so that after a restart everything will start again properly.</li>
+            </ul>
+            
+            <p>A proper install using an init script is strongly suggested.
+            The following instructions can be used to perform a proper installation using the init script shipped with Redis 2.4 in a Debian or Ubuntu based distribution.</p>
+            
+            <p>We assume you already copied <strong>redis-server</strong> and <strong>redis-cli</strong> executables under /usr/local/bin.</p>
+            
+            <ul>
+            <li><p>Create a directory where to store your Redis config files and your data:</p>
+            
+            <pre><code>sudo mkdir /etc/redis&#x000A;sudo mkdir /var/redis&#x000A;</code></pre></li>
+            <li><p>Copy the init script that you&#39;ll find in the Redis distribution under the <strong>utils</strong> directory into /etc/init.d. We suggest calling it with the name of the port where you are running this instance of Redis. For example:</p>
+            
+            <pre><code>sudo cp utils/redis_init_script /etc/init.d/redis_6379&#x000A;</code></pre></li>
+            <li><p>Edit the init script.</p>
+            
+            <pre><code>sudo vi /etc/init.d/redis_6379&#x000A;</code></pre></li>
+            </ul>
+            
+            <p>Make sure to modify <strong>REDISPORT</strong> accordingly to the port you are using.
+            Both the pid file path and the configuration file name depend on the port number.</p>
+            
+            <ul>
+            <li><p>Copy the template configuration file you&#39;ll find in the root directory of the Redis distribution into /etc/redis/ using the port number as name, for instance:</p>
+            
+            <pre><code>sudo cp redis.conf /etc/redis/6379.conf&#x000A;</code></pre></li>
+            <li><p>Create a directory inside /var/redis that will work as data and working directory for this Redis instance:</p>
+            
+            <pre><code>sudo mkdir /var/redis/6379&#x000A;</code></pre></li>
+            <li><p>Edit the configuration file, making sure to perform the following changes:</p>
+            
+            <ul>
+            <li>Set <strong>daemonize</strong> to yes (by default it is set to no).</li>
+            <li>Set the <strong>pidfile</strong> to <code>/var/run/redis_6379.pid</code> (modify the port if needed).</li>
+            <li>Change the <strong>port</strong> accordingly. In our example it is not needed as the default port is already 6379.</li>
+            <li>Set your preferred <strong>loglevel</strong>.</li>
+            <li>Set the <strong>logfile</strong> to <code>/var/log/redis_6379.log</code></li>
+            <li>Set the <strong>dir</strong> to /var/redis/6379 (very important step!)</li>
+            </ul></li>
+            <li><p>Finally add the new Redis init script to all the default runlevels using the following command:</p>
+            
+            <pre><code>sudo update-rc.d redis_6379 defaults&#x000A;</code></pre></li>
+            </ul>
+            
+            <p>You are done! Now you can try running your instance with:</p>
+            
+            <pre><code>sudo /etc/init.d/redis_6379 start&#x000A;</code></pre>
+            
+            <p>Make sure that everything is working as expected:</p>
+            
+            <ul>
+            <li>Try pinging your instance with redis-cli.</li>
+            <li>Do a test save with <strong>redis-cli save</strong> and check that the dump file is correctly stored into /var/redis/6379/ (you should find a file called dump.rdb).</li>
+            <li>Check that your Redis instance is correctly logging in the log file.</li>
+            <li>If it&#39;s a new machine where you can try it without problems make sure that after a reboot everything is still working.</li>
+            </ul>
+            
+            <p>Note: In the above instructions we skipped many Redis configuration parameters that you would like to change, for instance in order to use AOF persistence instead of RDB persistence, or to setup replication, and so forth.
+            Make sure to read the example <code>redis.conf</code> file (that is heavily commented) and the other documentation you can find in this web site for more information.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>ZRANGEBYLEX – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>ZRANGEBYLEX</span>
+            <span class='arg'>key</span>
+            <span class='arg'>min</span>
+            <span class='arg'>max</span>
+            <span class='arg'>[LIMIT offset count]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 2.8.9.</strong></p>
+                <p><strong>Time complexity:</strong> O(log(N)+M) with N being the number of elements in the sorted set and M the number of elements being returned. If M is constant (e.g. always asking for the first 10 elements with LIMIT), you can consider it O(log(N)).</p>
+              </div>
+              <p>When all the elements in a sorted set are inserted with the same score, in order to force lexicographical ordering, this command returns all the elements in the sorted set at <code>key</code> with a value between <code>min</code> and <code>max</code>.</p>
+              
+              <p>If the elements in the sorted set have different scores, the returned elements are unspecified.</p>
+              
+              <p>The elements are considered to be ordered from lower to higher strings as compared byte-by-byte using the <code>memcmp()</code> C function. Longer strings are considered greater than shorter strings if the common part is identical.</p>
+              
+              <p>The optional <code>LIMIT</code> argument can be used to only get a range of the matching
+              elements (similar to <em>SELECT LIMIT offset, count</em> in SQL). A negative <code>count</code>
+              returns all elements from the <code>offset</code>.
+              Keep in mind that if <code>offset</code> is large, the sorted set needs to be traversed for
+              <code>offset</code> elements before getting to the elements to return, which can add up to
+              <span class="math">O(N) </span>time complexity.</p>
+              
+              <span id="how-to-specify-intervals" class=anchor></span><h2 ><a href="#how-to-specify-intervals" class=anchor-link>*</a>How to specify intervals</h2>
+              
+              <p>Valid <em>start</em> and <em>stop</em> must start with <code>(</code> or <code>[</code>, in order to specify
+              if the range item is respectively exclusive or inclusive.
+              The special values of <code>+</code> or <code>-</code> for <em>start</em> and <em>stop</em> have the special
+              meaning or positively infinite and negatively infinite strings, so for
+              instance the command <strong>ZRANGEBYLEX myzset - +</strong> is guaranteed to return
+              all the elements in the sorted set, if all the elements have the same
+              score.</p>
+              
+              <span id="details-on-strings-comparison" class=anchor></span><h2 ><a href="#details-on-strings-comparison" class=anchor-link>*</a>Details on strings comparison</h2>
+              
+              <p>Strings are compared as binary array of bytes. Because of how the ASCII character
+              set is specified, this means that usually this also have the effect of comparing
+              normal ASCII characters in an obvious dictionary way. However this is not true
+              if non plain ASCII strings are used (for example utf8 strings).</p>
+              
+              <p>However the user can apply a transformation to the encoded string so that
+              the first part of the element inserted in the sorted set will compare as the
+              user requires for the specific application. For example if I want to
+              add strings that will be compared in a case-insensitive way, but I still
+              want to retrieve the real case when querying, I can add strings in the
+              following way:</p>
+              
+              <pre><code>ZADD autocomplete 0 foo:Foo 0 bar:BAR 0 zap:zap&#x000A;</code></pre>
+              
+              <p>Because of the first <em>normalized</em> part in every element (before the colon character), we are forcing a given comparison, however after the range is queries using <a href="/commands/zrangebylex">ZRANGEBYLEX</a> the application can display to the user the second part of the string, after the colon.</p>
+              
+              <p>The binary nature of the comparison allows to use sorted sets as a general
+              purpose index, for example the first part of the element can be a 64 bit
+              big endian number: since big endian numbers have the most significant bytes
+              in the initial positions, the binary comparison will match the numerical
+              comparison of the numbers. This can be used in order to implement range
+              queries on 64 bit values. As in the example below, after the first 8 bytes
+              we can store the value of the element we are actually indexing.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>: list of elements in the specified score range.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='f5b5a7391086d677d67021030955573b'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZADD myzset 0 a 0 b 0 c 0 d 0 e 0 f 0 g</span>
+                <pre>(integer) 7</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZRANGEBYLEX myzset - [c</span>
+                <pre>1) "a"&#x000A;2) "b"&#x000A;3) "c"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZRANGEBYLEX myzset - (c</span>
+                <pre>1) "a"&#x000A;2) "b"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>ZRANGEBYLEX myzset [aaa (g</span>
+                <pre>1) "b"&#x000A;2) "c"&#x000A;3) "d"&#x000A;4) "e"&#x000A;5) "f"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/bzpopmax'>
+                      BZPOPMAX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bzpopmin'>
+                      BZPOPMIN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zadd'>
+                      ZADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zcard'>
+                      ZCARD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zcount'>
+                      ZCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zincrby'>
+                      ZINCRBY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zinterstore'>
+                      ZINTERSTORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zlexcount'>
+                      ZLEXCOUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zpopmax'>
+                      ZPOPMAX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zpopmin'>
+                      ZPOPMIN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrange'>
+                      ZRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrangebylex'>
+                      <strong>ZRANGEBYLEX</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrangebyscore'>
+                      ZRANGEBYSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrank'>
+                      ZRANK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrem'>
+                      ZREM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zremrangebylex'>
+                      ZREMRANGEBYLEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zremrangebyrank'>
+                      ZREMRANGEBYRANK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zremrangebyscore'>
+                      ZREMRANGEBYSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrange'>
+                      ZREVRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrangebylex'>
+                      ZREVRANGEBYLEX
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrangebyscore'>
+                      ZREVRANGEBYSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zrevrank'>
+                      ZREVRANK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zscan'>
+                      ZSCAN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zscore'>
+                      ZSCORE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/zunionstore'>
+                      ZUNIONSTORE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

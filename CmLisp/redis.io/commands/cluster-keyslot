@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>CLUSTER KEYSLOT – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>CLUSTER KEYSLOT</span>
+            <span class='arg'>key</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) where N is the number of bytes in the key</p>
+              </div>
+              <p>Returns an integer identifying the hash slot the specified key hashes to.
+              This command is mainly useful for debugging and testing, since it exposes
+              via an API the underlying Redis implementation of the hashing algorithm.
+              Example use cases for this command:</p>
+              
+              <ol>
+              <li>Client libraries may use Redis in order to test their own hashing algorithm, generating random keys and hashing them with both their local implementation and using Redis <a href="/commands/cluster-keyslot">CLUSTER KEYSLOT</a> command, then checking if the result is the same.</li>
+              <li>Humans may use this command in order to check what is the hash slot, and then the associated Redis Cluster node, responsible for a given key.</li>
+              </ol>
+              
+              <span id="example" class=anchor></span><h2 ><a href="#example" class=anchor-link>*</a>Example</h2>
+              
+              <pre><code>&gt; CLUSTER KEYSLOT somekey&#x000A;11058&#x000A;&gt; CLUSTER KEYSLOT foo{hash_tag}&#x000A;(integer) 2515&#x000A;&gt; CLUSTER KEYSLOT bar{hash_tag}&#x000A;(integer) 2515&#x000A;</code></pre>
+              
+              <p>Note that the command implements the full hashing algorithm, including support for <strong>hash tags</strong>, that is the special property of Redis Cluster key hashing algorithm, of hashing just what is between <code>{</code> and <code>}</code> if such a pattern is found inside the key name, in order to force multiple keys to be handled by the same node.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>: The hash slot number.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/cluster-addslots'>
+                      CLUSTER ADDSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-count-failure-reports'>
+                      CLUSTER COUNT-FAILURE-REPORTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-countkeysinslot'>
+                      CLUSTER COUNTKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-delslots'>
+                      CLUSTER DELSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-failover'>
+                      CLUSTER FAILOVER
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-forget'>
+                      CLUSTER FORGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-getkeysinslot'>
+                      CLUSTER GETKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-info'>
+                      CLUSTER INFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-keyslot'>
+                      <strong>CLUSTER KEYSLOT</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-meet'>
+                      CLUSTER MEET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-nodes'>
+                      CLUSTER NODES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicas'>
+                      CLUSTER REPLICAS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicate'>
+                      CLUSTER REPLICATE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-reset'>
+                      CLUSTER RESET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-saveconfig'>
+                      CLUSTER SAVECONFIG
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-set-config-epoch'>
+                      CLUSTER SET-CONFIG-EPOCH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-setslot'>
+                      CLUSTER SETSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slaves'>
+                      CLUSTER SLAVES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slots'>
+                      CLUSTER SLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readonly'>
+                      READONLY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readwrite'>
+                      READWRITE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

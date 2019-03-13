@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Secondary indexing with Redis – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics indexes'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="secondary-indexing-with-redis" class=anchor></span><h1 ><a href="#secondary-indexing-with-redis" class=anchor-link>*</a>Secondary indexing with Redis</h1>
+            
+            <p>Redis is not exactly a key-value store, since values can be complex data structures. However it has an external key-value shell: at API level data is addressed by the key name. It is fair to say that, natively, Redis only offers <em>primary key access</em>. However since Redis is a data structures server, its capabilities can be used for indexing, in order to create secondary indexes of different kinds, including composite (multi-column) indexes.</p>
+            
+            <p>This document explains how it is possible to create indexes in Redis using the following data structures:</p>
+            
+            <ul>
+            <li>Sorted sets to create secondary indexes by ID or other numerical fields.</li>
+            <li>Sorted sets with lexicographical ranges for creating more advanced secondary indexes, composite indexes and graph traversal indexes.</li>
+            <li>Sets for creating random indexes.</li>
+            <li>Lists for creating simple iterable indexes and last N items indexes.</li>
+            </ul>
+            
+            <p>Implementing and maintaining indexes with Redis is an advanced topic, so most
+            users that need to perform complex queries on data should understand if they
+            are better served by a relational store. However often, especially in caching
+            scenarios, there is the explicit need to store indexed data into Redis in order to speedup common queries which require some form of indexing in order to be executed.</p>
+            
+            <span id="simple-numerical-indexes-with-sorted-sets" class=anchor></span><h1 ><a href="#simple-numerical-indexes-with-sorted-sets" class=anchor-link>*</a>Simple numerical indexes with sorted sets</h1>
+            
+            <p>The simplest secondary index you can create with Redis is by using the
+            sorted set data type, which is a data structure representing a set of
+            elements ordered by a floating point number which is the <em>score</em> of
+            each element. Elements are ordered from the smallest to the highest score.</p>
+            
+            <p>Since the score is a double precision float, indexes you can build with
+            vanilla sorted sets are limited to things where the indexing field is a number
+            within a given range.</p>
+            
+            <p>The two commands to build these kind of indexes are <a href="/commands/zadd">ZADD</a> and
+            <a href="/commands/zrangebyscore">ZRANGEBYSCORE</a> to respectively add items and retrieve items within a
+            specified range.</p>
+            
+            <p>For instance, it is possible to index a set of person names by their
+            age by adding element to a sorted set. The element will be the name of the
+            person and the score will be the age.</p>
+            
+            <pre><code>ZADD myindex 25 Manuel&#x000A;ZADD myindex 18 Anna&#x000A;ZADD myindex 35 Jon&#x000A;ZADD myindex 67 Helen&#x000A;</code></pre>
+            
+            <p>In order to retrieve all persons with an age between 20 and 40, the following
+            command can be used:</p>
+            
+            <pre><code>ZRANGEBYSCORE myindex 20 40&#x000A;1) &quot;Manuel&quot;&#x000A;2) &quot;Jon&quot;&#x000A;</code></pre>
+            
+            <p>By using the <strong>WITHSCORES</strong> option of <a href="/commands/zrangebyscore">ZRANGEBYSCORE</a> it is also possible
+            to obtain the scores associated with the returned elements.</p>
+            
+            <p>The <a href="/commands/zcount">ZCOUNT</a> command can be used in order to retrieve the number of elements
+            within a given range, without actually fetching the elements, which is also
+            useful, especially given the fact the operation is executed in logarithmic
+            time regardless of the size of the range.</p>
+            
+            <p>Ranges can be inclusive or exclusive, please refer to the <a href="/commands/zrangebyscore">ZRANGEBYSCORE</a>
+            command documentation for more information.</p>
+            
+            <p><strong>Note</strong>: Using the <a href="/commands/zrevrangebyscore">ZREVRANGEBYSCORE</a> it is possible to query a range in
+            reversed order, which is often useful when data is indexed in a given
+            direction (ascending or descending) but we want to retrieve information
+            the other way around.</p>
+            
+            <span id="using-objects-ids-as-associated-values" class=anchor></span><h2 ><a href="#using-objects-ids-as-associated-values" class=anchor-link>*</a>Using objects IDs as associated values</h2>
+            
+            <p>In the above example we associated names to ages. However in general we
+            may want to index some field of an object which is stored elsewhere.
+            Instead of using the sorted set value directly to store the data associated
+            with the indexed field, it is possible to store just the ID of the object.</p>
+            
+            <p>For example I may have Redis hashes representing users. Each user is
+            represented by a single key, directly accessible by ID:</p>
+            
+            <pre><code>HMSET user:1 id 1 username antirez ctime 1444809424 age 38&#x000A;HMSET user:2 id 2 username maria ctime 1444808132 age 42&#x000A;HMSET user:3 id 3 username jballard ctime 1443246218 age 33&#x000A;</code></pre>
+            
+            <p>If I want to create an index in order to query users by their age, I
+            could do:</p>
+            
+            <pre><code>ZADD user.age.index 38 1&#x000A;ZADD user.age.index 42 2&#x000A;ZADD user.age.index 33 3&#x000A;</code></pre>
+            
+            <p>This time the value associated with the score in the sorted set is the
+            ID of the object. So once I query the index with <a href="/commands/zrangebyscore">ZRANGEBYSCORE</a> I&#39;ll
+            also have to retrieve the information I need with <a href="/commands/hgetall">HGETALL</a> or similar
+            commands. The obvious advantage is that objects can change without touching
+            the index, as long as we don&#39;t change the indexed field.</p>
+            
+            <p>In the next examples we&#39;ll almost always use IDs as values associated with
+            the index, since this is usually the more sounding design, with a few
+            exceptions.</p>
+            
+            <span id="updating-simple-sorted-set-indexes" class=anchor></span><h2 ><a href="#updating-simple-sorted-set-indexes" class=anchor-link>*</a>Updating simple sorted set indexes</h2>
+            
+            <p>Often we index things which change over time. In the above
+            example, the age of the user changes every year. In such a case it would
+            make sense to use the birth date as index instead of the age itself,
+            but there are other cases where we simple want some field to change from
+            time to time, and the index to reflect this change.</p>
+            
+            <p>The <a href="/commands/zadd">ZADD</a> command makes updating simple indexes a very trivial operation
+            since re-adding back an element with a different score and the same value
+            will simply update the score and move the element at the right position,
+            so if the user <code>antirez</code> turned 39 years old, in order to update the
+            data in the hash representing the user, and in the index as well, we need
+            to execute the following two commands:</p>
+            
+            <pre><code>HSET user:1 age 39&#x000A;ZADD user.age.index 39 1&#x000A;</code></pre>
+            
+            <p>The operation may be wrapped in a <a href="/commands/multi">MULTI</a>/<a href="/commands/exec">EXEC</a> transaction in order to
+            make sure both fields are updated or none.</p>
+            
+            <span id="turning-multi-dimensional-data-into-linear-data" class=anchor></span><h2 ><a href="#turning-multi-dimensional-data-into-linear-data" class=anchor-link>*</a>Turning multi dimensional data into linear data</h2>
+            
+            <p>Indexes created with sorted sets are able to index only a single numerical
+            value. Because of this you may think it is impossible to index something
+            which has multiple dimensions using this kind of indexes, but actually this
+            is not always true. If you can efficiently represent something
+            multi-dimensional in a linear way, they it is often possible to use a simple
+            sorted set for indexing.</p>
+            
+            <p>For example the <a href="/commands/geoadd">Redis geo indexing API</a> uses a sorted
+            set to index places by latitude and longitude using a technique called
+            <a href="https://en.wikipedia.org/wiki/Geohash">Geo hash</a>. The sorted set score
+            represents alternating bits of longitude and latitude, so that we map the
+            linear score of a sorted set to many small <em>squares</em> in the earth surface.
+            By doing an 8+1 style center plus neighborhoods search it is possible to
+            retrieve elements by radius.</p>
+            
+            <span id="limits-of-the-score" class=anchor></span><h2 ><a href="#limits-of-the-score" class=anchor-link>*</a>Limits of the score</h2>
+            
+            <p>Sorted set elements scores are double precision integers. It means that
+            they can represent different decimal or integer values with different
+            errors, because they use an exponential representation internally.
+            However what is interesting for indexing purposes is that the score is
+            always able to represent without any error numbers between -9007199254740992
+            and 9007199254740992, which is <code>-/+ 2^53</code>.</p>
+            
+            <p>When representing much larger numbers, you need a different form of indexing
+            that is able to index numbers at any precision, called a lexicographical
+            index.</p>
+            
+            <span id="lexicographical-indexes" class=anchor></span><h1 ><a href="#lexicographical-indexes" class=anchor-link>*</a>Lexicographical indexes</h1>
+            
+            <p>Redis sorted sets have an interesting property. When elements are added
+            with the same score, they are sorted lexicographically, comparing the
+            strings as binary data with the <code>memcmp()</code> function.</p>
+            
+            <p>For people that don&#39;t know the C language nor the <code>memcmp</code> function, what
+            it means is that elements with the same score are sorted comparing the
+            raw values of their bytes, byte after byte. If the first byte is the same,
+            the second is checked and so forth. If the common prefix of two strings is
+            the same then the longer string is considered the greater of the two,
+            so &quot;foobar&quot; is greater than &quot;foo&quot;.</p>
+            
+            <p>There are commands such as <a href="/commands/zrangebylex">ZRANGEBYLEX</a> and <a href="/commands/zlexcount">ZLEXCOUNT</a> that
+            are able to query and count ranges in a lexicographically fashion, assuming
+            they are used with sorted sets where all the elements have the same score.</p>
+            
+            <p>This Redis feature is basically equivalent to a <code>b-tree</code> data structure which
+            is often used in order to implement indexes with traditional databases.
+            As you can guess, because of this, it is possible to use this Redis data
+            structure in order to implement pretty fancy indexes.</p>
+            
+            <p>Before we dive into using lexicographical indexes, let&#39;s check how
+            sorted sets behave in this special mode of operation. Since we need to
+            add elements with the same score, we&#39;ll always use the special score of
+            zero.</p>
+            
+            <pre><code>ZADD myindex 0 baaa&#x000A;ZADD myindex 0 abbb&#x000A;ZADD myindex 0 aaaa&#x000A;ZADD myindex 0 bbbb&#x000A;</code></pre>
+            
+            <p>Fetching all the elements from the sorted set immediately reveals that they
+            are ordered lexicographically.</p>
+            
+            <pre><code>ZRANGE myindex 0 -1&#x000A;1) &quot;aaaa&quot;&#x000A;2) &quot;abbb&quot;&#x000A;3) &quot;baaa&quot;&#x000A;4) &quot;bbbb&quot;&#x000A;</code></pre>
+            
+            <p>Now we can use <a href="/commands/zrangebylex">ZRANGEBYLEX</a> in order to perform range queries.</p>
+            
+            <pre><code>ZRANGEBYLEX myindex [a (b&#x000A;1) &quot;aaaa&quot;&#x000A;2) &quot;abbb&quot;&#x000A;</code></pre>
+            
+            <p>Note that in the range queries we prefixed the <code>min</code> and <code>max</code> elements
+            identifying the range with the special characters <code>[</code> and <code>(</code>.
+            This prefixes are mandatory, and they specify if the elements
+            of the range are inclusive or exclusive. So the range <code>[a (b</code> means give me
+            all the elements lexicographically between <code>a</code> inclusive and <code>b</code> exclusive,
+            which are all the elements starting with <code>a</code>.</p>
+            
+            <p>There are also two more special characters indicating the infinitely negative
+            string and the infinitely positive string, which are <code>-</code> and <code>+</code>.</p>
+            
+            <pre><code>ZRANGEBYLEX myindex [b +&#x000A;1) &quot;baaa&quot;&#x000A;2) &quot;bbbb&quot;&#x000A;</code></pre>
+            
+            <p>That&#39;s it basically. Let&#39;s see how to use these features to build indexes.</p>
+            
+            <span id="a-first-example-completion" class=anchor></span><h2 ><a href="#a-first-example-completion" class=anchor-link>*</a>A first example: completion</h2>
+            
+            <p>An interesting application of indexing is completion. Completion is what
+            happens when you start typing your query into a search engine: the user
+            interface will anticipate what you are likely typing, providing common
+            queries that start with the same characters.</p>
+            
+            <p>A naive approach to completion is to just add every single query we
+            get from the user into the index. For example if the user searches <code>banana</code>
+            we&#39;ll just do:</p>
+            
+            <pre><code>ZADD myindex 0 banana&#x000A;</code></pre>
+            
+            <p>And so forth for each search query ever encountered. Then when we want to
+            complete the user input, we execute a range query using <a href="/commands/zrangebylex">ZRANGEBYLEX</a>.
+            Imagine the user is typing &quot;bit&quot; inside the search form, and we want to
+            offer possible search keywords starting for &quot;bit&quot;. We send Redis a command
+            like that:</p>
+            
+            <pre><code>ZRANGEBYLEX myindex &quot;[bit&quot; &quot;[bit\xff&quot;&#x000A;</code></pre>
+            
+            <p>Basically we create a range using the string the user is typing right now
+            as start, and the same string plus a trailing byte set to 255, which is <code>\xff</code> in the example, as the end of the range. This way we get all the strings that start for the string the user is typing.</p>
+            
+            <p>Note that we don&#39;t want too many items returned, so we may use the <strong>LIMIT</strong> option in order to reduce the number of results.</p>
+            
+            <span id="adding-frequency-into-the-mix" class=anchor></span><h2 ><a href="#adding-frequency-into-the-mix" class=anchor-link>*</a>Adding frequency into the mix</h2>
+            
+            <p>The above approach is a bit naive, because all the user searches are the same
+            in this way. In a real system we want to complete strings according to their
+            frequency: very popular searches will be proposed with an higher probability
+            compared to search strings typed very rarely.</p>
+            
+            <p>In order to implement something which depends on the frequency, and at the
+            same time automatically adapts to future inputs, by purging searches that
+            are no longer popular, we can use a very simple <em>streaming algorithm</em>.</p>
+            
+            <p>To start, we modify our index in order to store not just the search term,
+            but also the frequency the term is associated with. So instead of just adding
+            <code>banana</code> we add <code>banana:1</code>, where 1 is the frequency.</p>
+            
+            <pre><code>ZADD myindex 0 banana:1&#x000A;</code></pre>
+            
+            <p>We also need logic in order to increment the index if the search term
+            already exists in the index, so what we&#39;ll actually do is something like
+            that:</p>
+            
+            <pre><code>ZRANGEBYLEX myindex &quot;[banana:&quot; + LIMIT 1 1&#x000A;1) &quot;banana:1&quot;&#x000A;</code></pre>
+            
+            <p>This will return the single entry of <code>banana</code> if it exists. Then we
+            can increment the associated frequency and send the following two
+            commands:</p>
+            
+            <pre><code>ZREM myindex 0 banana:1&#x000A;ZADD myindex 0 banana:2&#x000A;</code></pre>
+            
+            <p>Note that because it is possible that there are concurrent updates, the
+            above three commands should be send via a <a href="/commands/eval">Lua script</a>
+            instead, so that the Lua script will atomically get the old count and
+            re-add the item with incremented score.</p>
+            
+            <p>So the result will be that, every time a user searches for <code>banana</code> we&#39;ll
+            get our entry updated.</p>
+            
+            <p>There is more: our goal is to just have items searched very frequently.
+            So we need some form of purging. When we actually query the index
+            in order to complete the user input, we may see something like that:</p>
+            
+            <pre><code>ZRANGEBYLEX myindex &quot;[banana:&quot; + LIMIT 1 10&#x000A;1) &quot;banana:123&quot;&#x000A;2) &quot;banahhh:1&quot;&#x000A;3) &quot;banned user:49&quot;&#x000A;4) &quot;banning:89&quot;&#x000A;</code></pre>
+            
+            <p>Apparently nobody searches for &quot;banahhh&quot;, for example, but the query was
+            performed a single time, so we end presenting it to the user.</p>
+            
+            <p>This is what we can do. Out of the returned items, we pick a random one,
+            decrement its score by one, and re-add it with the new score.
+            However if the score reaches 0, we simply remove the item from the list.
+            You can use much more advanced systems, but the idea is that the index in
+            the long run will contain top searches, and if top searches will change over
+            the time it will adapt automatically.</p>
+            
+            <p>A refinement to this algorithm is to pick entries in the list according to
+            their weight: the higher the score, the less likely entries are picked
+            in order to decrement its score, or evict them.</p>
+            
+            <span id="normalizing-strings-for-case-and-accents" class=anchor></span><h2 ><a href="#normalizing-strings-for-case-and-accents" class=anchor-link>*</a>Normalizing strings for case and accents</h2>
+            
+            <p>In the completion examples we always used lowercase strings. However
+            reality is much more complex than that: languages have capitalized names,
+            accents, and so forth.</p>
+            
+            <p>One simple way do deal with this issues is to actually normalize the
+            string the user searches. Whatever the user searches for &quot;Banana&quot;,
+            &quot;BANANA&quot; or &quot;Ba&#39;nana&quot; we may always turn it into &quot;banana&quot;.</p>
+            
+            <p>However sometimes we may like to present the user with the original
+            item typed, even if we normalize the string for indexing. In order to
+            do this, what we do is to change the format of the index so that instead
+            of just storing <code>term:frequency</code> we store <code>normalized:frequency:original</code>
+            like in the following example:</p>
+            
+            <pre><code>ZADD myindex 0 banana:273:Banana&#x000A;</code></pre>
+            
+            <p>Basically we add another field that we&#39;ll extract and use only for
+            visualization. Ranges will always be computed using the normalized strings
+            instead. This is a common trick which has multiple applications.</p>
+            
+            <span id="adding-auxiliary-information-in-the-index" class=anchor></span><h2 ><a href="#adding-auxiliary-information-in-the-index" class=anchor-link>*</a>Adding auxiliary information in the index</h2>
+            
+            <p>When using a sorted set in a direct way, we have two different attributes
+            for each object: the score, which we use as an index, and an associated
+            value. When using lexicographical indexes instead, the score is always
+            set to 0 and basically not used at all. We are left with a single string,
+            which is the element itself.</p>
+            
+            <p>Like we did in the previous completion examples, we are still able to
+            store associated data using separators. For example we used the colon in
+            order to add the frequency and the original word for completion.</p>
+            
+            <p>In general we can add any kind of associated value to our indexing key.
+            In order to use a lexicographical index to implement a simple key-value store
+            we just store the entry as <code>key:value</code>:</p>
+            
+            <pre><code>ZADD myindex 0 mykey:myvalue&#x000A;</code></pre>
+            
+            <p>And search for the key with:</p>
+            
+            <pre><code>ZRANGEBYLEX myindex mykey: + LIMIT 1 1&#x000A;1) &quot;mykey:myvalue&quot;&#x000A;</code></pre>
+            
+            <p>Then we extract the part after the colon to retrieve the value.
+            However a problem to solve in this case is collisions. The colon character
+            may be part of the key itself, so it must be chosen in order to never
+            collide with the key we add.</p>
+            
+            <p>Since lexicographical ranges in Redis are binary safe you can use any
+            byte or any sequence of bytes. However if you receive untrusted user
+            input, it is better to use some form of escaping in order to guarantee
+            that the separator will never happen to be part of the key.</p>
+            
+            <p>For example if you use two null bytes as separator <code>&quot;\0\0&quot;</code>, you may
+            want to always escape null bytes into two bytes sequences in your strings.</p>
+            
+            <span id="numerical-padding" class=anchor></span><h2 ><a href="#numerical-padding" class=anchor-link>*</a>Numerical padding</h2>
+            
+            <p>Lexicographical indexes may look like good only when the problem at hand
+            is to index strings. Actually it is very simple to use this kind of index
+            in order to perform indexing of arbitrary precision numbers.</p>
+            
+            <p>In the ASCII character set, digits appear in the order from 0 to 9, so
+            if we left-pad numbers with leading zeroes, the result is that comparing
+            them as strings will order them by their numerical value.</p>
+            
+            <pre><code>ZADD myindex 0 00324823481:foo&#x000A;ZADD myindex 0 12838349234:bar&#x000A;ZADD myindex 0 00000000111:zap&#x000A;&#x000A;ZRANGE myindex 0 -1&#x000A;1) &quot;00000000111:zap&quot;&#x000A;2) &quot;00324823481:foo&quot;&#x000A;3) &quot;12838349234:bar&quot;&#x000A;</code></pre>
+            
+            <p>We effectively created an index using a numerical field which can be as
+            big as we want. This also works with floating point numbers of any precision
+            by making sure we left pad the numerical part with leading zeroes and the
+            decimal part with trailing zeroes like in the following list of numbers:</p>
+            
+            <pre><code>    01000000000000.11000000000000&#x000A;    01000000000000.02200000000000&#x000A;    00000002121241.34893482930000&#x000A;    00999999999999.00000000000000&#x000A;</code></pre>
+            
+            <span id="using-numbers-in-binary-form" class=anchor></span><h2 ><a href="#using-numbers-in-binary-form" class=anchor-link>*</a>Using numbers in binary form</h2>
+            
+            <p>Storing numbers in decimal may use too much memory. An alternative approach
+            is just to store numbers, for example 128 bit integers, directly in their
+            binary form. However for this to work, you need to store the numbers in
+            <em>big endian format</em>, so that the most significant bytes are stored before
+            the least significant bytes. This way when Redis compares the strings with
+            <code>memcmp()</code>, it will effectively sort the numbers by their value.</p>
+            
+            <p>Keep in mind that data stored in binary format is less observable for
+            debugging, harder to parse and export. So it is definitely a trade off.</p>
+            
+            <span id="composite-indexes" class=anchor></span><h1 ><a href="#composite-indexes" class=anchor-link>*</a>Composite indexes</h1>
+            
+            <p>So far we explored ways to index single fields. However we all know that
+            SQL stores are able to create indexes using multiple fields. For example
+            I may index products in a very large store by room number and price.</p>
+            
+            <p>I need to run queries in order to retrieve all the products in a given
+            room having a given price range. What I can do is to index each product
+            in the following way:</p>
+            
+            <pre><code>ZADD myindex 0 0056:0028.44:90&#x000A;ZADD myindex 0 0034:0011.00:832&#x000A;</code></pre>
+            
+            <p>Here the fields are <code>room:price:product_id</code>. I used just four digits padding
+            in the example for simplicity. The auxiliary data (the product ID) does not
+            need any padding.</p>
+            
+            <p>With an index like that, to get all the products in room 56 having a price
+            between 10 and 30 dollars is very easy. We can just run the following
+            command:</p>
+            
+            <pre><code>ZRANGEBYLEX myindex [0056:0010.00 [0056:0030.00&#x000A;</code></pre>
+            
+            <p>The above is called a composed index. Its effectiveness depends on the
+            order of the fields and the queries I want to run. For example the above
+            index cannot be used efficiently in order to get all the products having
+            a specific price range regardless of the room number. However I can use
+            the primary key in order to run queries regardless of the price, like
+            <em>give me all the products in room 44</em>.</p>
+            
+            <p>Composite indexes are very powerful, and are used in traditional stores
+            in order to optimize complex queries. In Redis they could be useful both
+            to implement a very fast in-memory Redis index of something stored into
+            a traditional data store, or in order to directly index Redis data.</p>
+            
+            <span id="updating-lexicographical-indexes" class=anchor></span><h1 ><a href="#updating-lexicographical-indexes" class=anchor-link>*</a>Updating lexicographical indexes</h1>
+            
+            <p>The value of the index in a lexicographical index can get pretty fancy
+            and hard or slow to rebuild from what we store about the object. So one
+            approach to simplify the handling of the index, at the cost of using more
+            memory, is to also take alongside to the sorted set representing the index
+            a hash mapping the object ID to the current index value.</p>
+            
+            <p>So for example, when we index we also add to a hash:</p>
+            
+            <pre><code>MULTI&#x000A;ZADD myindex 0 0056:0028.44:90&#x000A;HSET index.content 90 0056:0028.44:90&#x000A;EXEC&#x000A;</code></pre>
+            
+            <p>This is not always needed, but simplifies the operations of updating
+            the index. In order to remove the old information we indexed for the object
+            ID 90, regardless of the <em>current</em> fields values of the object, we just
+            have to retrieve the hash value by object ID and <a href="/commands/zrem">ZREM</a> it in the sorted
+            set view.</p>
+            
+            <span id="representing-and-querying-graphs-using-an-hexastore" class=anchor></span><h1 ><a href="#representing-and-querying-graphs-using-an-hexastore" class=anchor-link>*</a>Representing and querying graphs using an hexastore</h1>
+            
+            <p>One cool thing about composite indexes is that they are handy in order
+            to represent graphs, using a data structure which is called
+            <a href="http://www.vldb.org/pvldb/1/1453965.pdf">Hexastore</a>.</p>
+            
+            <p>The hexastore provides a representation for relations between objects,
+            formed by a <em>subject</em>, a <em>predicate</em> and an <em>object</em>.
+            A simple relation between objects could be:</p>
+            
+            <pre><code>antirez is-friend-of matteocollina&#x000A;</code></pre>
+            
+            <p>In order to represent this relation I can store the following element
+            in my lexicographical index:</p>
+            
+            <pre><code>ZADD myindex 0 spo:antirez:is-friend-of:matteocollina&#x000A;</code></pre>
+            
+            <p>Note that I prefixed my item with the string <strong>spo</strong>. It means that
+            the item represents a subject,predicate,object relation.</p>
+            
+            <p>In can add 5 more entries for the same relation, but in a different order:</p>
+            
+            <pre><code>ZADD myindex 0 sop:antirez:matteocollina:is-friend-of&#x000A;ZADD myindex 0 ops:matteocollina:is-friend-of:antirez&#x000A;ZADD myindex 0 osp:matteocollina:antirez:is-friend-of&#x000A;ZADD myindex 0 pso:is-friend-of:antirez:matteocollina&#x000A;ZADD myindex 0 pos:is-friend-of:matteocollina:antirez&#x000A;</code></pre>
+            
+            <p>Now things start to be interesting, and I can query the graph in many
+            different ways. For example, who are all the people <code>antirez</code>
+            <em>is friend of</em>?</p>
+            
+            <pre><code>ZRANGEBYLEX myindex &quot;[spo:antirez:is-friend-of:&quot; &quot;[spo:antirez:is-friend-of:\xff&quot;&#x000A;1) &quot;spo:antirez:is-friend-of:matteocollina&quot;&#x000A;2) &quot;spo:antirez:is-friend-of:wonderwoman&quot;&#x000A;3) &quot;spo:antirez:is-friend-of:spiderman&quot;&#x000A;</code></pre>
+            
+            <p>Or, what are all the relationships <code>antirez</code> and <code>matteocollina</code> have where
+            the first is the subject and the second is the object?</p>
+            
+            <pre><code>ZRANGEBYLEX myindex &quot;[sop:antirez:matteocollina:&quot; &quot;[sop:antirez:matteocollina:\xff&quot;&#x000A;1) &quot;sop:antirez:matteocollina:is-friend-of&quot;&#x000A;2) &quot;sop:antirez:matteocollina:was-at-conference-with&quot;&#x000A;3) &quot;sop:antirez:matteocollina:talked-with&quot;&#x000A;</code></pre>
+            
+            <p>By combining different queries, I can ask fancy questions. For example:
+            <em>Who are all my friends that, like beer, live in Barcelona, and matteocollina consider friends as well?</em>
+            To get this information I start with an <code>spo</code> query to find all the people
+            I&#39;m friend with. Then for each result I get I perform an <code>spo</code> query
+            to check if they like beer, removing the ones for which I can&#39;t find
+            this relation. I do it again to filter by city. Finally I perform an <code>ops</code>
+            query to find, of the list I obtained, who is considered friend by
+            matteocollina.</p>
+            
+            <p>Make sure to check <a href="http://nodejsconfit.levelgraph.io/">Matteo Collina&#39;s slides about Levelgraph</a> in order to better understand these ideas.</p>
+            
+            <span id="multi-dimensional-indexes" class=anchor></span><h1 ><a href="#multi-dimensional-indexes" class=anchor-link>*</a>Multi dimensional indexes</h1>
+            
+            <p>A more complex type of index is an index that allows you to perform queries
+            where two or more variables are queried at the same time for specific
+            ranges. For example I may have a data set representing persons age and
+            salary, and I want to retrieve all the people between 50 and 55 years old
+            having a salary between 70000 and 85000.</p>
+            
+            <p>This query may be performed with a multi column index, but this requires
+            us to select the first variable and then scan the second, which means we
+            may do a lot more work than needed. It is possible to perform these kinds of
+            queries involving multiple variables using different data structures.
+            For example, multi-dimensional trees such as <em>k-d trees</em> or <em>r-trees</em> are
+            sometimes used. Here we&#39;ll describe a different way to index data into
+            multiple dimensions, using a representation trick that allows us to perform
+            the query in a very efficient way using Redis lexicographical ranges.</p>
+            
+            <p>Let&#39;s start by visualizing the problem. In this picture we have points
+            in the space, which represent our data samples, where <code>x</code> and <code>y</code> are
+            our coordinates. Both variables max value is 400.</p>
+            
+            <p>The blue box in the picture represents our query. We want all the points
+            where <code>x</code> is between 50 and 100, and where <code>y</code> is between 100 and 300.</p>
+            
+            <p><img src="http://redis.io/images/redisdoc/2idx_0.png" alt="Points in the space"></p>
+            
+            <p>In order to represent data that makes these kinds of queries fast to perform,
+            we start by padding our numbers with 0. So for example imagine we want to
+            add the point 10,25 (x,y) to our index. Given that the maximum range in the
+            example is 400 we can just pad to three digits, so we obtain:</p>
+            
+            <pre><code>x = 010&#x000A;y = 025&#x000A;</code></pre>
+            
+            <p>Now what we do is to interleave the digits, taking the leftmost digit
+            in x, and the leftmost digit in y, and so forth, in order to create a single
+            number:</p>
+            
+            <pre><code>001205&#x000A;</code></pre>
+            
+            <p>This is our index, however in order to more easily reconstruct the original
+            representation, if we want (at the cost of space), we may also add the
+            original values as additional columns:</p>
+            
+            <pre><code>001205:10:25&#x000A;</code></pre>
+            
+            <p>Now, let&#39;s reason about this representation and why it is useful in the
+            context of range queries. For example let&#39;s take the center of our blue
+            box, which is at <code>x=75</code> and <code>y=200</code>. We can encode this number as we did
+            earlier by interleaving the digits, obtaining:</p>
+            
+            <pre><code>027050&#x000A;</code></pre>
+            
+            <p>What happens if we substitute the last two digits respectively with 00 and 99?
+            We obtain a range which is lexicographically continuous:</p>
+            
+            <pre><code>027000 to 027099&#x000A;</code></pre>
+            
+            <p>What this maps to is to a square representing all values where the <code>x</code>
+            variable is between 70 and 79, and the <code>y</code> variable is between 200 and 209.
+            We can write random points in this interval, in order to identify this
+            specific area:</p>
+            
+            <p><img src="http://redis.io/images/redisdoc/2idx_1.png" alt="Small area"></p>
+            
+            <p>So the above lexicographic query allows us to easily query for points in
+            a specific square in the picture. However the square may be too small for
+            the box we are searching, so that too many queries are needed.
+            So we can do the same but instead of replacing the last two digits with 00
+            and 99, we can do it for the last four digits, obtaining the following
+            range:</p>
+            
+            <pre><code>020000 029999&#x000A;</code></pre>
+            
+            <p>This time the range represents all the points where <code>x</code> is between 0 and 99
+            and <code>y</code> is between 200 and 299. Drawing random points in this interval
+            shows us this larger area:</p>
+            
+            <p><img src="http://redis.io/images/redisdoc/2idx_2.png" alt="Large area"></p>
+            
+            <p>Oops now our area is ways too big for our query, and still our search box is
+            not completely included. We need more granularity, but we can easily obtain
+            it by representing our numbers in binary form. This time, when we replace
+            digits instead of getting squares which are ten times bigger, we get squares
+            which are just two times bigger.</p>
+            
+            <p>Our numbers in binary form, assuming we need just 9 bits for each variable
+            (in order to represent numbers up to 400 in value) would be:</p>
+            
+            <pre><code>x = 75  -&gt; 001001011&#x000A;y = 200 -&gt; 011001000&#x000A;</code></pre>
+            
+            <p>So by interleaving digits, our representation in the index would be:</p>
+            
+            <pre><code>000111000011001010:75:200&#x000A;</code></pre>
+            
+            <p>Let&#39;s see what are our ranges as we substitute the last 2, 4, 6, 8, ...
+            bits with 0s ad 1s in the interleaved representation:</p>
+            
+            <pre><code>2 bits: x between 70 and 75, y between 200 and 201 (range=2)&#x000A;4 bits: x between 72 and 75, y between 200 and 203 (range=4)&#x000A;6 bits: x between 72 and 79, y between 200 and 207 (range=8)&#x000A;8 bits: x between 64 and 79, y between 192 and 207 (range=16)&#x000A;</code></pre>
+            
+            <p>And so forth. Now we have definitely better granularity!
+            As you can see substituting N bits from the index gives us
+            search boxes of side <code>2^(N/2)</code>.</p>
+            
+            <p>So what we do is check the dimension where our search box is smaller,
+            and check the nearest power of two to this number. Our search box
+            was 50,100 to 100,300, so it has a width of 50 and an height of 200.
+            We take the smaller of the two, 50, and check the nearest power of two
+            which is 64. 64 is 2<sup>6,</sup> so we would work with indexes obtained replacing
+            the latest 12 bits from the interleaved representation (so that we end
+            replacing just 6 bits of each variable).</p>
+            
+            <p>However single squares may not cover all our search, so we may need more.
+            What we do is to start with the left bottom corner of our search box,
+            which is 50,100, and find the first range by substituting the last 6 bits
+            in each number with 0. Then we do the same with the right top corner.</p>
+            
+            <p>With two trivial nested for loops where we increment only the significant
+            bits, we can find all the squares between these two. For each square we
+            convert the two numbers into our interleaved representation, and create
+            the range using the converted representation as our start, and the same
+            representation but with the latest 12 bits turned on as end range.</p>
+            
+            <p>For each square found we perform our query and get the elements inside,
+            removing the elements which are outside our search box.</p>
+            
+            <p>Turning this into code is simple. Here is a Ruby example:</p>
+            
+            <pre><code>def spacequery(x0,y0,x1,y1,exp)&#x000A;    bits=exp*2&#x000A;    x_start = x0/(2**exp)&#x000A;    x_end = x1/(2**exp)&#x000A;    y_start = y0/(2**exp)&#x000A;    y_end = y1/(2**exp)&#x000A;    (x_start..x_end).each{|x|&#x000A;        (y_start..y_end).each{|y|&#x000A;            x_range_start = x*(2**exp)&#x000A;            x_range_end = x_range_start | ((2**exp)-1)&#x000A;            y_range_start = y*(2**exp)&#x000A;            y_range_end = y_range_start | ((2**exp)-1)&#x000A;            puts &quot;#{x},#{y} x from #{x_range_start} to #{x_range_end}, y from #{y_range_start} to #{y_range_end}&quot;&#x000A;&#x000A;            # Turn it into interleaved form for ZRANGEBYLEX query.&#x000A;            # We assume we need 9 bits for each integer, so the final&#x000A;            # interleaved representation will be 18 bits.&#x000A;            xbin = x_range_start.to_s(2).rjust(9,&#39;0&#39;)&#x000A;            ybin = y_range_start.to_s(2).rjust(9,&#39;0&#39;)&#x000A;            s = xbin.split(&quot;&quot;).zip(ybin.split(&quot;&quot;)).flatten.compact.join(&quot;&quot;)&#x000A;            # Now that we have the start of the range, calculate the end&#x000A;            # by replacing the specified number of bits from 0 to 1.&#x000A;            e = s[0..-(bits+1)]+(&quot;1&quot;*bits)&#x000A;            puts &quot;ZRANGEBYLEX myindex [#{s} [#{e}&quot;&#x000A;        }&#x000A;    }&#x000A;end&#x000A;&#x000A;spacequery(50,100,100,300,6)&#x000A;</code></pre>
+            
+            <p>While non immediately trivial this is a very useful indexing strategy that
+            in the future may be implemented in Redis in a native way.
+            For now, the good thing is that the complexity may be easily encapsulated
+            inside a library that can be used in order to perform indexing and queries.
+            One example of such library is <a href="https://github.com/antirez/redimension">Redimension</a>, a proof of concept Ruby library which indexes N-dimensional data inside Redis using the technique described here.</p>
+            
+            <span id="multi-dimensional-indexes-with-negative-or-floating-point-numbers" class=anchor></span><h1 ><a href="#multi-dimensional-indexes-with-negative-or-floating-point-numbers" class=anchor-link>*</a>Multi dimensional indexes with negative or floating point numbers</h1>
+            
+            <p>The simplest way to represent negative values is just to work with unsigned
+            integers and represent them using an offset, so that when you index, before
+            translating numbers in the indexed representation, you add the absolute value
+            of your smaller negative integer.</p>
+            
+            <p>For floating point numbers, the simplest approach is probably to convert them
+            to integers by multiplying the integer for a power of ten proportional to the
+            number of digits after the dot you want to retain.</p>
+            
+            <span id="non-range-indexes" class=anchor></span><h1 ><a href="#non-range-indexes" class=anchor-link>*</a>Non range indexes</h1>
+            
+            <p>So far we checked indexes which are useful to query by range or by single
+            item. However other Redis data structures such as Sets or Lists can be used
+            in order to build other kind of indexes. They are very commonly used but
+            maybe we don&#39;t always realize they are actually a form of indexing.</p>
+            
+            <p>For instance I can index object IDs into a Set data type in order to use
+            the <em>get random elements</em> operation via <a href="/commands/srandmember">SRANDMEMBER</a> in order to retrieve
+            a set of random objects. Sets can also be used to check for existence when
+            all I need is to test if a given item exists or not or has a single boolean
+            property or not.</p>
+            
+            <p>Similarly lists can be used in order to index items into a fixed order.
+            I can add all my items into a Redis list and rotate the list with
+            RPOPLPUSH using the same key name as source and destination. This is useful
+            when I want to process a given set of items again and again forever in the
+            same order. Think of an RSS feed system that needs to refresh the local copy
+            periodically.</p>
+            
+            <p>Another popular index often used with Redis is a <strong>capped list</strong>, where items
+            are added with <a href="/commands/lpush">LPUSH</a> and trimmed with <a href="/commands/ltrim">LTRIM</a>, in order to create a view
+            with just the latest N items encountered, in the same order they were
+            seen.</p>
+            
+            <span id="index-inconsistency" class=anchor></span><h1 ><a href="#index-inconsistency" class=anchor-link>*</a>Index inconsistency</h1>
+            
+            <p>Keeping the index updated may be challenging, in the course of months
+            or years it is possible that inconsistencies are added because of software
+            bugs, network partitions or other events.</p>
+            
+            <p>Different strategies could be used. If the index data is outside Redis
+            <em>read repair</em> can be a solution, where data is fixed in a lazy way when
+            it is requested. When we index data which is stored in Redis itself
+            the <a href="/commands/scan">SCAN</a> family of commands can be used in order to verify, update or
+            rebuild the index from scratch, incrementally.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

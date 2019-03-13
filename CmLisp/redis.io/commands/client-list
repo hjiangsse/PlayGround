@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>CLIENT LIST – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>CLIENT LIST</span>
+            <span class='arg'>[TYPE normal|master|replica|pubsub]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 2.4.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) where N is the number of client connections</p>
+              </div>
+              <p>The <a href="/commands/client-list">CLIENT LIST</a> command returns information and statistics about the client
+              connections server in a mostly human readable format.</p>
+              
+              <p>As of v5.0, the optional <code>TYPE type</code> subcommand can be used to filter the list by clients&#39; type, where <em>type</em> is one of <code>normal</code>, <code>master</code>, <code>replica</code> and <code>pubsub</code>. Note that clients blocked into the <a href="/commands/monitor">MONITOR</a> command are considered to belong to the <code>normal</code> class.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#bulk-string-reply">Bulk string reply</a>: a unique string, formatted as follows:</p>
+              
+              <ul>
+              <li>One client connection per line (separated by LF)</li>
+              <li>Each line is composed of a succession of <code>property=value</code> fields separated
+              by a space character.</li>
+              </ul>
+              
+              <p>Here is the meaning of the fields:</p>
+              
+              <ul>
+              <li><code>id</code>: an unique 64-bit client ID (introduced in Redis 2.8.12).</li>
+              <li><code>name</code>: the name set by the client with <a href="/commands/client-setname">CLIENT SETNAME</a></li>
+              <li><code>addr</code>: address/port of the client</li>
+              <li><code>fd</code>: file descriptor corresponding to the socket</li>
+              <li><code>age</code>: total duration of the connection in seconds</li>
+              <li><code>idle</code>: idle time of the connection in seconds</li>
+              <li><code>flags</code>: client flags (see below)</li>
+              <li><code>db</code>: current database ID</li>
+              <li><code>sub</code>: number of channel subscriptions</li>
+              <li><code>psub</code>: number of pattern matching subscriptions</li>
+              <li><code>multi</code>: number of commands in a MULTI/EXEC context</li>
+              <li><code>qbuf</code>: query buffer length (0 means no query pending)</li>
+              <li><code>qbuf-free</code>: free space of the query buffer (0 means the buffer is full)</li>
+              <li><code>obl</code>: output buffer length</li>
+              <li><code>oll</code>: output list length (replies are queued in this list when the buffer is full)</li>
+              <li><code>omem</code>: output buffer memory usage</li>
+              <li><code>events</code>: file descriptor events (see below)</li>
+              <li><code>cmd</code>: last command played</li>
+              </ul>
+              
+              <p>The client flags can be a combination of:</p>
+              
+              <pre><code>A: connection to be closed ASAP&#x000A;b: the client is waiting in a blocking operation&#x000A;c: connection to be closed after writing entire reply&#x000A;d: a watched keys has been modified - EXEC will fail&#x000A;i: the client is waiting for a VM I/O (deprecated)&#x000A;M: the client is a master&#x000A;N: no specific flag set&#x000A;O: the client is a client in MONITOR mode&#x000A;P: the client is a Pub/Sub subscriber&#x000A;r: the client is in readonly mode against a cluster node&#x000A;S: the client is a replica node connection to this instance&#x000A;u: the client is unblocked&#x000A;U: the client is connected via a Unix domain socket&#x000A;x: the client is in a MULTI/EXEC context&#x000A;</code></pre>
+              
+              <p>The file descriptor events can be:</p>
+              
+              <pre><code>r: the client socket is readable (event loop)&#x000A;w: the client socket is writable (event loop)&#x000A;</code></pre>
+              
+              <span id="notes" class=anchor></span><h2 ><a href="#notes" class=anchor-link>*</a>Notes</h2>
+              
+              <p>New fields are regularly added for debugging purpose. Some could be removed
+              in the future. A version safe Redis client using this command should parse
+              the output accordingly (i.e. handling gracefully missing fields, skipping
+              unknown fields).</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/bgrewriteaof'>
+                      BGREWRITEAOF
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/bgsave'>
+                      BGSAVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-getname'>
+                      CLIENT GETNAME
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-id'>
+                      CLIENT ID
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-kill'>
+                      CLIENT KILL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-list'>
+                      <strong>CLIENT LIST</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-pause'>
+                      CLIENT PAUSE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-reply'>
+                      CLIENT REPLY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-setname'>
+                      CLIENT SETNAME
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/client-unblock'>
+                      CLIENT UNBLOCK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command'>
+                      COMMAND
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command-count'>
+                      COMMAND COUNT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command-getkeys'>
+                      COMMAND GETKEYS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/command-info'>
+                      COMMAND INFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-get'>
+                      CONFIG GET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-resetstat'>
+                      CONFIG RESETSTAT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-rewrite'>
+                      CONFIG REWRITE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/config-set'>
+                      CONFIG SET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/dbsize'>
+                      DBSIZE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/debug-object'>
+                      DEBUG OBJECT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/debug-segfault'>
+                      DEBUG SEGFAULT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/flushall'>
+                      FLUSHALL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/flushdb'>
+                      FLUSHDB
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/info'>
+                      INFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/lastsave'>
+                      LASTSAVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-doctor'>
+                      MEMORY DOCTOR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-help'>
+                      MEMORY HELP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-malloc-stats'>
+                      MEMORY MALLOC-STATS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-purge'>
+                      MEMORY PURGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-stats'>
+                      MEMORY STATS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/memory-usage'>
+                      MEMORY USAGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/monitor'>
+                      MONITOR
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/replicaof'>
+                      REPLICAOF
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/role'>
+                      ROLE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/save'>
+                      SAVE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/shutdown'>
+                      SHUTDOWN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/slaveof'>
+                      SLAVEOF
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/slowlog'>
+                      SLOWLOG
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/sync'>
+                      SYNC
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/time'>
+                      TIME
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

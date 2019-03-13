@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>GEOHASH – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>GEOHASH</span>
+            <span class='arg'>key</span>
+            <span class='arg'>member [member ...]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.2.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(log(N)) for each member requested, where N is the number of elements in the sorted set.</p>
+              </div>
+              <p>Return valid <a href="https://en.wikipedia.org/wiki/Geohash">Geohash</a> strings representing the position of one or more elements in a sorted set value representing a geospatial index (where elements were added using <a href="/commands/geoadd">GEOADD</a>).</p>
+              
+              <p>Normally Redis represents positions of elements using a variation of the Geohash
+              technique where positions are encoded using 52 bit integers. The encoding is
+              also different compared to the standard because the initial min and max
+              coordinates used during the encoding and decoding process are different. This
+              command however <strong>returns a standard Geohash</strong> in the form of a string as
+              described in the <a href="https://en.wikipedia.org/wiki/Geohash">Wikipedia article</a> and compatible with the <a href="http://geohash.org">geohash.org</a> web site.</p>
+              
+              <span id="geohash-string-properties" class=anchor></span><h2 ><a href="#geohash-string-properties" class=anchor-link>*</a>Geohash string properties</h2>
+              
+              <p>The command returns 11 characters Geohash strings, so no precision is loss
+              compared to the Redis internal 52 bit representation. The returned Geohashes
+              have the following properties:</p>
+              
+              <ol>
+              <li>They can be shortened removing characters from the right. It will lose precision but will still point to the same area.</li>
+              <li>It is possible to use them in <code>geohash.org</code> URLs such as <code>http://geohash.org/&lt;geohash-string&gt;</code>. This is an <a href="http://geohash.org/sqdtr74hyu0">example of such URL</a>.</li>
+              <li>Strings with a similar prefix are nearby, but the contrary is not true, it is possible that strings with different prefixes are nearby too.</li>
+              </ol>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>, specifically:</p>
+              
+              <p>The command returns an array where each element is the Geohash corresponding to
+              each member name passed as argument to the command.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='bbe9cddb10969491f4c19629831f4e9c'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GEOADD Sicily 13.361389 38.115556 &quot;Palermo&quot; 15.087269 37.502669 &quot;Catania&quot;</span>
+                <pre>(integer) 2</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>GEOHASH Sicily Palermo Catania</span>
+                <pre>1) "sqc8b49rny0"&#x000A;2) "sqdtr74hyu0"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/geoadd'>
+                      GEOADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/geodist'>
+                      GEODIST
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/geohash'>
+                      <strong>GEOHASH</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/geopos'>
+                      GEOPOS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/georadius'>
+                      GEORADIUS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/georadiusbymember'>
+                      GEORADIUSBYMEMBER
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Modules API reference – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics modules-api-ref'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="modules-api-reference" class=anchor></span><h1 ><a href="#modules-api-reference" class=anchor-link>*</a>Modules API reference</h1>
+            
+            <span id="coderedismodulealloccode" class=anchor></span><h2 ><a href="#coderedismodulealloccode" class=anchor-link>*</a><code>RedisModule_Alloc</code></h2>
+            
+            <pre><code>void *RedisModule_Alloc(size_t bytes);&#x000A;</code></pre>
+            
+            <p>Use like malloc(). Memory allocated with this function is reported in
+            Redis INFO memory, used for keys eviction according to maxmemory settings
+            and in general is taken into account as memory allocated by Redis.
+            You should avoid using malloc().</p>
+            
+            <span id="coderedismodulecalloccode" class=anchor></span><h2 ><a href="#coderedismodulecalloccode" class=anchor-link>*</a><code>RedisModule_Calloc</code></h2>
+            
+            <pre><code>void *RedisModule_Calloc(size_t nmemb, size_t size);&#x000A;</code></pre>
+            
+            <p>Use like calloc(). Memory allocated with this function is reported in
+            Redis INFO memory, used for keys eviction according to maxmemory settings
+            and in general is taken into account as memory allocated by Redis.
+            You should avoid using calloc() directly.</p>
+            
+            <span id="coderedismodulerealloccode" class=anchor></span><h2 ><a href="#coderedismodulerealloccode" class=anchor-link>*</a><code>RedisModule_Realloc</code></h2>
+            
+            <pre><code>void* RedisModule_Realloc(void *ptr, size_t bytes);&#x000A;</code></pre>
+            
+            <p>Use like realloc() for memory obtained with <code>RedisModule_Alloc()</code>.</p>
+            
+            <span id="coderedismodulefreecode" class=anchor></span><h2 ><a href="#coderedismodulefreecode" class=anchor-link>*</a><code>RedisModule_Free</code></h2>
+            
+            <pre><code>void RedisModule_Free(void *ptr);&#x000A;</code></pre>
+            
+            <p>Use like free() for memory obtained by <code>RedisModule_Alloc()</code> and
+            <code>RedisModule_Realloc()</code>. However you should never try to free with
+            <code>RedisModule_Free()</code> memory allocated with malloc() inside your module.</p>
+            
+            <span id="coderedismodulestrdupcode" class=anchor></span><h2 ><a href="#coderedismodulestrdupcode" class=anchor-link>*</a><code>RedisModule_Strdup</code></h2>
+            
+            <pre><code>char *RedisModule_Strdup(const char *str);&#x000A;</code></pre>
+            
+            <p>Like strdup() but returns memory allocated with <code>RedisModule_Alloc()</code>.</p>
+            
+            <span id="coderedismodulepoolalloccode" class=anchor></span><h2 ><a href="#coderedismodulepoolalloccode" class=anchor-link>*</a><code>RedisModule_PoolAlloc</code></h2>
+            
+            <pre><code>void *RedisModule_PoolAlloc(RedisModuleCtx *ctx, size_t bytes);&#x000A;</code></pre>
+            
+            <p>Return heap allocated memory that will be freed automatically when the
+            module callback function returns. Mostly suitable for small allocations
+            that are short living and must be released when the callback returns
+            anyway. The returned memory is aligned to the architecture word size
+            if at least word size bytes are requested, otherwise it is just
+            aligned to the next power of two, so for example a 3 bytes request is
+            4 bytes aligned while a 2 bytes request is 2 bytes aligned.</p>
+            
+            <p>There is no realloc style function since when this is needed to use the
+            pool allocator is not a good idea.</p>
+            
+            <p>The function returns NULL if <code>bytes</code> is 0.</p>
+            
+            <span id="coderedismodulegetapicode" class=anchor></span><h2 ><a href="#coderedismodulegetapicode" class=anchor-link>*</a><code>RedisModule_GetApi</code></h2>
+            
+            <pre><code>int RedisModule_GetApi(const char *funcname, void **targetPtrPtr);&#x000A;</code></pre>
+            
+            <p>Lookup the requested module API and store the function pointer into the
+            target pointer. The function returns <code>REDISMODULE_ERR</code> if there is no such
+            named API, otherwise <code>REDISMODULE_OK</code>.</p>
+            
+            <p>This function is not meant to be used by modules developer, it is only
+            used implicitly by including redismodule.h.</p>
+            
+            <span id="coderedismoduleiskeyspositionrequestcode" class=anchor></span><h2 ><a href="#coderedismoduleiskeyspositionrequestcode" class=anchor-link>*</a><code>RedisModule_IsKeysPositionRequest</code></h2>
+            
+            <pre><code>int RedisModule_IsKeysPositionRequest(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Return non-zero if a module command, that was declared with the
+            flag &quot;getkeys-api&quot;, is called in a special way to get the keys positions
+            and not to get executed. Otherwise zero is returned.</p>
+            
+            <span id="coderedismodulekeyatposcode" class=anchor></span><h2 ><a href="#coderedismodulekeyatposcode" class=anchor-link>*</a><code>RedisModule_KeyAtPos</code></h2>
+            
+            <pre><code>void RedisModule_KeyAtPos(RedisModuleCtx *ctx, int pos);&#x000A;</code></pre>
+            
+            <p>When a module command is called in order to obtain the position of
+            keys, since it was flagged as &quot;getkeys-api&quot; during the registration,
+            the command implementation checks for this special call using the
+            <code>RedisModule_IsKeysPositionRequest()</code> API and uses this function in
+            order to report keys, like in the following example:</p>
+            
+            <pre><code>if (RedisModule_IsKeysPositionRequest(ctx)) {&#x000A;    RedisModule_KeyAtPos(ctx,1);&#x000A;    RedisModule_KeyAtPos(ctx,2);&#x000A;}&#x000A;</code></pre>
+            
+            <p>Note: in the example below the get keys API would not be needed since
+             keys are at fixed positions. This interface is only used for commands
+             with a more complex structure.</p>
+            
+            <span id="coderedismodulecreatecommandcode" class=anchor></span><h2 ><a href="#coderedismodulecreatecommandcode" class=anchor-link>*</a><code>RedisModule_CreateCommand</code></h2>
+            
+            <pre><code>int RedisModule_CreateCommand(RedisModuleCtx *ctx, const char *name, RedisModuleCmdFunc cmdfunc, const char *strflags, int firstkey, int lastkey, int keystep);&#x000A;</code></pre>
+            
+            <p>Register a new command in the Redis server, that will be handled by
+            calling the function pointer &#39;func&#39; using the RedisModule calling
+            convention. The function returns <code>REDISMODULE_ERR</code> if the specified command
+            name is already busy or a set of invalid flags were passed, otherwise
+            <code>REDISMODULE_OK</code> is returned and the new command is registered.</p>
+            
+            <p>This function must be called during the initialization of the module
+            inside the <code>RedisModule_OnLoad()</code> function. Calling this function outside
+            of the initialization function is not defined.</p>
+            
+            <p>The command function type is the following:</p>
+            
+            <pre><code> int MyCommand_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc);&#x000A;</code></pre>
+            
+            <p>And is supposed to always return <code>REDISMODULE_OK</code>.</p>
+            
+            <p>The set of flags &#39;strflags&#39; specify the behavior of the command, and should
+            be passed as a C string composed of space separated words, like for
+            example &quot;write deny-oom&quot;. The set of flags are:</p>
+            
+            <ul>
+            <li><strong>&quot;write&quot;</strong>:     The command may modify the data set (it may also read
+                           from it).</li>
+            <li><strong>&quot;readonly&quot;</strong>:  The command returns data from keys but never writes.</li>
+            <li><strong>&quot;admin&quot;</strong>:     The command is an administrative command (may change
+                           replication or perform similar tasks).</li>
+            <li><strong>&quot;deny-oom&quot;</strong>:  The command may use additional memory and should be
+                           denied during out of memory conditions.</li>
+            <li><strong>&quot;deny-script&quot;</strong>:   Don&#39;t allow this command in Lua scripts.</li>
+            <li><strong>&quot;allow-loading&quot;</strong>: Allow this command while the server is loading data.
+                               Only commands not interacting with the data set
+                               should be allowed to run in this mode. If not sure
+                               don&#39;t use this flag.</li>
+            <li><strong>&quot;pubsub&quot;</strong>:    The command publishes things on Pub/Sub channels.</li>
+            <li><strong>&quot;random&quot;</strong>:    The command may have different outputs even starting
+                           from the same input arguments and key values.</li>
+            <li><strong>&quot;allow-stale&quot;</strong>: The command is allowed to run on slaves that don&#39;t
+                             serve stale data. Don&#39;t use if you don&#39;t know what
+                             this means.</li>
+            <li><strong>&quot;no-monitor&quot;</strong>: Don&#39;t propagate the command on monitor. Use this if
+                            the command has sensible data among the arguments.</li>
+            <li><strong>&quot;fast&quot;</strong>:      The command time complexity is not greater
+                           than <span class="math">O(log(N)) </span>where N is the size of the collection or
+                           anything else representing the normal scalability
+                           issue with the command.</li>
+            <li><strong>&quot;getkeys-api&quot;</strong>: The command implements the interface to return
+                             the arguments that are keys. Used when start/stop/step
+                             is not enough because of the command syntax.</li>
+            <li><strong>&quot;no-cluster&quot;</strong>: The command should not register in Redis Cluster
+                            since is not designed to work with it because, for
+                            example, is unable to report the position of the
+                            keys, programmatically creates key names, or any
+                            other reason.</li>
+            </ul>
+            
+            <span id="coderedismodulesetmoduleattribscode" class=anchor></span><h2 ><a href="#coderedismodulesetmoduleattribscode" class=anchor-link>*</a><code>RedisModule_SetModuleAttribs</code></h2>
+            
+            <pre><code>void RedisModule_SetModuleAttribs(RedisModuleCtx *ctx, const char *name, int ver, int apiver);&#x000A;</code></pre>
+            
+            <p>Called by <code>RM_Init()</code> to setup the <code>ctx-&gt;module</code> structure.</p>
+            
+            <p>This is an internal function, Redis modules developers don&#39;t need
+            to use it.</p>
+            
+            <span id="coderedismoduleismodulenamebusycode" class=anchor></span><h2 ><a href="#coderedismoduleismodulenamebusycode" class=anchor-link>*</a><code>RedisModule_IsModuleNameBusy</code></h2>
+            
+            <pre><code>int RedisModule_IsModuleNameBusy(const char *name);&#x000A;</code></pre>
+            
+            <p>Return non-zero if the module name is busy.
+            Otherwise zero is returned.</p>
+            
+            <span id="coderedismodulemillisecondscode" class=anchor></span><h2 ><a href="#coderedismodulemillisecondscode" class=anchor-link>*</a><code>RedisModule_Milliseconds</code></h2>
+            
+            <pre><code>long long RedisModule_Milliseconds(void);&#x000A;</code></pre>
+            
+            <p>Return the current UNIX time in milliseconds.</p>
+            
+            <span id="coderedismoduleautomemorycode" class=anchor></span><h2 ><a href="#coderedismoduleautomemorycode" class=anchor-link>*</a><code>RedisModule_AutoMemory</code></h2>
+            
+            <pre><code>void RedisModule_AutoMemory(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Enable automatic memory management. See API.md for more information.</p>
+            
+            <p>The function must be called as the first function of a command implementation
+            that wants to use automatic memory.</p>
+            
+            <span id="coderedismodulecreatestringcode" class=anchor></span><h2 ><a href="#coderedismodulecreatestringcode" class=anchor-link>*</a><code>RedisModule_CreateString</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_CreateString(RedisModuleCtx *ctx, const char *ptr, size_t len);&#x000A;</code></pre>
+            
+            <p>Create a new module string object. The returned string must be freed
+            with <code>RedisModule_FreeString()</code>, unless automatic memory is enabled.</p>
+            
+            <p>The string is created by copying the <code>len</code> bytes starting
+            at <code>ptr</code>. No reference is retained to the passed buffer.</p>
+            
+            <p>The module context &#39;ctx&#39; is optional and may be NULL if you want to create
+            a string out of the context scope. However in that case, the automatic
+            memory management will not be available, and the string memory must be
+            managed manually.</p>
+            
+            <span id="coderedismodulecreatestringprintfcode" class=anchor></span><h2 ><a href="#coderedismodulecreatestringprintfcode" class=anchor-link>*</a><code>RedisModule_CreateStringPrintf</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_CreateStringPrintf(RedisModuleCtx *ctx, const char *fmt, ...);&#x000A;</code></pre>
+            
+            <p>Create a new module string object from a printf format and arguments.
+            The returned string must be freed with <code>RedisModule_FreeString()</code>, unless
+            automatic memory is enabled.</p>
+            
+            <p>The string is created using the sds formatter function sdscatvprintf().</p>
+            
+            <p>The passed context &#39;ctx&#39; may be NULL if necessary, see the
+            <code>RedisModule_CreateString()</code> documentation for more info.</p>
+            
+            <span id="coderedismodulecreatestringfromlonglongcode" class=anchor></span><h2 ><a href="#coderedismodulecreatestringfromlonglongcode" class=anchor-link>*</a><code>RedisModule_CreateStringFromLongLong</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_CreateStringFromLongLong(RedisModuleCtx *ctx, long long ll);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_CreatString()</code>, but creates a string starting from a long long
+            integer instead of taking a buffer and its length.</p>
+            
+            <p>The returned string must be released with <code>RedisModule_FreeString()</code> or by
+            enabling automatic memory management.</p>
+            
+            <p>The passed context &#39;ctx&#39; may be NULL if necessary, see the
+            <code>RedisModule_CreateString()</code> documentation for more info.</p>
+            
+            <span id="coderedismodulecreatestringfromstringcode" class=anchor></span><h2 ><a href="#coderedismodulecreatestringfromstringcode" class=anchor-link>*</a><code>RedisModule_CreateStringFromString</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_CreateStringFromString(RedisModuleCtx *ctx, const RedisModuleString *str);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_CreatString()</code>, but creates a string starting from another
+            RedisModuleString.</p>
+            
+            <p>The returned string must be released with <code>RedisModule_FreeString()</code> or by
+            enabling automatic memory management.</p>
+            
+            <p>The passed context &#39;ctx&#39; may be NULL if necessary, see the
+            <code>RedisModule_CreateString()</code> documentation for more info.</p>
+            
+            <span id="coderedismodulefreestringcode" class=anchor></span><h2 ><a href="#coderedismodulefreestringcode" class=anchor-link>*</a><code>RedisModule_FreeString</code></h2>
+            
+            <pre><code>void RedisModule_FreeString(RedisModuleCtx *ctx, RedisModuleString *str);&#x000A;</code></pre>
+            
+            <p>Free a module string object obtained with one of the Redis modules API calls
+            that return new string objects.</p>
+            
+            <p>It is possible to call this function even when automatic memory management
+            is enabled. In that case the string will be released ASAP and removed
+            from the pool of string to release at the end.</p>
+            
+            <p>If the string was created with a NULL context &#39;ctx&#39;, it is also possible to
+            pass ctx as NULL when releasing the string (but passing a context will not
+            create any issue). Strings created with a context should be freed also passing
+            the context, so if you want to free a string out of context later, make sure
+            to create it using a NULL context.</p>
+            
+            <span id="coderedismoduleretainstringcode" class=anchor></span><h2 ><a href="#coderedismoduleretainstringcode" class=anchor-link>*</a><code>RedisModule_RetainString</code></h2>
+            
+            <pre><code>void RedisModule_RetainString(RedisModuleCtx *ctx, RedisModuleString *str);&#x000A;</code></pre>
+            
+            <p>Every call to this function, will make the string &#39;str&#39; requiring
+            an additional call to <code>RedisModule_FreeString()</code> in order to really
+            free the string. Note that the automatic freeing of the string obtained
+            enabling modules automatic memory management counts for one
+            <code>RedisModule_FreeString()</code> call (it is just executed automatically).</p>
+            
+            <p>Normally you want to call this function when, at the same time
+            the following conditions are true:</p>
+            
+            <p>1) You have automatic memory management enabled.
+            2) You want to create string objects.
+            3) Those string objects you create need to live <em>after</em> the callback
+               function(for example a command implementation) creating them returns.</p>
+            
+            <p>Usually you want this in order to store the created string object
+            into your own data structure, for example when implementing a new data
+            type.</p>
+            
+            <p>Note that when memory management is turned off, you don&#39;t need
+            any call to RetainString() since creating a string will always result
+            into a string that lives after the callback function returns, if
+            no FreeString() call is performed.</p>
+            
+            <p>It is possible to call this function with a NULL context.</p>
+            
+            <span id="coderedismodulestringptrlencode" class=anchor></span><h2 ><a href="#coderedismodulestringptrlencode" class=anchor-link>*</a><code>RedisModule_StringPtrLen</code></h2>
+            
+            <pre><code>const char *RedisModule_StringPtrLen(const RedisModuleString *str, size_t *len);&#x000A;</code></pre>
+            
+            <p>Given a string module object, this function returns the string pointer
+            and length of the string. The returned pointer and length should only
+            be used for read only accesses and never modified.</p>
+            
+            <span id="coderedismodulestringtolonglongcode" class=anchor></span><h2 ><a href="#coderedismodulestringtolonglongcode" class=anchor-link>*</a><code>RedisModule_StringToLongLong</code></h2>
+            
+            <pre><code>int RedisModule_StringToLongLong(const RedisModuleString *str, long long *ll);&#x000A;</code></pre>
+            
+            <p>Convert the string into a long long integer, storing it at <code>*ll</code>.
+            Returns <code>REDISMODULE_OK</code> on success. If the string can&#39;t be parsed
+            as a valid, strict long long (no spaces before/after), <code>REDISMODULE_ERR</code>
+            is returned.</p>
+            
+            <span id="coderedismodulestringtodoublecode" class=anchor></span><h2 ><a href="#coderedismodulestringtodoublecode" class=anchor-link>*</a><code>RedisModule_StringToDouble</code></h2>
+            
+            <pre><code>int RedisModule_StringToDouble(const RedisModuleString *str, double *d);&#x000A;</code></pre>
+            
+            <p>Convert the string into a double, storing it at <code>*d</code>.
+            Returns <code>REDISMODULE_OK</code> on success or <code>REDISMODULE_ERR</code> if the string is
+            not a valid string representation of a double value.</p>
+            
+            <span id="coderedismodulestringcomparecode" class=anchor></span><h2 ><a href="#coderedismodulestringcomparecode" class=anchor-link>*</a><code>RedisModule_StringCompare</code></h2>
+            
+            <pre><code>int RedisModule_StringCompare(RedisModuleString *a, RedisModuleString *b);&#x000A;</code></pre>
+            
+            <p>Compare two string objects, returning -1, 0 or 1 respectively if
+            a &lt; b, a == b, a &gt; b. Strings are compared byte by byte as two
+            binary blobs without any encoding care / collation attempt.</p>
+            
+            <span id="coderedismodulestringappendbuffercode" class=anchor></span><h2 ><a href="#coderedismodulestringappendbuffercode" class=anchor-link>*</a><code>RedisModule_StringAppendBuffer</code></h2>
+            
+            <pre><code>int RedisModule_StringAppendBuffer(RedisModuleCtx *ctx, RedisModuleString *str, const char *buf, size_t len);&#x000A;</code></pre>
+            
+            <p>Append the specified buffer to the string &#39;str&#39;. The string must be a
+            string created by the user that is referenced only a single time, otherwise
+            <code>REDISMODULE_ERR</code> is returned and the operation is not performed.</p>
+            
+            <span id="coderedismodulewrongaritycode" class=anchor></span><h2 ><a href="#coderedismodulewrongaritycode" class=anchor-link>*</a><code>RedisModule_WrongArity</code></h2>
+            
+            <pre><code>int RedisModule_WrongArity(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Send an error about the number of arguments given to the command,
+            citing the command name in the error message.</p>
+            
+            <p>Example:</p>
+            
+            <pre><code>if (argc != 3) return RedisModule_WrongArity(ctx);&#x000A;</code></pre>
+            
+            <span id="coderedismodulereplywithlonglongcode" class=anchor></span><h2 ><a href="#coderedismodulereplywithlonglongcode" class=anchor-link>*</a><code>RedisModule_ReplyWithLongLong</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithLongLong(RedisModuleCtx *ctx, long long ll);&#x000A;</code></pre>
+            
+            <p>Send an integer reply to the client, with the specified long long value.
+            The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplywitherrorcode" class=anchor></span><h2 ><a href="#coderedismodulereplywitherrorcode" class=anchor-link>*</a><code>RedisModule_ReplyWithError</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithError(RedisModuleCtx *ctx, const char *err);&#x000A;</code></pre>
+            
+            <p>Reply with the error &#39;err&#39;.</p>
+            
+            <p>Note that &#39;err&#39; must contain all the error, including
+            the initial error code. The function only provides the initial &quot;-&quot;, so
+            the usage is, for example:</p>
+            
+            <pre><code>RedisModule_ReplyWithError(ctx,&quot;ERR Wrong Type&quot;);&#x000A;</code></pre>
+            
+            <p>and not just:</p>
+            
+            <pre><code>RedisModule_ReplyWithError(ctx,&quot;Wrong Type&quot;);&#x000A;</code></pre>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplywithsimplestringcode" class=anchor></span><h2 ><a href="#coderedismodulereplywithsimplestringcode" class=anchor-link>*</a><code>RedisModule_ReplyWithSimpleString</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithSimpleString(RedisModuleCtx *ctx, const char *msg);&#x000A;</code></pre>
+            
+            <p>Reply with a simple string (+... \r\n in RESP protocol). This replies
+            are suitable only when sending a small non-binary string with small
+            overhead, like &quot;OK&quot; or similar replies.</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplywitharraycode" class=anchor></span><h2 ><a href="#coderedismodulereplywitharraycode" class=anchor-link>*</a><code>RedisModule_ReplyWithArray</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithArray(RedisModuleCtx *ctx, long len);&#x000A;</code></pre>
+            
+            <p>Reply with an array type of &#39;len&#39; elements. However &#39;len&#39; other calls
+            to <code>ReplyWith*</code> style functions must follow in order to emit the elements
+            of the array.</p>
+            
+            <p>When producing arrays with a number of element that is not known beforehand
+            the function can be called with the special count
+            <code>REDISMODULE_POSTPONED_ARRAY_LEN</code>, and the actual number of elements can be
+            later set with <code>RedisModule_ReplySetArrayLength()</code> (which will set the
+            latest &quot;open&quot; count if there are multiple ones).</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplysetarraylengthcode" class=anchor></span><h2 ><a href="#coderedismodulereplysetarraylengthcode" class=anchor-link>*</a><code>RedisModule_ReplySetArrayLength</code></h2>
+            
+            <pre><code>void RedisModule_ReplySetArrayLength(RedisModuleCtx *ctx, long len);&#x000A;</code></pre>
+            
+            <p>When <code>RedisModule_ReplyWithArray()</code> is used with the argument
+            <code>REDISMODULE_POSTPONED_ARRAY_LEN</code>, because we don&#39;t know beforehand the number
+            of items we are going to output as elements of the array, this function
+            will take care to set the array length.</p>
+            
+            <p>Since it is possible to have multiple array replies pending with unknown
+            length, this function guarantees to always set the latest array length
+            that was created in a postponed way.</p>
+            
+            <p>For example in order to output an array like [1,[10,20,30]] we
+            could write:</p>
+            
+            <pre><code> RedisModule_ReplyWithArray(ctx,REDISMODULE_POSTPONED_ARRAY_LEN);&#x000A; RedisModule_ReplyWithLongLong(ctx,1);&#x000A; RedisModule_ReplyWithArray(ctx,REDISMODULE_POSTPONED_ARRAY_LEN);&#x000A; RedisModule_ReplyWithLongLong(ctx,10);&#x000A; RedisModule_ReplyWithLongLong(ctx,20);&#x000A; RedisModule_ReplyWithLongLong(ctx,30);&#x000A; RedisModule_ReplySetArrayLength(ctx,3); // Set len of 10,20,30 array.&#x000A; RedisModule_ReplySetArrayLength(ctx,2); // Set len of top array&#x000A;</code></pre>
+            
+            <p>Note that in the above example there is no reason to postpone the array
+            length, since we produce a fixed number of elements, but in the practice
+            the code may use an iterator or other ways of creating the output so
+            that is not easy to calculate in advance the number of elements.</p>
+            
+            <span id="coderedismodulereplywithstringbuffercode" class=anchor></span><h2 ><a href="#coderedismodulereplywithstringbuffercode" class=anchor-link>*</a><code>RedisModule_ReplyWithStringBuffer</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithStringBuffer(RedisModuleCtx *ctx, const char *buf, size_t len);&#x000A;</code></pre>
+            
+            <p>Reply with a bulk string, taking in input a C buffer pointer and length.</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplywithstringcode" class=anchor></span><h2 ><a href="#coderedismodulereplywithstringcode" class=anchor-link>*</a><code>RedisModule_ReplyWithString</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithString(RedisModuleCtx *ctx, RedisModuleString *str);&#x000A;</code></pre>
+            
+            <p>Reply with a bulk string, taking in input a RedisModuleString object.</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplywithnullcode" class=anchor></span><h2 ><a href="#coderedismodulereplywithnullcode" class=anchor-link>*</a><code>RedisModule_ReplyWithNull</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithNull(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Reply to the client with a NULL. In the RESP protocol a NULL is encoded
+            as the string &quot;$-1\r\n&quot;.</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplywithcallreplycode" class=anchor></span><h2 ><a href="#coderedismodulereplywithcallreplycode" class=anchor-link>*</a><code>RedisModule_ReplyWithCallReply</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithCallReply(RedisModuleCtx *ctx, RedisModuleCallReply *reply);&#x000A;</code></pre>
+            
+            <p>Reply exactly what a Redis command returned us with <code>RedisModule_Call()</code>.
+            This function is useful when we use <code>RedisModule_Call()</code> in order to
+            execute some command, as we want to reply to the client exactly the
+            same reply we obtained by the command.</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplywithdoublecode" class=anchor></span><h2 ><a href="#coderedismodulereplywithdoublecode" class=anchor-link>*</a><code>RedisModule_ReplyWithDouble</code></h2>
+            
+            <pre><code>int RedisModule_ReplyWithDouble(RedisModuleCtx *ctx, double d);&#x000A;</code></pre>
+            
+            <p>Send a string reply obtained converting the double &#39;d&#39; into a bulk string.
+            This function is basically equivalent to converting a double into
+            a string into a C buffer, and then calling the function
+            <code>RedisModule_ReplyWithStringBuffer()</code> with the buffer and length.</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulereplicatecode" class=anchor></span><h2 ><a href="#coderedismodulereplicatecode" class=anchor-link>*</a><code>RedisModule_Replicate</code></h2>
+            
+            <pre><code>int RedisModule_Replicate(RedisModuleCtx *ctx, const char *cmdname, const char *fmt, ...);&#x000A;</code></pre>
+            
+            <p>Replicate the specified command and arguments to slaves and AOF, as effect
+            of execution of the calling command implementation.</p>
+            
+            <p>The replicated commands are always wrapped into the MULTI/EXEC that
+            contains all the commands replicated in a given module command
+            execution. However the commands replicated with <code>RedisModule_Call()</code>
+            are the first items, the ones replicated with <code>RedisModule_Replicate()</code>
+            will all follow before the EXEC.</p>
+            
+            <p>Modules should try to use one interface or the other.</p>
+            
+            <p>This command follows exactly the same interface of <code>RedisModule_Call()</code>,
+            so a set of format specifiers must be passed, followed by arguments
+            matching the provided format specifiers.</p>
+            
+            <p>Please refer to <code>RedisModule_Call()</code> for more information.</p>
+            
+            <p>The command returns <code>REDISMODULE_ERR</code> if the format specifiers are invalid
+            or the command name does not belong to a known command.</p>
+            
+            <span id="coderedismodulereplicateverbatimcode" class=anchor></span><h2 ><a href="#coderedismodulereplicateverbatimcode" class=anchor-link>*</a><code>RedisModule_ReplicateVerbatim</code></h2>
+            
+            <pre><code>int RedisModule_ReplicateVerbatim(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>This function will replicate the command exactly as it was invoked
+            by the client. Note that this function will not wrap the command into
+            a MULTI/EXEC stanza, so it should not be mixed with other replication
+            commands.</p>
+            
+            <p>Basically this form of replication is useful when you want to propagate
+            the command to the slaves and AOF file exactly as it was called, since
+            the command can just be re-executed to deterministically re-create the
+            new state starting from the old one.</p>
+            
+            <p>The function always returns <code>REDISMODULE_OK</code>.</p>
+            
+            <span id="coderedismodulegetclientidcode" class=anchor></span><h2 ><a href="#coderedismodulegetclientidcode" class=anchor-link>*</a><code>RedisModule_GetClientId</code></h2>
+            
+            <pre><code>unsigned long long RedisModule_GetClientId(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Return the ID of the current client calling the currently active module
+            command. The returned ID has a few guarantees:</p>
+            
+            <ol>
+            <li>The ID is different for each different client, so if the same client
+            executes a module command multiple times, it can be recognized as
+            having the same ID, otherwise the ID will be different.</li>
+            <li>The ID increases monotonically. Clients connecting to the server later
+            are guaranteed to get IDs greater than any past ID previously seen.</li>
+            </ol>
+            
+            <p>Valid IDs are from 1 to 2<sup>64-1.</sup> If 0 is returned it means there is no way
+            to fetch the ID in the context the function was currently called.</p>
+            
+            <span id="coderedismodulegetselecteddbcode" class=anchor></span><h2 ><a href="#coderedismodulegetselecteddbcode" class=anchor-link>*</a><code>RedisModule_GetSelectedDb</code></h2>
+            
+            <pre><code>int RedisModule_GetSelectedDb(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Return the currently selected DB.</p>
+            
+            <span id="coderedismodulegetcontextflagscode" class=anchor></span><h2 ><a href="#coderedismodulegetcontextflagscode" class=anchor-link>*</a><code>RedisModule_GetContextFlags</code></h2>
+            
+            <pre><code>int RedisModule_GetContextFlags(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Return the current context&#39;s flags. The flags provide information on the
+            current request context (whether the client is a Lua script or in a MULTI),
+            and about the Redis instance in general, i.e replication and persistence.</p>
+            
+            <p>The available flags are:</p>
+            
+            <ul>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_LUA: The command is running in a Lua script</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_MULTI: The command is running inside a transaction</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_MASTER: The Redis instance is a master</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_SLAVE: The Redis instance is a slave</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_READONLY: The Redis instance is read-only</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_CLUSTER: The Redis instance is in cluster mode</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_AOF: The Redis instance has AOF enabled</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_RDB: The instance has RDB enabled</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_MAXMEMORY:  The instance has Maxmemory set</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_EVICT:  Maxmemory is set and has an eviction
+            policy that may delete keys</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS_OOM: Redis is out of memory according to the
+            maxmemory setting.</p></li>
+            <li><p>REDISMODULE<em>CTX</em>FLAGS<em>OOM</em>WARNING: Less than 25% of memory remains before
+                                              reaching the maxmemory level.</p></li>
+            </ul>
+            
+            <span id="coderedismoduleselectdbcode" class=anchor></span><h2 ><a href="#coderedismoduleselectdbcode" class=anchor-link>*</a><code>RedisModule_SelectDb</code></h2>
+            
+            <pre><code>int RedisModule_SelectDb(RedisModuleCtx *ctx, int newid);&#x000A;</code></pre>
+            
+            <p>Change the currently selected DB. Returns an error if the id
+            is out of range.</p>
+            
+            <p>Note that the client will retain the currently selected DB even after
+            the Redis command implemented by the module calling this function
+            returns.</p>
+            
+            <p>If the module command wishes to change something in a different DB and
+            returns back to the original one, it should call <code>RedisModule_GetSelectedDb()</code>
+            before in order to restore the old DB number before returning.</p>
+            
+            <span id="coderedismoduleopenkeycode" class=anchor></span><h2 ><a href="#coderedismoduleopenkeycode" class=anchor-link>*</a><code>RedisModule_OpenKey</code></h2>
+            
+            <pre><code>void *RedisModule_OpenKey(RedisModuleCtx *ctx, robj *keyname, int mode);&#x000A;</code></pre>
+            
+            <p>Return an handle representing a Redis key, so that it is possible
+            to call other APIs with the key handle as argument to perform
+            operations on the key.</p>
+            
+            <p>The return value is the handle representing the key, that must be
+            closed with <code>RM_CloseKey()</code>.</p>
+            
+            <p>If the key does not exist and WRITE mode is requested, the handle
+            is still returned, since it is possible to perform operations on
+            a yet not existing key (that will be created, for example, after
+            a list push operation). If the mode is just READ instead, and the
+            key does not exist, NULL is returned. However it is still safe to
+            call <code>RedisModule_CloseKey()</code> and <code>RedisModule_KeyType()</code> on a NULL
+            value.</p>
+            
+            <span id="coderedismoduleclosekeycode" class=anchor></span><h2 ><a href="#coderedismoduleclosekeycode" class=anchor-link>*</a><code>RedisModule_CloseKey</code></h2>
+            
+            <pre><code>void RedisModule_CloseKey(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Close a key handle.</p>
+            
+            <span id="coderedismodulekeytypecode" class=anchor></span><h2 ><a href="#coderedismodulekeytypecode" class=anchor-link>*</a><code>RedisModule_KeyType</code></h2>
+            
+            <pre><code>int RedisModule_KeyType(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Return the type of the key. If the key pointer is NULL then
+            <code>REDISMODULE_KEYTYPE_EMPTY</code> is returned.</p>
+            
+            <span id="coderedismodulevaluelengthcode" class=anchor></span><h2 ><a href="#coderedismodulevaluelengthcode" class=anchor-link>*</a><code>RedisModule_ValueLength</code></h2>
+            
+            <pre><code>size_t RedisModule_ValueLength(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Return the length of the value associated with the key.
+            For strings this is the length of the string. For all the other types
+            is the number of elements (just counting keys for hashes).</p>
+            
+            <p>If the key pointer is NULL or the key is empty, zero is returned.</p>
+            
+            <span id="coderedismoduledeletekeycode" class=anchor></span><h2 ><a href="#coderedismoduledeletekeycode" class=anchor-link>*</a><code>RedisModule_DeleteKey</code></h2>
+            
+            <pre><code>int RedisModule_DeleteKey(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>If the key is open for writing, remove it, and setup the key to
+            accept new writes as an empty key (that will be created on demand).
+            On success <code>REDISMODULE_OK</code> is returned. If the key is not open for
+            writing <code>REDISMODULE_ERR</code> is returned.</p>
+            
+            <span id="coderedismoduleunlinkkeycode" class=anchor></span><h2 ><a href="#coderedismoduleunlinkkeycode" class=anchor-link>*</a><code>RedisModule_UnlinkKey</code></h2>
+            
+            <pre><code>int RedisModule_UnlinkKey(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>If the key is open for writing, unlink it (that is delete it in a 
+            non-blocking way, not reclaiming memory immediately) and setup the key to
+            accept new writes as an empty key (that will be created on demand).
+            On success <code>REDISMODULE_OK</code> is returned. If the key is not open for
+            writing <code>REDISMODULE_ERR</code> is returned.</p>
+            
+            <span id="coderedismodulegetexpirecode" class=anchor></span><h2 ><a href="#coderedismodulegetexpirecode" class=anchor-link>*</a><code>RedisModule_GetExpire</code></h2>
+            
+            <pre><code>mstime_t RedisModule_GetExpire(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Return the key expire value, as milliseconds of remaining TTL.
+            If no TTL is associated with the key or if the key is empty,
+            <code>REDISMODULE_NO_EXPIRE</code> is returned.</p>
+            
+            <span id="coderedismodulesetexpirecode" class=anchor></span><h2 ><a href="#coderedismodulesetexpirecode" class=anchor-link>*</a><code>RedisModule_SetExpire</code></h2>
+            
+            <pre><code>int RedisModule_SetExpire(RedisModuleKey *key, mstime_t expire);&#x000A;</code></pre>
+            
+            <p>Set a new expire for the key. If the special expire
+            <code>REDISMODULE_NO_EXPIRE</code> is set, the expire is cancelled if there was
+            one (the same as the PERSIST command).</p>
+            
+            <p>Note that the expire must be provided as a positive integer representing
+            the number of milliseconds of TTL the key should have.</p>
+            
+            <p>The function returns <code>REDISMODULE_OK</code> on success or <code>REDISMODULE_ERR</code> if
+            the key was not open for writing or is an empty key.</p>
+            
+            <span id="coderedismodulestringsetcode" class=anchor></span><h2 ><a href="#coderedismodulestringsetcode" class=anchor-link>*</a><code>RedisModule_StringSet</code></h2>
+            
+            <pre><code>int RedisModule_StringSet(RedisModuleKey *key, RedisModuleString *str);&#x000A;</code></pre>
+            
+            <p>If the key is open for writing, set the specified string &#39;str&#39; as the
+            value of the key, deleting the old value if any.
+            On success <code>REDISMODULE_OK</code> is returned. If the key is not open for
+            writing or there is an active iterator, <code>REDISMODULE_ERR</code> is returned.</p>
+            
+            <span id="coderedismodulestringdmacode" class=anchor></span><h2 ><a href="#coderedismodulestringdmacode" class=anchor-link>*</a><code>RedisModule_StringDMA</code></h2>
+            
+            <pre><code>char *RedisModule_StringDMA(RedisModuleKey *key, size_t *len, int mode);&#x000A;</code></pre>
+            
+            <p>Prepare the key associated string value for DMA access, and returns
+            a pointer and size (by reference), that the user can use to read or
+            modify the string in-place accessing it directly via pointer.</p>
+            
+            <p>The &#39;mode&#39; is composed by bitwise OR-ing the following flags:</p>
+            
+            <pre><code>REDISMODULE_READ -- Read access&#x000A;REDISMODULE_WRITE -- Write access&#x000A;</code></pre>
+            
+            <p>If the DMA is not requested for writing, the pointer returned should
+            only be accessed in a read-only fashion.</p>
+            
+            <p>On error (wrong type) NULL is returned.</p>
+            
+            <p>DMA access rules:</p>
+            
+            <ol>
+            <li><p>No other key writing function should be called since the moment
+            the pointer is obtained, for all the time we want to use DMA access
+            to read or modify the string.</p></li>
+            <li><p>Each time <code>RM_StringTruncate()</code> is called, to continue with the DMA
+            access, <code>RM_StringDMA()</code> should be called again to re-obtain
+            a new pointer and length.</p></li>
+            <li><p>If the returned pointer is not NULL, but the length is zero, no
+            byte can be touched (the string is empty, or the key itself is empty)
+            so a <code>RM_StringTruncate()</code> call should be used if there is to enlarge
+            the string, and later call StringDMA() again to get the pointer.</p></li>
+            </ol>
+            
+            <span id="coderedismodulestringtruncatecode" class=anchor></span><h2 ><a href="#coderedismodulestringtruncatecode" class=anchor-link>*</a><code>RedisModule_StringTruncate</code></h2>
+            
+            <pre><code>int RedisModule_StringTruncate(RedisModuleKey *key, size_t newlen);&#x000A;</code></pre>
+            
+            <p>If the string is open for writing and is of string type, resize it, padding
+            with zero bytes if the new length is greater than the old one.</p>
+            
+            <p>After this call, <code>RM_StringDMA()</code> must be called again to continue
+            DMA access with the new pointer.</p>
+            
+            <p>The function returns <code>REDISMODULE_OK</code> on success, and <code>REDISMODULE_ERR</code> on
+            error, that is, the key is not open for writing, is not a string
+            or resizing for more than 512 MB is requested.</p>
+            
+            <p>If the key is empty, a string key is created with the new string value
+            unless the new length value requested is zero.</p>
+            
+            <span id="coderedismodulelistpushcode" class=anchor></span><h2 ><a href="#coderedismodulelistpushcode" class=anchor-link>*</a><code>RedisModule_ListPush</code></h2>
+            
+            <pre><code>int RedisModule_ListPush(RedisModuleKey *key, int where, RedisModuleString *ele);&#x000A;</code></pre>
+            
+            <p>Push an element into a list, on head or tail depending on &#39;where&#39; argument.
+            If the key pointer is about an empty key opened for writing, the key
+            is created. On error (key opened for read-only operations or of the wrong
+            type) <code>REDISMODULE_ERR</code> is returned, otherwise <code>REDISMODULE_OK</code> is returned.</p>
+            
+            <span id="coderedismodulelistpopcode" class=anchor></span><h2 ><a href="#coderedismodulelistpopcode" class=anchor-link>*</a><code>RedisModule_ListPop</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_ListPop(RedisModuleKey *key, int where);&#x000A;</code></pre>
+            
+            <p>Pop an element from the list, and returns it as a module string object
+            that the user should be free with <code>RM_FreeString()</code> or by enabling
+            automatic memory. &#39;where&#39; specifies if the element should be popped from
+            head or tail. The command returns NULL if:
+            1) The list is empty.
+            2) The key was not open for writing.
+            3) The key is not a list.</p>
+            
+            <span id="coderedismodulezsetaddflagstocoreflagscode" class=anchor></span><h2 ><a href="#coderedismodulezsetaddflagstocoreflagscode" class=anchor-link>*</a><code>RedisModule_ZsetAddFlagsToCoreFlags</code></h2>
+            
+            <pre><code>int RedisModule_ZsetAddFlagsToCoreFlags(int flags);&#x000A;</code></pre>
+            
+            <p>Conversion from/to public flags of the Modules API and our private flags,
+            so that we have everything decoupled.</p>
+            
+            <span id="coderedismodulezsetaddflagsfromcoreflagscode" class=anchor></span><h2 ><a href="#coderedismodulezsetaddflagsfromcoreflagscode" class=anchor-link>*</a><code>RedisModule_ZsetAddFlagsFromCoreFlags</code></h2>
+            
+            <pre><code>int RedisModule_ZsetAddFlagsFromCoreFlags(int flags);&#x000A;</code></pre>
+            
+            <p>See previous function comment.</p>
+            
+            <span id="coderedismodulezsetaddcode" class=anchor></span><h2 ><a href="#coderedismodulezsetaddcode" class=anchor-link>*</a><code>RedisModule_ZsetAdd</code></h2>
+            
+            <pre><code>int RedisModule_ZsetAdd(RedisModuleKey *key, double score, RedisModuleString *ele, int *flagsptr);&#x000A;</code></pre>
+            
+            <p>Add a new element into a sorted set, with the specified &#39;score&#39;.
+            If the element already exists, the score is updated.</p>
+            
+            <p>A new sorted set is created at value if the key is an empty open key
+            setup for writing.</p>
+            
+            <p>Additional flags can be passed to the function via a pointer, the flags
+            are both used to receive input and to communicate state when the function
+            returns. &#39;flagsptr&#39; can be NULL if no special flags are used.</p>
+            
+            <p>The input flags are:</p>
+            
+            <pre><code>REDISMODULE_ZADD_XX: Element must already exist. Do nothing otherwise.&#x000A;REDISMODULE_ZADD_NX: Element must not exist. Do nothing otherwise.&#x000A;</code></pre>
+            
+            <p>The output flags are:</p>
+            
+            <pre><code>REDISMODULE_ZADD_ADDED: The new element was added to the sorted set.&#x000A;REDISMODULE_ZADD_UPDATED: The score of the element was updated.&#x000A;REDISMODULE_ZADD_NOP: No operation was performed because XX or NX flags.&#x000A;</code></pre>
+            
+            <p>On success the function returns <code>REDISMODULE_OK</code>. On the following errors
+            <code>REDISMODULE_ERR</code> is returned:</p>
+            
+            <ul>
+            <li>The key was not opened for writing.</li>
+            <li>The key is of the wrong type.</li>
+            <li>&#39;score&#39; double value is not a number (NaN).</li>
+            </ul>
+            
+            <span id="coderedismodulezsetincrbycode" class=anchor></span><h2 ><a href="#coderedismodulezsetincrbycode" class=anchor-link>*</a><code>RedisModule_ZsetIncrby</code></h2>
+            
+            <pre><code>int RedisModule_ZsetIncrby(RedisModuleKey *key, double score, RedisModuleString *ele, int *flagsptr, double *newscore);&#x000A;</code></pre>
+            
+            <p>This function works exactly like <code>RM_ZsetAdd()</code>, but instead of setting
+            a new score, the score of the existing element is incremented, or if the
+            element does not already exist, it is added assuming the old score was
+            zero.</p>
+            
+            <p>The input and output flags, and the return value, have the same exact
+            meaning, with the only difference that this function will return
+            <code>REDISMODULE_ERR</code> even when &#39;score&#39; is a valid double number, but adding it
+            to the existing score results into a NaN (not a number) condition.</p>
+            
+            <p>This function has an additional field &#39;newscore&#39;, if not NULL is filled
+            with the new score of the element after the increment, if no error
+            is returned.</p>
+            
+            <span id="coderedismodulezsetremcode" class=anchor></span><h2 ><a href="#coderedismodulezsetremcode" class=anchor-link>*</a><code>RedisModule_ZsetRem</code></h2>
+            
+            <pre><code>int RedisModule_ZsetRem(RedisModuleKey *key, RedisModuleString *ele, int *deleted);&#x000A;</code></pre>
+            
+            <p>Remove the specified element from the sorted set.
+            The function returns <code>REDISMODULE_OK</code> on success, and <code>REDISMODULE_ERR</code>
+            on one of the following conditions:</p>
+            
+            <ul>
+            <li>The key was not opened for writing.</li>
+            <li>The key is of the wrong type.</li>
+            </ul>
+            
+            <p>The return value does NOT indicate the fact the element was really
+            removed (since it existed) or not, just if the function was executed
+            with success.</p>
+            
+            <p>In order to know if the element was removed, the additional argument
+            &#39;deleted&#39; must be passed, that populates the integer by reference
+            setting it to 1 or 0 depending on the outcome of the operation.
+            The &#39;deleted&#39; argument can be NULL if the caller is not interested
+            to know if the element was really removed.</p>
+            
+            <p>Empty keys will be handled correctly by doing nothing.</p>
+            
+            <span id="coderedismodulezsetscorecode" class=anchor></span><h2 ><a href="#coderedismodulezsetscorecode" class=anchor-link>*</a><code>RedisModule_ZsetScore</code></h2>
+            
+            <pre><code>int RedisModule_ZsetScore(RedisModuleKey *key, RedisModuleString *ele, double *score);&#x000A;</code></pre>
+            
+            <p>On success retrieve the double score associated at the sorted set element
+            &#39;ele&#39; and returns <code>REDISMODULE_OK</code>. Otherwise <code>REDISMODULE_ERR</code> is returned
+            to signal one of the following conditions:</p>
+            
+            <ul>
+            <li>There is no such element &#39;ele&#39; in the sorted set.</li>
+            <li>The key is not a sorted set.</li>
+            <li>The key is an open empty key.</li>
+            </ul>
+            
+            <span id="coderedismodulezsetrangestopcode" class=anchor></span><h2 ><a href="#coderedismodulezsetrangestopcode" class=anchor-link>*</a><code>RedisModule_ZsetRangeStop</code></h2>
+            
+            <pre><code>void RedisModule_ZsetRangeStop(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Stop a sorted set iteration.</p>
+            
+            <span id="coderedismodulezsetrangeendreachedcode" class=anchor></span><h2 ><a href="#coderedismodulezsetrangeendreachedcode" class=anchor-link>*</a><code>RedisModule_ZsetRangeEndReached</code></h2>
+            
+            <pre><code>int RedisModule_ZsetRangeEndReached(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Return the &quot;End of range&quot; flag value to signal the end of the iteration.</p>
+            
+            <span id="coderedismodulezsetfirstinscorerangecode" class=anchor></span><h2 ><a href="#coderedismodulezsetfirstinscorerangecode" class=anchor-link>*</a><code>RedisModule_ZsetFirstInScoreRange</code></h2>
+            
+            <pre><code>int RedisModule_ZsetFirstInScoreRange(RedisModuleKey *key, double min, double max, int minex, int maxex);&#x000A;</code></pre>
+            
+            <p>Setup a sorted set iterator seeking the first element in the specified
+            range. Returns <code>REDISMODULE_OK</code> if the iterator was correctly initialized
+            otherwise <code>REDISMODULE_ERR</code> is returned in the following conditions:</p>
+            
+            <ol>
+            <li>The value stored at key is not a sorted set or the key is empty.</li>
+            </ol>
+            
+            <p>The range is specified according to the two double values &#39;min&#39; and &#39;max&#39;.
+            Both can be infinite using the following two macros:</p>
+            
+            <p><code>REDISMODULE_POSITIVE_INFINITE</code> for positive infinite value
+            <code>REDISMODULE_NEGATIVE_INFINITE</code> for negative infinite value</p>
+            
+            <p>&#39;minex&#39; and &#39;maxex&#39; parameters, if true, respectively setup a range
+            where the min and max value are exclusive (not included) instead of
+            inclusive.</p>
+            
+            <span id="coderedismodulezsetlastinscorerangecode" class=anchor></span><h2 ><a href="#coderedismodulezsetlastinscorerangecode" class=anchor-link>*</a><code>RedisModule_ZsetLastInScoreRange</code></h2>
+            
+            <pre><code>int RedisModule_ZsetLastInScoreRange(RedisModuleKey *key, double min, double max, int minex, int maxex);&#x000A;</code></pre>
+            
+            <p>Exactly like <code>RedisModule_ZsetFirstInScoreRange()</code> but the last element of
+            the range is selected for the start of the iteration instead.</p>
+            
+            <span id="coderedismodulezsetfirstinlexrangecode" class=anchor></span><h2 ><a href="#coderedismodulezsetfirstinlexrangecode" class=anchor-link>*</a><code>RedisModule_ZsetFirstInLexRange</code></h2>
+            
+            <pre><code>int RedisModule_ZsetFirstInLexRange(RedisModuleKey *key, RedisModuleString *min, RedisModuleString *max);&#x000A;</code></pre>
+            
+            <p>Setup a sorted set iterator seeking the first element in the specified
+            lexicographical range. Returns <code>REDISMODULE_OK</code> if the iterator was correctly
+            initialized otherwise <code>REDISMODULE_ERR</code> is returned in the
+            following conditions:</p>
+            
+            <ol>
+            <li>The value stored at key is not a sorted set or the key is empty.</li>
+            <li>The lexicographical range &#39;min&#39; and &#39;max&#39; format is invalid.</li>
+            </ol>
+            
+            <p>&#39;min&#39; and &#39;max&#39; should be provided as two RedisModuleString objects
+            in the same format as the parameters passed to the ZRANGEBYLEX command.
+            The function does not take ownership of the objects, so they can be released
+            ASAP after the iterator is setup.</p>
+            
+            <span id="coderedismodulezsetlastinlexrangecode" class=anchor></span><h2 ><a href="#coderedismodulezsetlastinlexrangecode" class=anchor-link>*</a><code>RedisModule_ZsetLastInLexRange</code></h2>
+            
+            <pre><code>int RedisModule_ZsetLastInLexRange(RedisModuleKey *key, RedisModuleString *min, RedisModuleString *max);&#x000A;</code></pre>
+            
+            <p>Exactly like <code>RedisModule_ZsetFirstInLexRange()</code> but the last element of
+            the range is selected for the start of the iteration instead.</p>
+            
+            <span id="coderedismodulezsetrangecurrentelementcode" class=anchor></span><h2 ><a href="#coderedismodulezsetrangecurrentelementcode" class=anchor-link>*</a><code>RedisModule_ZsetRangeCurrentElement</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_ZsetRangeCurrentElement(RedisModuleKey *key, double *score);&#x000A;</code></pre>
+            
+            <p>Return the current sorted set element of an active sorted set iterator
+            or NULL if the range specified in the iterator does not include any
+            element.</p>
+            
+            <span id="coderedismodulezsetrangenextcode" class=anchor></span><h2 ><a href="#coderedismodulezsetrangenextcode" class=anchor-link>*</a><code>RedisModule_ZsetRangeNext</code></h2>
+            
+            <pre><code>int RedisModule_ZsetRangeNext(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Go to the next element of the sorted set iterator. Returns 1 if there was
+            a next element, 0 if we are already at the latest element or the range
+            does not include any item at all.</p>
+            
+            <span id="coderedismodulezsetrangeprevcode" class=anchor></span><h2 ><a href="#coderedismodulezsetrangeprevcode" class=anchor-link>*</a><code>RedisModule_ZsetRangePrev</code></h2>
+            
+            <pre><code>int RedisModule_ZsetRangePrev(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Go to the previous element of the sorted set iterator. Returns 1 if there was
+            a previous element, 0 if we are already at the first element or the range
+            does not include any item at all.</p>
+            
+            <span id="coderedismodulehashsetcode" class=anchor></span><h2 ><a href="#coderedismodulehashsetcode" class=anchor-link>*</a><code>RedisModule_HashSet</code></h2>
+            
+            <pre><code>int RedisModule_HashSet(RedisModuleKey *key, int flags, ...);&#x000A;</code></pre>
+            
+            <p>Set the field of the specified hash field to the specified value.
+            If the key is an empty key open for writing, it is created with an empty
+            hash value, in order to set the specified field.</p>
+            
+            <p>The function is variadic and the user must specify pairs of field
+            names and values, both as RedisModuleString pointers (unless the
+            CFIELD option is set, see later). At the end of the field/value-ptr pairs, 
+            NULL must be specified as last argument to signal the end of the arguments 
+            in the variadic function.</p>
+            
+            <p>Example to set the hash argv[1] to the value argv[2]:</p>
+            
+            <pre><code> RedisModule_HashSet(key,REDISMODULE_HASH_NONE,argv[1],argv[2],NULL);&#x000A;</code></pre>
+            
+            <p>The function can also be used in order to delete fields (if they exist)
+            by setting them to the specified value of <code>REDISMODULE_HASH_DELETE</code>:</p>
+            
+            <pre><code> RedisModule_HashSet(key,REDISMODULE_HASH_NONE,argv[1],&#x000A;                     REDISMODULE_HASH_DELETE,NULL);&#x000A;</code></pre>
+            
+            <p>The behavior of the command changes with the specified flags, that can be
+            set to <code>REDISMODULE_HASH_NONE</code> if no special behavior is needed.</p>
+            
+            <pre><code>REDISMODULE_HASH_NX: The operation is performed only if the field was not&#x000A;                     already existing in the hash.&#x000A;REDISMODULE_HASH_XX: The operation is performed only if the field was&#x000A;                     already existing, so that a new value could be&#x000A;                     associated to an existing filed, but no new fields&#x000A;                     are created.&#x000A;REDISMODULE_HASH_CFIELDS: The field names passed are null terminated C&#x000A;                          strings instead of RedisModuleString objects.&#x000A;</code></pre>
+            
+            <p>Unless NX is specified, the command overwrites the old field value with
+            the new one.</p>
+            
+            <p>When using <code>REDISMODULE_HASH_CFIELDS</code>, field names are reported using
+            normal C strings, so for example to delete the field &quot;foo&quot; the following
+            code can be used:</p>
+            
+            <pre><code> RedisModule_HashSet(key,REDISMODULE_HASH_CFIELDS,&quot;foo&quot;,&#x000A;                     REDISMODULE_HASH_DELETE,NULL);&#x000A;</code></pre>
+            
+            <p>Return value:</p>
+            
+            <p>The number of fields updated (that may be less than the number of fields
+            specified because of the XX or NX options).</p>
+            
+            <p>In the following case the return value is always zero:</p>
+            
+            <ul>
+            <li>The key was not open for writing.</li>
+            <li>The key was associated with a non Hash value.</li>
+            </ul>
+            
+            <span id="coderedismodulehashgetcode" class=anchor></span><h2 ><a href="#coderedismodulehashgetcode" class=anchor-link>*</a><code>RedisModule_HashGet</code></h2>
+            
+            <pre><code>int RedisModule_HashGet(RedisModuleKey *key, int flags, ...);&#x000A;</code></pre>
+            
+            <p>Get fields from an hash value. This function is called using a variable
+            number of arguments, alternating a field name (as a StringRedisModule
+            pointer) with a pointer to a StringRedisModule pointer, that is set to the
+            value of the field if the field exist, or NULL if the field did not exist.
+            At the end of the field/value-ptr pairs, NULL must be specified as last
+            argument to signal the end of the arguments in the variadic function.</p>
+            
+            <p>This is an example usage:</p>
+            
+            <pre><code> RedisModuleString *first, *second;&#x000A; RedisModule_HashGet(mykey,REDISMODULE_HASH_NONE,argv[1],&amp;first,&#x000A;                 argv[2],&amp;second,NULL);&#x000A;</code></pre>
+            
+            <p>As with <code>RedisModule_HashSet()</code> the behavior of the command can be specified
+            passing flags different than <code>REDISMODULE_HASH_NONE</code>:</p>
+            
+            <p><code>REDISMODULE_HASH_CFIELD</code>: field names as null terminated C strings.</p>
+            
+            <p><code>REDISMODULE_HASH_EXISTS</code>: instead of setting the value of the field
+            expecting a RedisModuleString pointer to pointer, the function just
+            reports if the field esists or not and expects an integer pointer
+            as the second element of each pair.</p>
+            
+            <p>Example of <code>REDISMODULE_HASH_CFIELD</code>:</p>
+            
+            <pre><code> RedisModuleString *username, *hashedpass;&#x000A; RedisModule_HashGet(mykey,&quot;username&quot;,&amp;username,&quot;hp&quot;,&amp;hashedpass, NULL);&#x000A;</code></pre>
+            
+            <p>Example of <code>REDISMODULE_HASH_EXISTS</code>:</p>
+            
+            <pre><code> int exists;&#x000A; RedisModule_HashGet(mykey,argv[1],&amp;exists,NULL);&#x000A;</code></pre>
+            
+            <p>The function returns <code>REDISMODULE_OK</code> on success and <code>REDISMODULE_ERR</code> if
+            the key is not an hash value.</p>
+            
+            <p>Memory management:</p>
+            
+            <p>The returned RedisModuleString objects should be released with
+            <code>RedisModule_FreeString()</code>, or by enabling automatic memory management.</p>
+            
+            <span id="coderedismodulefreecallreplyreccode" class=anchor></span><h2 ><a href="#coderedismodulefreecallreplyreccode" class=anchor-link>*</a><code>RedisModule_FreeCallReply_Rec</code></h2>
+            
+            <pre><code>void RedisModule_FreeCallReply_Rec(RedisModuleCallReply *reply, int freenested);&#x000A;</code></pre>
+            
+            <p>Free a Call reply and all the nested replies it contains if it&#39;s an
+            array.</p>
+            
+            <span id="coderedismodulefreecallreplycode" class=anchor></span><h2 ><a href="#coderedismodulefreecallreplycode" class=anchor-link>*</a><code>RedisModule_FreeCallReply</code></h2>
+            
+            <pre><code>void RedisModule_FreeCallReply(RedisModuleCallReply *reply);&#x000A;</code></pre>
+            
+            <p>Wrapper for the recursive free reply function. This is needed in order
+            to have the first level function to return on nested replies, but only
+            if called by the module API.</p>
+            
+            <span id="coderedismodulecallreplytypecode" class=anchor></span><h2 ><a href="#coderedismodulecallreplytypecode" class=anchor-link>*</a><code>RedisModule_CallReplyType</code></h2>
+            
+            <pre><code>int RedisModule_CallReplyType(RedisModuleCallReply *reply);&#x000A;</code></pre>
+            
+            <p>Return the reply type.</p>
+            
+            <span id="coderedismodulecallreplylengthcode" class=anchor></span><h2 ><a href="#coderedismodulecallreplylengthcode" class=anchor-link>*</a><code>RedisModule_CallReplyLength</code></h2>
+            
+            <pre><code>size_t RedisModule_CallReplyLength(RedisModuleCallReply *reply);&#x000A;</code></pre>
+            
+            <p>Return the reply type length, where applicable.</p>
+            
+            <span id="coderedismodulecallreplyarrayelementcode" class=anchor></span><h2 ><a href="#coderedismodulecallreplyarrayelementcode" class=anchor-link>*</a><code>RedisModule_CallReplyArrayElement</code></h2>
+            
+            <pre><code>RedisModuleCallReply *RedisModule_CallReplyArrayElement(RedisModuleCallReply *reply, size_t idx);&#x000A;</code></pre>
+            
+            <p>Return the &#39;idx&#39;-th nested call reply element of an array reply, or NULL
+            if the reply type is wrong or the index is out of range.</p>
+            
+            <span id="coderedismodulecallreplyintegercode" class=anchor></span><h2 ><a href="#coderedismodulecallreplyintegercode" class=anchor-link>*</a><code>RedisModule_CallReplyInteger</code></h2>
+            
+            <pre><code>long long RedisModule_CallReplyInteger(RedisModuleCallReply *reply);&#x000A;</code></pre>
+            
+            <p>Return the long long of an integer reply.</p>
+            
+            <span id="coderedismodulecallreplystringptrcode" class=anchor></span><h2 ><a href="#coderedismodulecallreplystringptrcode" class=anchor-link>*</a><code>RedisModule_CallReplyStringPtr</code></h2>
+            
+            <pre><code>const char *RedisModule_CallReplyStringPtr(RedisModuleCallReply *reply, size_t *len);&#x000A;</code></pre>
+            
+            <p>Return the pointer and length of a string or error reply.</p>
+            
+            <span id="coderedismodulecreatestringfromcallreplycode" class=anchor></span><h2 ><a href="#coderedismodulecreatestringfromcallreplycode" class=anchor-link>*</a><code>RedisModule_CreateStringFromCallReply</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_CreateStringFromCallReply(RedisModuleCallReply *reply);&#x000A;</code></pre>
+            
+            <p>Return a new string object from a call reply of type string, error or
+            integer. Otherwise (wrong reply type) return NULL.</p>
+            
+            <span id="coderedismodulecallcode" class=anchor></span><h2 ><a href="#coderedismodulecallcode" class=anchor-link>*</a><code>RedisModule_Call</code></h2>
+            
+            <pre><code>RedisModuleCallReply *RedisModule_Call(RedisModuleCtx *ctx, const char *cmdname, const char *fmt, ...);&#x000A;</code></pre>
+            
+            <p>Exported API to call any Redis command from modules.
+            On success a RedisModuleCallReply object is returned, otherwise
+            NULL is returned and errno is set to the following values:</p>
+            
+            <p>EINVAL: command non existing, wrong arity, wrong format specifier.
+            EPERM:  operation in Cluster instance with key in non local slot.</p>
+            
+            <span id="coderedismodulecallreplyprotocode" class=anchor></span><h2 ><a href="#coderedismodulecallreplyprotocode" class=anchor-link>*</a><code>RedisModule_CallReplyProto</code></h2>
+            
+            <pre><code>const char *RedisModule_CallReplyProto(RedisModuleCallReply *reply, size_t *len);&#x000A;</code></pre>
+            
+            <p>Return a pointer, and a length, to the protocol returned by the command
+            that returned the reply object.</p>
+            
+            <span id="coderedismodulecreatedatatypecode" class=anchor></span><h2 ><a href="#coderedismodulecreatedatatypecode" class=anchor-link>*</a><code>RedisModule_CreateDataType</code></h2>
+            
+            <pre><code>moduleType *RedisModule_CreateDataType(RedisModuleCtx *ctx, const char *name, int encver, void *typemethods_ptr);&#x000A;</code></pre>
+            
+            <p>Register a new data type exported by the module. The parameters are the
+            following. Please for in depth documentation check the modules API
+            documentation, especially the TYPES.md file.</p>
+            
+            <ul>
+            <li><strong>name</strong>: A 9 characters data type name that MUST be unique in the Redis
+            Modules ecosystem. Be creative... and there will be no collisions. Use
+            the charset A-Z a-z 9-0, plus the two &quot;-_&quot; characters. A good
+            idea is to use, for example <code>&lt;typename&gt;-&lt;vendor&gt;</code>. For example
+            &quot;tree-AntZ&quot; may mean &quot;Tree data structure by @antirez&quot;. To use both
+            lower case and upper case letters helps in order to prevent collisions.</li>
+            <li><strong>encver</strong>: Encoding version, which is, the version of the serialization
+            that a module used in order to persist data. As long as the &quot;name&quot;
+            matches, the RDB loading will be dispatched to the type callbacks
+            whatever &#39;encver&#39; is used, however the module can understand if
+            the encoding it must load are of an older version of the module.
+            For example the module &quot;tree-AntZ&quot; initially used encver=0. Later
+            after an upgrade, it started to serialize data in a different format
+            and to register the type with encver=1. However this module may
+            still load old data produced by an older version if the rdb_load
+            callback is able to check the encver value and act accordingly.
+            The encver must be a positive value between 0 and 1023.</li>
+            <li><p><strong>typemethods_ptr</strong> is a pointer to a RedisModuleTypeMethods structure
+            that should be populated with the methods callbacks and structure
+            version, like in the following example:</p>
+            
+            <p>RedisModuleTypeMethods tm = {
+                 .version = REDISMODULE<em>TYPE</em>METHOD<em>VERSION,
+                 .rdb</em>load = myType<em>RDBLoadCallBack,
+                 .rdb</em>save = myType<em>RDBSaveCallBack,
+                 .aof</em>rewrite = myType<em>AOFRewriteCallBack,
+                 .free = myType</em>FreeCallBack,</p>
+            
+            <pre><code> // Optional fields&#x000A; .digest = myType_DigestCallBack,&#x000A; .mem_usage = myType_MemUsageCallBack,&#x000A;</code></pre>
+            
+            <p>}</p></li>
+            <li><p><strong>rdb_load</strong>: A callback function pointer that loads data from RDB files.</p></li>
+            <li><p><strong>rdb_save</strong>: A callback function pointer that saves data to RDB files.</p></li>
+            <li><p><strong>aof_rewrite</strong>: A callback function pointer that rewrites data as commands.</p></li>
+            <li><p><strong>digest</strong>: A callback function pointer that is used for <code>DEBUG DIGEST</code>.</p></li>
+            <li><p><strong>free</strong>: A callback function pointer that can free a type value.</p></li>
+            </ul>
+            
+            <p>The <strong>digest* and **mem_usage</strong> methods should currently be omitted since
+            they are not yet implemented inside the Redis modules core.</p>
+            
+            <p>Note: the module name &quot;AAAAAAAAA&quot; is reserved and produces an error, it
+            happens to be pretty lame as well.</p>
+            
+            <p>If there is already a module registering a type with the same name,
+            and if the module name or encver is invalid, NULL is returned.
+            Otherwise the new type is registered into Redis, and a reference of
+            type RedisModuleType is returned: the caller of the function should store
+            this reference into a gobal variable to make future use of it in the
+            modules type API, since a single module may register multiple types.
+            Example code fragment:</p>
+            
+            <pre><code> static RedisModuleType *BalancedTreeType;&#x000A;&#x000A; int RedisModule_OnLoad(RedisModuleCtx *ctx) {&#x000A;     // some code here ...&#x000A;     BalancedTreeType = RM_CreateDataType(...);&#x000A; }&#x000A;</code></pre>
+            
+            <span id="coderedismodulemoduletypesetvaluecode" class=anchor></span><h2 ><a href="#coderedismodulemoduletypesetvaluecode" class=anchor-link>*</a><code>RedisModule_ModuleTypeSetValue</code></h2>
+            
+            <pre><code>int RedisModule_ModuleTypeSetValue(RedisModuleKey *key, moduleType *mt, void *value);&#x000A;</code></pre>
+            
+            <p>If the key is open for writing, set the specified module type object
+            as the value of the key, deleting the old value if any.
+            On success <code>REDISMODULE_OK</code> is returned. If the key is not open for
+            writing or there is an active iterator, <code>REDISMODULE_ERR</code> is returned.</p>
+            
+            <span id="coderedismodulemoduletypegettypecode" class=anchor></span><h2 ><a href="#coderedismodulemoduletypegettypecode" class=anchor-link>*</a><code>RedisModule_ModuleTypeGetType</code></h2>
+            
+            <pre><code>moduleType *RedisModule_ModuleTypeGetType(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Assuming <code>RedisModule_KeyType()</code> returned <code>REDISMODULE_KEYTYPE_MODULE</code> on
+            the key, returns the module type pointer of the value stored at key.</p>
+            
+            <p>If the key is NULL, is not associated with a module type, or is empty,
+            then NULL is returned instead.</p>
+            
+            <span id="coderedismodulemoduletypegetvaluecode" class=anchor></span><h2 ><a href="#coderedismodulemoduletypegetvaluecode" class=anchor-link>*</a><code>RedisModule_ModuleTypeGetValue</code></h2>
+            
+            <pre><code>void *RedisModule_ModuleTypeGetValue(RedisModuleKey *key);&#x000A;</code></pre>
+            
+            <p>Assuming <code>RedisModule_KeyType()</code> returned <code>REDISMODULE_KEYTYPE_MODULE</code> on
+            the key, returns the module type low-level value stored at key, as
+            it was set by the user via <code>RedisModule_ModuleTypeSet()</code>.</p>
+            
+            <p>If the key is NULL, is not associated with a module type, or is empty,
+            then NULL is returned instead.</p>
+            
+            <span id="coderedismodulesaveunsignedcode" class=anchor></span><h2 ><a href="#coderedismodulesaveunsignedcode" class=anchor-link>*</a><code>RedisModule_SaveUnsigned</code></h2>
+            
+            <pre><code>void RedisModule_SaveUnsigned(RedisModuleIO *io, uint64_t value);&#x000A;</code></pre>
+            
+            <p>Save an unsigned 64 bit value into the RDB file. This function should only
+            be called in the context of the rdb_save method of modules implementing new
+            data types.</p>
+            
+            <span id="coderedismoduleloadunsignedcode" class=anchor></span><h2 ><a href="#coderedismoduleloadunsignedcode" class=anchor-link>*</a><code>RedisModule_LoadUnsigned</code></h2>
+            
+            <pre><code>uint64_t RedisModule_LoadUnsigned(RedisModuleIO *io);&#x000A;</code></pre>
+            
+            <p>Load an unsigned 64 bit value from the RDB file. This function should only
+            be called in the context of the rdb_load method of modules implementing
+            new data types.</p>
+            
+            <span id="coderedismodulesavesignedcode" class=anchor></span><h2 ><a href="#coderedismodulesavesignedcode" class=anchor-link>*</a><code>RedisModule_SaveSigned</code></h2>
+            
+            <pre><code>void RedisModule_SaveSigned(RedisModuleIO *io, int64_t value);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_SaveUnsigned()</code> but for signed 64 bit values.</p>
+            
+            <span id="coderedismoduleloadsignedcode" class=anchor></span><h2 ><a href="#coderedismoduleloadsignedcode" class=anchor-link>*</a><code>RedisModule_LoadSigned</code></h2>
+            
+            <pre><code>int64_t RedisModule_LoadSigned(RedisModuleIO *io);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_LoadUnsigned()</code> but for signed 64 bit values.</p>
+            
+            <span id="coderedismodulesavestringcode" class=anchor></span><h2 ><a href="#coderedismodulesavestringcode" class=anchor-link>*</a><code>RedisModule_SaveString</code></h2>
+            
+            <pre><code>void RedisModule_SaveString(RedisModuleIO *io, RedisModuleString *s);&#x000A;</code></pre>
+            
+            <p>In the context of the rdb_save method of a module type, saves a
+            string into the RDB file taking as input a RedisModuleString.</p>
+            
+            <p>The string can be later loaded with <code>RedisModule_LoadString()</code> or
+            other Load family functions expecting a serialized string inside
+            the RDB file.</p>
+            
+            <span id="coderedismodulesavestringbuffercode" class=anchor></span><h2 ><a href="#coderedismodulesavestringbuffercode" class=anchor-link>*</a><code>RedisModule_SaveStringBuffer</code></h2>
+            
+            <pre><code>void RedisModule_SaveStringBuffer(RedisModuleIO *io, const char *str, size_t len);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_SaveString()</code> but takes a raw C pointer and length
+            as input.</p>
+            
+            <span id="coderedismoduleloadstringcode" class=anchor></span><h2 ><a href="#coderedismoduleloadstringcode" class=anchor-link>*</a><code>RedisModule_LoadString</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_LoadString(RedisModuleIO *io);&#x000A;</code></pre>
+            
+            <p>In the context of the rdb_load method of a module data type, loads a string
+            from the RDB file, that was previously saved with <code>RedisModule_SaveString()</code>
+            functions family.</p>
+            
+            <p>The returned string is a newly allocated RedisModuleString object, and
+            the user should at some point free it with a call to <code>RedisModule_FreeString()</code>.</p>
+            
+            <p>If the data structure does not store strings as RedisModuleString objects,
+            the similar function <code>RedisModule_LoadStringBuffer()</code> could be used instead.</p>
+            
+            <span id="coderedismoduleloadstringbuffercode" class=anchor></span><h2 ><a href="#coderedismoduleloadstringbuffercode" class=anchor-link>*</a><code>RedisModule_LoadStringBuffer</code></h2>
+            
+            <pre><code>char *RedisModule_LoadStringBuffer(RedisModuleIO *io, size_t *lenptr);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_LoadString()</code> but returns an heap allocated string that
+            was allocated with <code>RedisModule_Alloc()</code>, and can be resized or freed with
+            <code>RedisModule_Realloc()</code> or <code>RedisModule_Free()</code>.</p>
+            
+            <p>The size of the string is stored at &#39;*lenptr&#39; if not NULL.
+            The returned string is not automatically NULL termianted, it is loaded
+            exactly as it was stored inisde the RDB file.</p>
+            
+            <span id="coderedismodulesavedoublecode" class=anchor></span><h2 ><a href="#coderedismodulesavedoublecode" class=anchor-link>*</a><code>RedisModule_SaveDouble</code></h2>
+            
+            <pre><code>void RedisModule_SaveDouble(RedisModuleIO *io, double value);&#x000A;</code></pre>
+            
+            <p>In the context of the rdb_save method of a module data type, saves a double
+            value to the RDB file. The double can be a valid number, a NaN or infinity.
+            It is possible to load back the value with <code>RedisModule_LoadDouble()</code>.</p>
+            
+            <span id="coderedismoduleloaddoublecode" class=anchor></span><h2 ><a href="#coderedismoduleloaddoublecode" class=anchor-link>*</a><code>RedisModule_LoadDouble</code></h2>
+            
+            <pre><code>double RedisModule_LoadDouble(RedisModuleIO *io);&#x000A;</code></pre>
+            
+            <p>In the context of the rdb_save method of a module data type, loads back the
+            double value saved by <code>RedisModule_SaveDouble()</code>.</p>
+            
+            <span id="coderedismodulesavefloatcode" class=anchor></span><h2 ><a href="#coderedismodulesavefloatcode" class=anchor-link>*</a><code>RedisModule_SaveFloat</code></h2>
+            
+            <pre><code>void RedisModule_SaveFloat(RedisModuleIO *io, float value);&#x000A;</code></pre>
+            
+            <p>In the context of the rdb_save method of a module data type, saves a float
+            value to the RDB file. The float can be a valid number, a NaN or infinity.
+            It is possible to load back the value with <code>RedisModule_LoadFloat()</code>.</p>
+            
+            <span id="coderedismoduleloadfloatcode" class=anchor></span><h2 ><a href="#coderedismoduleloadfloatcode" class=anchor-link>*</a><code>RedisModule_LoadFloat</code></h2>
+            
+            <pre><code>float RedisModule_LoadFloat(RedisModuleIO *io);&#x000A;</code></pre>
+            
+            <p>In the context of the rdb_save method of a module data type, loads back the
+            float value saved by <code>RedisModule_SaveFloat()</code>.</p>
+            
+            <span id="coderedismoduledigestaddstringbuffercode" class=anchor></span><h2 ><a href="#coderedismoduledigestaddstringbuffercode" class=anchor-link>*</a><code>RedisModule_DigestAddStringBuffer</code></h2>
+            
+            <pre><code>void RedisModule_DigestAddStringBuffer(RedisModuleDigest *md, unsigned char *ele, size_t len);&#x000A;</code></pre>
+            
+            <p>Add a new element to the digest. This function can be called multiple times
+            one element after the other, for all the elements that constitute a given
+            data structure. The function call must be followed by the call to
+            <code>RedisModule_DigestEndSequence</code> eventually, when all the elements that are
+            always in a given order are added. See the Redis Modules data types
+            documentation for more info. However this is a quick example that uses Redis
+            data types as an example.</p>
+            
+            <p>To add a sequence of unordered elements (for example in the case of a Redis
+            Set), the pattern to use is:</p>
+            
+            <pre><code>foreach element {&#x000A;    AddElement(element);&#x000A;    EndSequence();&#x000A;}&#x000A;</code></pre>
+            
+            <p>Because Sets are not ordered, so every element added has a position that
+            does not depend from the other. However if instead our elements are
+            ordered in pairs, like field-value pairs of an Hash, then one should
+            use:</p>
+            
+            <pre><code>foreach key,value {&#x000A;    AddElement(key);&#x000A;    AddElement(value);&#x000A;    EndSquence();&#x000A;}&#x000A;</code></pre>
+            
+            <p>Because the key and value will be always in the above order, while instead
+            the single key-value pairs, can appear in any position into a Redis hash.</p>
+            
+            <p>A list of ordered elements would be implemented with:</p>
+            
+            <pre><code>foreach element {&#x000A;    AddElement(element);&#x000A;}&#x000A;EndSequence();&#x000A;</code></pre>
+            
+            <span id="coderedismoduledigestaddlonglongcode" class=anchor></span><h2 ><a href="#coderedismoduledigestaddlonglongcode" class=anchor-link>*</a><code>RedisModule_DigestAddLongLong</code></h2>
+            
+            <pre><code>void RedisModule_DigestAddLongLong(RedisModuleDigest *md, long long ll);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DigestAddStringBuffer()</code> but takes a long long as input
+            that gets converted into a string before adding it to the digest.</p>
+            
+            <span id="coderedismoduledigestendsequencecode" class=anchor></span><h2 ><a href="#coderedismoduledigestendsequencecode" class=anchor-link>*</a><code>RedisModule_DigestEndSequence</code></h2>
+            
+            <pre><code>void RedisModule_DigestEndSequence(RedisModuleDigest *md);&#x000A;</code></pre>
+            
+            <p>See the documentation for <code>RedisModule_DigestAddElement()</code>.</p>
+            
+            <span id="coderedismoduleemitaofcode" class=anchor></span><h2 ><a href="#coderedismoduleemitaofcode" class=anchor-link>*</a><code>RedisModule_EmitAOF</code></h2>
+            
+            <pre><code>void RedisModule_EmitAOF(RedisModuleIO *io, const char *cmdname, const char *fmt, ...);&#x000A;</code></pre>
+            
+            <p>Emits a command into the AOF during the AOF rewriting process. This function
+            is only called in the context of the aof_rewrite method of data types exported
+            by a module. The command works exactly like <code>RedisModule_Call()</code> in the way
+            the parameters are passed, but it does not return anything as the error
+            handling is performed by Redis itself.</p>
+            
+            <span id="coderedismodulelograwcode" class=anchor></span><h2 ><a href="#coderedismodulelograwcode" class=anchor-link>*</a><code>RedisModule_LogRaw</code></h2>
+            
+            <pre><code>void RedisModule_LogRaw(RedisModule *module, const char *levelstr, const char *fmt, va_list ap);&#x000A;</code></pre>
+            
+            <p>This is the low level function implementing both:</p>
+            
+            <pre><code> RM_Log()&#x000A; RM_LogIOError()&#x000A;</code></pre>
+            
+            <span id="coderedismodulelogcode" class=anchor></span><h2 ><a href="#coderedismodulelogcode" class=anchor-link>*</a><code>RedisModule_Log</code></h2>
+            
+            <pre><code>void RedisModule_Log(RedisModuleCtx *ctx, const char *levelstr, const char *fmt, ...);&#x000A;</code></pre>
+            
+            <p>Produces a log message to the standard Redis log, the format accepts
+            printf-alike specifiers, while level is a string describing the log
+            level to use when emitting the log, and must be one of the following:</p>
+            
+            <ul>
+            <li>&quot;debug&quot;</li>
+            <li>&quot;verbose&quot;</li>
+            <li>&quot;notice&quot;</li>
+            <li>&quot;warning&quot;</li>
+            </ul>
+            
+            <p>If the specified log level is invalid, verbose is used by default.
+            There is a fixed limit to the length of the log line this function is able
+            to emit, this limit is not specified but is guaranteed to be more than
+            a few lines of text.</p>
+            
+            <span id="coderedismodulelogioerrorcode" class=anchor></span><h2 ><a href="#coderedismodulelogioerrorcode" class=anchor-link>*</a><code>RedisModule_LogIOError</code></h2>
+            
+            <pre><code>void RedisModule_LogIOError(RedisModuleIO *io, const char *levelstr, const char *fmt, ...);&#x000A;</code></pre>
+            
+            <p>Log errors from RDB / AOF serialization callbacks.</p>
+            
+            <p>This function should be used when a callback is returning a critical
+            error to the caller since cannot load or save the data for some
+            critical reason.</p>
+            
+            <span id="coderedismoduleblockclientcode" class=anchor></span><h2 ><a href="#coderedismoduleblockclientcode" class=anchor-link>*</a><code>RedisModule_BlockClient</code></h2>
+            
+            <pre><code>RedisModuleBlockedClient *RedisModule_BlockClient(RedisModuleCtx *ctx, RedisModuleCmdFunc reply_callback, RedisModuleCmdFunc timeout_callback, void (*free_privdata)(RedisModuleCtx*,void*), long long timeout_ms);&#x000A;</code></pre>
+            
+            <p>Block a client in the context of a blocking command, returning an handle
+            which will be used, later, in order to unblock the client with a call to
+            <code>RedisModule_UnblockClient()</code>. The arguments specify callback functions
+            and a timeout after which the client is unblocked.</p>
+            
+            <p>The callbacks are called in the following contexts:</p>
+            
+            <pre><code>reply_callback:  called after a successful RedisModule_UnblockClient()&#x000A;                 call in order to reply to the client and unblock it.&#x000A;&#x000A;reply_timeout:   called when the timeout is reached in order to send an&#x000A;                 error to the client.&#x000A;&#x000A;free_privdata:   called in order to free the private data that is passed&#x000A;                 by RedisModule_UnblockClient() call.&#x000A;</code></pre>
+            
+            <span id="coderedismoduleunblockclientcode" class=anchor></span><h2 ><a href="#coderedismoduleunblockclientcode" class=anchor-link>*</a><code>RedisModule_UnblockClient</code></h2>
+            
+            <pre><code>int RedisModule_UnblockClient(RedisModuleBlockedClient *bc, void *privdata);&#x000A;</code></pre>
+            
+            <p>Unblock a client blocked by <code>RedisModule_BlockedClient</code>. This will trigger
+            the reply callbacks to be called in order to reply to the client.
+            The &#39;privdata&#39; argument will be accessible by the reply callback, so
+            the caller of this function can pass any value that is needed in order to
+            actually reply to the client.</p>
+            
+            <p>A common usage for &#39;privdata&#39; is a thread that computes something that
+            needs to be passed to the client, included but not limited some slow
+            to compute reply or some reply obtained via networking.</p>
+            
+            <p>Note: this function can be called from threads spawned by the module.</p>
+            
+            <span id="coderedismoduleabortblockcode" class=anchor></span><h2 ><a href="#coderedismoduleabortblockcode" class=anchor-link>*</a><code>RedisModule_AbortBlock</code></h2>
+            
+            <pre><code>int RedisModule_AbortBlock(RedisModuleBlockedClient *bc);&#x000A;</code></pre>
+            
+            <p>Abort a blocked client blocking operation: the client will be unblocked
+            without firing any callback.</p>
+            
+            <span id="coderedismodulesetdisconnectcallbackcode" class=anchor></span><h2 ><a href="#coderedismodulesetdisconnectcallbackcode" class=anchor-link>*</a><code>RedisModule_SetDisconnectCallback</code></h2>
+            
+            <pre><code>void RedisModule_SetDisconnectCallback(RedisModuleBlockedClient *bc, RedisModuleDisconnectFunc callback);&#x000A;</code></pre>
+            
+            <p>Set a callback that will be called if a blocked client disconnects
+            before the module has a chance to call <code>RedisModule_UnblockClient()</code></p>
+            
+            <p>Usually what you want to do there, is to cleanup your module state
+            so that you can call <code>RedisModule_UnblockClient()</code> safely, otherwise
+            the client will remain blocked forever if the timeout is large.</p>
+            
+            <p>Notes:</p>
+            
+            <ol>
+            <li><p>It is not safe to call Reply* family functions here, it is also
+            useless since the client is gone.</p></li>
+            <li><p>This callback is not called if the client disconnects because of
+            a timeout. In such a case, the client is unblocked automatically
+            and the timeout callback is called.</p></li>
+            </ol>
+            
+            <span id="coderedismoduleisblockedreplyrequestcode" class=anchor></span><h2 ><a href="#coderedismoduleisblockedreplyrequestcode" class=anchor-link>*</a><code>RedisModule_IsBlockedReplyRequest</code></h2>
+            
+            <pre><code>int RedisModule_IsBlockedReplyRequest(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Return non-zero if a module command was called in order to fill the
+            reply for a blocked client.</p>
+            
+            <span id="coderedismoduleisblockedtimeoutrequestcode" class=anchor></span><h2 ><a href="#coderedismoduleisblockedtimeoutrequestcode" class=anchor-link>*</a><code>RedisModule_IsBlockedTimeoutRequest</code></h2>
+            
+            <pre><code>int RedisModule_IsBlockedTimeoutRequest(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Return non-zero if a module command was called in order to fill the
+            reply for a blocked client that timed out.</p>
+            
+            <span id="coderedismodulegetblockedclientprivatedatacode" class=anchor></span><h2 ><a href="#coderedismodulegetblockedclientprivatedatacode" class=anchor-link>*</a><code>RedisModule_GetBlockedClientPrivateData</code></h2>
+            
+            <pre><code>void *RedisModule_GetBlockedClientPrivateData(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Get the private data set by <code>RedisModule_UnblockClient()</code></p>
+            
+            <span id="coderedismodulegetblockedclienthandlecode" class=anchor></span><h2 ><a href="#coderedismodulegetblockedclienthandlecode" class=anchor-link>*</a><code>RedisModule_GetBlockedClientHandle</code></h2>
+            
+            <pre><code>RedisModuleBlockedClient *RedisModule_GetBlockedClientHandle(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Get the blocked client associated with a given context.
+            This is useful in the reply and timeout callbacks of blocked clients,
+            before sometimes the module has the blocked client handle references
+            around, and wants to cleanup it.</p>
+            
+            <span id="coderedismoduleblockedclientdisconnectedcode" class=anchor></span><h2 ><a href="#coderedismoduleblockedclientdisconnectedcode" class=anchor-link>*</a><code>RedisModule_BlockedClientDisconnected</code></h2>
+            
+            <pre><code>int RedisModule_BlockedClientDisconnected(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Return true if when the free callback of a blocked client is called,
+            the reason for the client to be unblocked is that it disconnected
+            while it was blocked.</p>
+            
+            <span id="coderedismodulegetthreadsafecontextcode" class=anchor></span><h2 ><a href="#coderedismodulegetthreadsafecontextcode" class=anchor-link>*</a><code>RedisModule_GetThreadSafeContext</code></h2>
+            
+            <pre><code>RedisModuleCtx *RedisModule_GetThreadSafeContext(RedisModuleBlockedClient *bc);&#x000A;</code></pre>
+            
+            <p>Return a context which can be used inside threads to make Redis context
+            calls with certain modules APIs. If &#39;bc&#39; is not NULL then the module will
+            be bound to a blocked client, and it will be possible to use the
+            `<code>RedisModule_Reply</code>*` family of functions to accumulate a reply for when the
+            client will be unblocked. Otherwise the thread safe context will be
+            detached by a specific client.</p>
+            
+            <p>To call non-reply APIs, the thread safe context must be prepared with:</p>
+            
+            <pre><code>RedisModule_ThreadSafeCallStart(ctx);&#x000A;... make your call here ...&#x000A;RedisModule_ThreadSafeCallStop(ctx);&#x000A;</code></pre>
+            
+            <p>This is not needed when using `<code>RedisModule_Reply</code><em><code>functions, assuming&#x000A;that a blocked client was used when the context was created, otherwise&#x000A;no</code>RedisModule_Reply`</em> call should be made at all.</p>
+            
+            <p>TODO: thread safe contexts do not inherit the blocked client
+            selected database.</p>
+            
+            <span id="coderedismodulefreethreadsafecontextcode" class=anchor></span><h2 ><a href="#coderedismodulefreethreadsafecontextcode" class=anchor-link>*</a><code>RedisModule_FreeThreadSafeContext</code></h2>
+            
+            <pre><code>void RedisModule_FreeThreadSafeContext(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Release a thread safe context.</p>
+            
+            <span id="coderedismodulethreadsafecontextlockcode" class=anchor></span><h2 ><a href="#coderedismodulethreadsafecontextlockcode" class=anchor-link>*</a><code>RedisModule_ThreadSafeContextLock</code></h2>
+            
+            <pre><code>void RedisModule_ThreadSafeContextLock(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Acquire the server lock before executing a thread safe API call.
+            This is not needed for `<code>RedisModule_Reply</code>*` calls when there is
+            a blocked client connected to the thread safe context.</p>
+            
+            <span id="coderedismodulethreadsafecontextunlockcode" class=anchor></span><h2 ><a href="#coderedismodulethreadsafecontextunlockcode" class=anchor-link>*</a><code>RedisModule_ThreadSafeContextUnlock</code></h2>
+            
+            <pre><code>void RedisModule_ThreadSafeContextUnlock(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Release the server lock after a thread safe API call was executed.</p>
+            
+            <span id="coderedismodulesubscribetokeyspaceeventscode" class=anchor></span><h2 ><a href="#coderedismodulesubscribetokeyspaceeventscode" class=anchor-link>*</a><code>RedisModule_SubscribeToKeyspaceEvents</code></h2>
+            
+            <pre><code>int RedisModule_SubscribeToKeyspaceEvents(RedisModuleCtx *ctx, int types, RedisModuleNotificationFunc callback);&#x000A;</code></pre>
+            
+            <p>Subscribe to keyspace notifications. This is a low-level version of the
+            keyspace-notifications API. A module can register callbacks to be notified
+            when keyspce events occur.</p>
+            
+            <p>Notification events are filtered by their type (string events, set events,
+            etc), and the subscriber callback receives only events that match a specific
+            mask of event types.</p>
+            
+            <p>When subscribing to notifications with <code>RedisModule_SubscribeToKeyspaceEvents</code> 
+            the module must provide an event type-mask, denoting the events the subscriber
+            is interested in. This can be an ORed mask of any of the following flags:</p>
+            
+            <ul>
+            <li>REDISMODULE<em>NOTIFY</em>GENERIC: Generic commands like DEL, EXPIRE, RENAME</li>
+            <li>REDISMODULE<em>NOTIFY</em>STRING: String events</li>
+            <li>REDISMODULE<em>NOTIFY</em>LIST: List events</li>
+            <li>REDISMODULE<em>NOTIFY</em>SET: Set events</li>
+            <li>REDISMODULE<em>NOTIFY</em>HASH: Hash events</li>
+            <li>REDISMODULE<em>NOTIFY</em>ZSET: Sorted Set events</li>
+            <li>REDISMODULE<em>NOTIFY</em>EXPIRED: Expiration events</li>
+            <li>REDISMODULE<em>NOTIFY</em>EVICTED: Eviction events</li>
+            <li>REDISMODULE<em>NOTIFY</em>STREAM: Stream events</li>
+            <li>REDISMODULE<em>NOTIFY</em>ALL: All events</li>
+            </ul>
+            
+            <p>We do not distinguish between key events and keyspace events, and it is up
+            to the module to filter the actions taken based on the key.</p>
+            
+            <p>The subscriber signature is:</p>
+            
+            <p>int (*RedisModuleNotificationFunc) (RedisModuleCtx *ctx, int type,
+                                                  const char *event,
+                                                  RedisModuleString *key);</p>
+            
+            <p><code>type</code> is the event type bit, that must match the mask given at registration
+            time. The event string is the actual command being executed, and key is the
+            relevant Redis key.</p>
+            
+            <p>Notification callback gets executed with a redis context that can not be
+            used to send anything to the client, and has the db number where the event
+            occurred as its selected db number.</p>
+            
+            <p>Notice that it is not necessary to enable notifications in redis.conf for
+            module notifications to work.</p>
+            
+            <p>Warning: the notification callbacks are performed in a synchronous manner,
+            so notification callbacks must to be fast, or they would slow Redis down.
+            If you need to take long actions, use threads to offload them.</p>
+            
+            <p>See https://redis.io/topics/notifications for more information.</p>
+            
+            <span id="coderedismoduleregisterclustermessagereceivercode" class=anchor></span><h2 ><a href="#coderedismoduleregisterclustermessagereceivercode" class=anchor-link>*</a><code>RedisModule_RegisterClusterMessageReceiver</code></h2>
+            
+            <pre><code>void RedisModule_RegisterClusterMessageReceiver(RedisModuleCtx *ctx, uint8_t type, RedisModuleClusterMessageReceiver callback);&#x000A;</code></pre>
+            
+            <p>Register a callback receiver for cluster messages of type &#39;type&#39;. If there
+            was already a registered callback, this will replace the callback function
+            with the one provided, otherwise if the callback is set to NULL and there
+            is already a callback for this function, the callback is unregistered
+            (so this API call is also used in order to delete the receiver).</p>
+            
+            <span id="coderedismodulesendclustermessagecode" class=anchor></span><h2 ><a href="#coderedismodulesendclustermessagecode" class=anchor-link>*</a><code>RedisModule_SendClusterMessage</code></h2>
+            
+            <pre><code>int RedisModule_SendClusterMessage(RedisModuleCtx *ctx, char *target_id, uint8_t type, unsigned char *msg, uint32_t len);&#x000A;</code></pre>
+            
+            <p>Send a message to all the nodes in the cluster if <code>target</code> is NULL, otherwise
+            at the specified target, which is a <code>REDISMODULE_NODE_ID_LEN</code> bytes node ID, as
+            returned by the receiver callback or by the nodes iteration functions.</p>
+            
+            <p>The function returns <code>REDISMODULE_OK</code> if the message was successfully sent,
+            otherwise if the node is not connected or such node ID does not map to any
+            known cluster node, <code>REDISMODULE_ERR</code> is returned.</p>
+            
+            <span id="coderedismodulegetclusternodeslistcode" class=anchor></span><h2 ><a href="#coderedismodulegetclusternodeslistcode" class=anchor-link>*</a><code>RedisModule_GetClusterNodesList</code></h2>
+            
+            <pre><code>char **RedisModule_GetClusterNodesList(RedisModuleCtx *ctx, size_t *numnodes);&#x000A;</code></pre>
+            
+            <p>Return an array of string pointers, each string pointer points to a cluster
+            node ID of exactly <code>REDISMODULE_NODE_ID_SIZE</code> bytes (without any null term).
+            The number of returned node IDs is stored into <code>*numnodes</code>.
+            However if this function is called by a module not running an a Redis
+            instance with Redis Cluster enabled, NULL is returned instead.</p>
+            
+            <p>The IDs returned can be used with <code>RedisModule_GetClusterNodeInfo()</code> in order
+            to get more information about single nodes.</p>
+            
+            <p>The array returned by this function must be freed using the function
+            <code>RedisModule_FreeClusterNodesList()</code>.</p>
+            
+            <p>Example:</p>
+            
+            <pre><code>size_t count, j;&#x000A;char **ids = RedisModule_GetClusterNodesList(ctx,&amp;count);&#x000A;for (j = 0; j &lt; count; j++) {&#x000A;    RedisModule_Log(&quot;notice&quot;,&quot;Node %.*s&quot;,&#x000A;        REDISMODULE_NODE_ID_LEN,ids[j]);&#x000A;}&#x000A;RedisModule_FreeClusterNodesList(ids);&#x000A;</code></pre>
+            
+            <span id="coderedismodulefreeclusternodeslistcode" class=anchor></span><h2 ><a href="#coderedismodulefreeclusternodeslistcode" class=anchor-link>*</a><code>RedisModule_FreeClusterNodesList</code></h2>
+            
+            <pre><code>void RedisModule_FreeClusterNodesList(char **ids);&#x000A;</code></pre>
+            
+            <p>Free the node list obtained with <code>RedisModule_GetClusterNodesList</code>.</p>
+            
+            <span id="coderedismodulegetmyclusteridcode" class=anchor></span><h2 ><a href="#coderedismodulegetmyclusteridcode" class=anchor-link>*</a><code>RedisModule_GetMyClusterID</code></h2>
+            
+            <pre><code>const char *RedisModule_GetMyClusterID(void);&#x000A;</code></pre>
+            
+            <p>Return this node ID (<code>REDISMODULE_CLUSTER_ID_LEN</code> bytes) or NULL if the cluster
+            is disabled.</p>
+            
+            <span id="coderedismodulegetclustersizecode" class=anchor></span><h2 ><a href="#coderedismodulegetclustersizecode" class=anchor-link>*</a><code>RedisModule_GetClusterSize</code></h2>
+            
+            <pre><code>size_t RedisModule_GetClusterSize(void);&#x000A;</code></pre>
+            
+            <p>Return the number of nodes in the cluster, regardless of their state
+            (handshake, noaddress, ...) so that the number of active nodes may actually
+            be smaller, but not greater than this number. If the instance is not in
+            cluster mode, zero is returned.</p>
+            
+            <span id="coderedismodulesetclusterflagscode" class=anchor></span><h2 ><a href="#coderedismodulesetclusterflagscode" class=anchor-link>*</a><code>RedisModule_SetClusterFlags</code></h2>
+            
+            <pre><code>void RedisModule_SetClusterFlags(RedisModuleCtx *ctx, uint64_t flags);&#x000A;</code></pre>
+            
+            <p>Set Redis Cluster flags in order to change the normal behavior of
+            Redis Cluster, especially with the goal of disabling certain functions.
+            This is useful for modules that use the Cluster API in order to create
+            a different distributed system, but still want to use the Redis Cluster
+            message bus. Flags that can be set:</p>
+            
+            <p>CLUSTER<em>MODULE</em>FLAG<em>NO</em>FAILOVER
+             CLUSTER<em>MODULE</em>FLAG<em>NO</em>REDIRECTION</p>
+            
+            <p>With the following effects:</p>
+            
+            <p>NO_FAILOVER: prevent Redis Cluster slaves to failover a failing master.
+                          Also disables the replica migration feature.</p>
+            
+            <p>NO_REDIRECTION: Every node will accept any key, without trying to perform
+                             partitioning according to the user Redis Cluster algorithm.
+                             Slots informations will still be propagated across the
+                             cluster, but without effects.</p>
+            
+            <span id="coderedismodulecreatetimercode" class=anchor></span><h2 ><a href="#coderedismodulecreatetimercode" class=anchor-link>*</a><code>RedisModule_CreateTimer</code></h2>
+            
+            <pre><code>RedisModuleTimerID RedisModule_CreateTimer(RedisModuleCtx *ctx, mstime_t period, RedisModuleTimerProc callback, void *data);&#x000A;</code></pre>
+            
+            <p>Create a new timer that will fire after <code>period</code> milliseconds, and will call
+            the specified function using <code>data</code> as argument. The returned timer ID can be
+            used to get information from the timer or to stop it before it fires.</p>
+            
+            <span id="coderedismodulestoptimercode" class=anchor></span><h2 ><a href="#coderedismodulestoptimercode" class=anchor-link>*</a><code>RedisModule_StopTimer</code></h2>
+            
+            <pre><code>int RedisModule_StopTimer(RedisModuleCtx *ctx, RedisModuleTimerID id, void **data);&#x000A;</code></pre>
+            
+            <p>Stop a timer, returns <code>REDISMODULE_OK</code> if the timer was found, belonged to the
+            calling module, and was stopped, otherwise <code>REDISMODULE_ERR</code> is returned.
+            If not NULL, the data pointer is set to the value of the data argument when
+            the timer was created.</p>
+            
+            <span id="coderedismodulegettimerinfocode" class=anchor></span><h2 ><a href="#coderedismodulegettimerinfocode" class=anchor-link>*</a><code>RedisModule_GetTimerInfo</code></h2>
+            
+            <pre><code>int RedisModule_GetTimerInfo(RedisModuleCtx *ctx, RedisModuleTimerID id, uint64_t *remaining, void **data);&#x000A;</code></pre>
+            
+            <p>Obtain information about a timer: its remaining time before firing
+            (in milliseconds), and the private data pointer associated with the timer.
+            If the timer specified does not exist or belongs to a different module
+            no information is returned and the function returns <code>REDISMODULE_ERR</code>, otherwise
+            <code>REDISMODULE_OK</code> is returned. The arguments remaining or data can be NULL if
+            the caller does not need certain information.</p>
+            
+            <span id="coderedismodulecreatedictcode" class=anchor></span><h2 ><a href="#coderedismodulecreatedictcode" class=anchor-link>*</a><code>RedisModule_CreateDict</code></h2>
+            
+            <pre><code>RedisModuleDict *RedisModule_CreateDict(RedisModuleCtx *ctx);&#x000A;</code></pre>
+            
+            <p>Create a new dictionary. The &#39;ctx&#39; pointer can be the current module context
+            or NULL, depending on what you want. Please follow the following rules:</p>
+            
+            <ol>
+            <li>Use a NULL context if you plan to retain a reference to this dictionary
+            that will survive the time of the module callback where you created it.</li>
+            <li>Use a NULL context if no context is available at the time you are creating
+            the dictionary (of course...).</li>
+            <li>However use the current callback context as &#39;ctx&#39; argument if the
+            dictionary time to live is just limited to the callback scope. In this
+            case, if enabled, you can enjoy the automatic memory management that will
+            reclaim the dictionary memory, as well as the strings returned by the
+            Next / Prev dictionary iterator calls.</li>
+            </ol>
+            
+            <span id="coderedismodulefreedictcode" class=anchor></span><h2 ><a href="#coderedismodulefreedictcode" class=anchor-link>*</a><code>RedisModule_FreeDict</code></h2>
+            
+            <pre><code>void RedisModule_FreeDict(RedisModuleCtx *ctx, RedisModuleDict *d);&#x000A;</code></pre>
+            
+            <p>Free a dictionary created with <code>RM_CreateDict()</code>. You need to pass the
+            context pointer &#39;ctx&#39; only if the dictionary was created using the
+            context instead of passing NULL.</p>
+            
+            <span id="coderedismoduledictsizecode" class=anchor></span><h2 ><a href="#coderedismoduledictsizecode" class=anchor-link>*</a><code>RedisModule_DictSize</code></h2>
+            
+            <pre><code>uint64_t RedisModule_DictSize(RedisModuleDict *d);&#x000A;</code></pre>
+            
+            <p>Return the size of the dictionary (number of keys).</p>
+            
+            <span id="coderedismoduledictsetccode" class=anchor></span><h2 ><a href="#coderedismoduledictsetccode" class=anchor-link>*</a><code>RedisModule_DictSetC</code></h2>
+            
+            <pre><code>int RedisModule_DictSetC(RedisModuleDict *d, void *key, size_t keylen, void *ptr);&#x000A;</code></pre>
+            
+            <p>Store the specified key into the dictionary, setting its value to the
+            pointer &#39;ptr&#39;. If the key was added with success, since it did not
+            already exist, <code>REDISMODULE_OK</code> is returned. Otherwise if the key already
+            exists the function returns <code>REDISMODULE_ERR</code>.</p>
+            
+            <span id="coderedismoduledictreplaceccode" class=anchor></span><h2 ><a href="#coderedismoduledictreplaceccode" class=anchor-link>*</a><code>RedisModule_DictReplaceC</code></h2>
+            
+            <pre><code>int RedisModule_DictReplaceC(RedisModuleDict *d, void *key, size_t keylen, void *ptr);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DictSetC()</code> but will replace the key with the new
+            value if the key already exists.</p>
+            
+            <span id="coderedismoduledictsetcode" class=anchor></span><h2 ><a href="#coderedismoduledictsetcode" class=anchor-link>*</a><code>RedisModule_DictSet</code></h2>
+            
+            <pre><code>int RedisModule_DictSet(RedisModuleDict *d, RedisModuleString *key, void *ptr);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DictSetC()</code> but takes the key as a RedisModuleString.</p>
+            
+            <span id="coderedismoduledictreplacecode" class=anchor></span><h2 ><a href="#coderedismoduledictreplacecode" class=anchor-link>*</a><code>RedisModule_DictReplace</code></h2>
+            
+            <pre><code>int RedisModule_DictReplace(RedisModuleDict *d, RedisModuleString *key, void *ptr);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DictReplaceC()</code> but takes the key as a RedisModuleString.</p>
+            
+            <span id="coderedismoduledictgetccode" class=anchor></span><h2 ><a href="#coderedismoduledictgetccode" class=anchor-link>*</a><code>RedisModule_DictGetC</code></h2>
+            
+            <pre><code>void *RedisModule_DictGetC(RedisModuleDict *d, void *key, size_t keylen, int *nokey);&#x000A;</code></pre>
+            
+            <p>Return the value stored at the specified key. The function returns NULL
+            both in the case the key does not exist, or if you actually stored
+            NULL at key. So, optionally, if the &#39;nokey&#39; pointer is not NULL, it will
+            be set by reference to 1 if the key does not exist, or to 0 if the key
+            exists.</p>
+            
+            <span id="coderedismoduledictgetcode" class=anchor></span><h2 ><a href="#coderedismoduledictgetcode" class=anchor-link>*</a><code>RedisModule_DictGet</code></h2>
+            
+            <pre><code>void *RedisModule_DictGet(RedisModuleDict *d, RedisModuleString *key, int *nokey);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DictGetC()</code> but takes the key as a RedisModuleString.</p>
+            
+            <span id="coderedismoduledictdelccode" class=anchor></span><h2 ><a href="#coderedismoduledictdelccode" class=anchor-link>*</a><code>RedisModule_DictDelC</code></h2>
+            
+            <pre><code>int RedisModule_DictDelC(RedisModuleDict *d, void *key, size_t keylen, void *oldval);&#x000A;</code></pre>
+            
+            <p>Remove the specified key from the dictionary, returning <code>REDISMODULE_OK</code> if
+            the key was found and delted, or <code>REDISMODULE_ERR</code> if instead there was
+            no such key in the dictionary. When the operation is successful, if
+            &#39;oldval&#39; is not NULL, then &#39;*oldval&#39; is set to the value stored at the
+            key before it was deleted. Using this feature it is possible to get
+            a pointer to the value (for instance in order to release it), without
+            having to call <code>RedisModule_DictGet()</code> before deleting the key.</p>
+            
+            <span id="coderedismoduledictdelcode" class=anchor></span><h2 ><a href="#coderedismoduledictdelcode" class=anchor-link>*</a><code>RedisModule_DictDel</code></h2>
+            
+            <pre><code>int RedisModule_DictDel(RedisModuleDict *d, RedisModuleString *key, void *oldval);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DictDelC()</code> but gets the key as a RedisModuleString.</p>
+            
+            <span id="coderedismoduledictiteratorstartccode" class=anchor></span><h2 ><a href="#coderedismoduledictiteratorstartccode" class=anchor-link>*</a><code>RedisModule_DictIteratorStartC</code></h2>
+            
+            <pre><code>RedisModuleDictIter *RedisModule_DictIteratorStartC(RedisModuleDict *d, const char *op, void *key, size_t keylen);&#x000A;</code></pre>
+            
+            <p>Return an interator, setup in order to start iterating from the specified
+            key by applying the operator &#39;op&#39;, which is just a string specifying the
+            comparison operator to use in order to seek the first element. The
+            operators avalable are:</p>
+            
+            <p>&quot;<sup>&quot;</sup>   -- Seek the first (lexicographically smaller) key.
+            &quot;$&quot;   -- Seek the last  (lexicographically biffer) key.
+            &quot;&gt;&quot;   -- Seek the first element greter than the specified key.
+            &quot;&gt;=&quot;  -- Seek the first element greater or equal than the specified key.
+            &quot;&lt;&quot;   -- Seek the first element smaller than the specified key.
+            &quot;&lt;=&quot;  -- Seek the first element smaller or equal than the specified key.
+            &quot;==&quot;  -- Seek the first element matching exactly the specified key.</p>
+            
+            <p>Note that for &quot;<sup>&quot;</sup> and &quot;$&quot; the passed key is not used, and the user may
+            just pass NULL with a length of 0.</p>
+            
+            <p>If the element to start the iteration cannot be seeked based on the
+            key and operator passed, <code>RedisModule_DictNext()</code> / Prev() will just return
+            <code>REDISMODULE_ERR</code> at the first call, otherwise they&#39;ll produce elements.</p>
+            
+            <span id="coderedismoduledictiteratorstartcode" class=anchor></span><h2 ><a href="#coderedismoduledictiteratorstartcode" class=anchor-link>*</a><code>RedisModule_DictIteratorStart</code></h2>
+            
+            <pre><code>RedisModuleDictIter *RedisModule_DictIteratorStart(RedisModuleDict *d, const char *op, RedisModuleString *key);&#x000A;</code></pre>
+            
+            <p>Exactly like <code>RedisModule_DictIteratorStartC</code>, but the key is passed as a
+            RedisModuleString.</p>
+            
+            <span id="coderedismoduledictiteratorstopcode" class=anchor></span><h2 ><a href="#coderedismoduledictiteratorstopcode" class=anchor-link>*</a><code>RedisModule_DictIteratorStop</code></h2>
+            
+            <pre><code>void RedisModule_DictIteratorStop(RedisModuleDictIter *di);&#x000A;</code></pre>
+            
+            <p>Release the iterator created with <code>RedisModule_DictIteratorStart()</code>. This call
+            is mandatory otherwise a memory leak is introduced in the module.</p>
+            
+            <span id="coderedismoduledictiteratorreseekccode" class=anchor></span><h2 ><a href="#coderedismoduledictiteratorreseekccode" class=anchor-link>*</a><code>RedisModule_DictIteratorReseekC</code></h2>
+            
+            <pre><code>int RedisModule_DictIteratorReseekC(RedisModuleDictIter *di, const char *op, void *key, size_t keylen);&#x000A;</code></pre>
+            
+            <p>After its creation with <code>RedisModule_DictIteratorStart()</code>, it is possible to
+            change the currently selected element of the iterator by using this
+            API call. The result based on the operator and key is exactly like
+            the function <code>RedisModule_DictIteratorStart()</code>, however in this case the
+            return value is just <code>REDISMODULE_OK</code> in case the seeked element was found,
+            or <code>REDISMODULE_ERR</code> in case it was not possible to seek the specified
+            element. It is possible to reseek an iterator as many times as you want.</p>
+            
+            <span id="coderedismoduledictiteratorreseekcode" class=anchor></span><h2 ><a href="#coderedismoduledictiteratorreseekcode" class=anchor-link>*</a><code>RedisModule_DictIteratorReseek</code></h2>
+            
+            <pre><code>int RedisModule_DictIteratorReseek(RedisModuleDictIter *di, const char *op, RedisModuleString *key);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DictIteratorReseekC()</code> but takes the key as as a
+            RedisModuleString.</p>
+            
+            <span id="coderedismoduledictnextccode" class=anchor></span><h2 ><a href="#coderedismoduledictnextccode" class=anchor-link>*</a><code>RedisModule_DictNextC</code></h2>
+            
+            <pre><code>void *RedisModule_DictNextC(RedisModuleDictIter *di, size_t *keylen, void **dataptr);&#x000A;</code></pre>
+            
+            <p>Return the current item of the dictionary iterator &#39;di&#39; and steps to the
+            next element. If the iterator already yield the last element and there
+            are no other elements to return, NULL is returned, otherwise a pointer
+            to a string representing the key is provided, and the &#39;<em>keylen&#39; length
+            is set by reference (if keylen is not NULL). The &#39;</em>dataptr&#39;, if not NULL
+            is set to the value of the pointer stored at the returned key as auxiliary
+            data (as set by the <code>RedisModule_DictSet</code> API).</p>
+            
+            <p>Usage example:</p>
+            
+            <pre><code> ... create the iterator here ...&#x000A; char *key;&#x000A; void *data;&#x000A; while((key = RedisModule_DictNextC(iter,&amp;keylen,&amp;data)) != NULL) {&#x000A;     printf(&quot;%.*s %p\n&quot;, (int)keylen, key, data);&#x000A; }&#x000A;</code></pre>
+            
+            <p>The returned pointer is of type void because sometimes it makes sense
+            to cast it to a char* sometimes to an unsigned char* depending on the
+            fact it contains or not binary data, so this API ends being more
+            comfortable to use.</p>
+            
+            <p>The validity of the returned pointer is until the next call to the
+            next/prev iterator step. Also the pointer is no longer valid once the
+            iterator is released.</p>
+            
+            <span id="coderedismoduledictprevccode" class=anchor></span><h2 ><a href="#coderedismoduledictprevccode" class=anchor-link>*</a><code>RedisModule_DictPrevC</code></h2>
+            
+            <pre><code>void *RedisModule_DictPrevC(RedisModuleDictIter *di, size_t *keylen, void **dataptr);&#x000A;</code></pre>
+            
+            <p>This function is exactly like <code>RedisModule_DictNext()</code> but after returning
+            the currently selected element in the iterator, it selects the previous
+            element (laxicographically smaller) instead of the next one.</p>
+            
+            <span id="coderedismoduledictnextcode" class=anchor></span><h2 ><a href="#coderedismoduledictnextcode" class=anchor-link>*</a><code>RedisModule_DictNext</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_DictNext(RedisModuleCtx *ctx, RedisModuleDictIter *di, void **dataptr);&#x000A;</code></pre>
+            
+            <p>Like RedisModuleNextC(), but instead of returning an internally allocated
+            buffer and key length, it returns directly a module string object allocated
+            in the specified context &#39;ctx&#39; (that may be NULL exactly like for the main
+            API <code>RedisModule_CreateString)</code>.</p>
+            
+            <p>The returned string object should be deallocated after use, either manually
+            or by using a context that has automatic memory management active.</p>
+            
+            <span id="coderedismoduledictprevcode" class=anchor></span><h2 ><a href="#coderedismoduledictprevcode" class=anchor-link>*</a><code>RedisModule_DictPrev</code></h2>
+            
+            <pre><code>RedisModuleString *RedisModule_DictPrev(RedisModuleCtx *ctx, RedisModuleDictIter *di, void **dataptr);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_DictNext()</code> but after returning the currently selected
+            element in the iterator, it selects the previous element (laxicographically
+            smaller) instead of the next one.</p>
+            
+            <span id="coderedismodulegetrandombytescode" class=anchor></span><h2 ><a href="#coderedismodulegetrandombytescode" class=anchor-link>*</a><code>RedisModule_GetRandomBytes</code></h2>
+            
+            <pre><code>void RedisModule_GetRandomBytes(unsigned char *dst, size_t len);&#x000A;</code></pre>
+            
+            <p>Return random bytes using SHA1 in counter mode with a /dev/urandom
+            initialized seed. This function is fast so can be used to generate
+            many bytes without any effect on the operating system entropy pool.
+            Currently this function is not thread safe.</p>
+            
+            <span id="coderedismodulegetrandomhexcharscode" class=anchor></span><h2 ><a href="#coderedismodulegetrandomhexcharscode" class=anchor-link>*</a><code>RedisModule_GetRandomHexChars</code></h2>
+            
+            <pre><code>void RedisModule_GetRandomHexChars(char *dst, size_t len);&#x000A;</code></pre>
+            
+            <p>Like <code>RedisModule_GetRandomBytes()</code> but instead of setting the string to
+            random bytes the string is set to random characters in the in the
+            hex charset [0-9a-f].</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

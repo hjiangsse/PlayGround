@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>CLUSTER MEET – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>CLUSTER MEET</span>
+            <span class='arg'>ip</span>
+            <span class='arg'>port</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(1)</p>
+              </div>
+              <p><a href="/commands/cluster-meet">CLUSTER MEET</a> is used in order to connect different Redis nodes with cluster
+              support enabled, into a working cluster.</p>
+              
+              <p>The basic idea is that nodes by default don&#39;t trust each other, and are
+              considered unknown, so that it is unlikely that different cluster nodes will
+              mix into a single one because of system administration errors or network
+              addresses modifications.</p>
+              
+              <p>So in order for a given node to accept another one into the list of nodes
+              composing a Redis Cluster, there are only two ways:</p>
+              
+              <ol>
+              <li>The system administrator sends a <a href="/commands/cluster-meet">CLUSTER MEET</a> command to force a node to meet another one.</li>
+              <li>An already known node sends a list of nodes in the gossip section that we are not aware of. If the receiving node trusts the sending node as a known node, it will process the gossip section and send an handshake to the nodes that are still not known.</li>
+              </ol>
+              
+              <p>Note that Redis Cluster needs to form a full mesh (each node is connected with each other node), but in order to create a cluster, there is no need to send all the <a href="/commands/cluster-meet">CLUSTER MEET</a> commands needed to form the full mesh. What matter is to send enough <a href="/commands/cluster-meet">CLUSTER MEET</a> messages so that each node can reach each other node through a <em>chain of known nodes</em>. Thanks to the exchange of gossip information in heartbeat packets, the missing links will be created.</p>
+              
+              <p>So, if we link node A with node B via <a href="/commands/cluster-meet">CLUSTER MEET</a>, and B with C, A and C will find their ways to handshake and create a link.</p>
+              
+              <p>Another example: if we imagine a cluster formed of the following four nodes called A, B, C and D, we may send just the following set of commands to A:</p>
+              
+              <ol>
+              <li><code>CLUSTER MEET B-ip B-port</code></li>
+              <li><code>CLUSTER MEET C-ip C-port</code></li>
+              <li><code>CLUSTER MEET D-ip D-port</code></li>
+              </ol>
+              
+              <p>As a side effect of <code>A</code> knowing and being known by all the other nodes, it will send gossip sections in the heartbeat packets that will allow each other node to create a link with each other one, forming a full mesh in a matter of seconds, even if the cluster is large.</p>
+              
+              <p>Moreover <a href="/commands/cluster-meet">CLUSTER MEET</a> does not need to be reciprocal. If I send the command to A in order to join B, I don&#39;t need to also send it to B in order to join A.</p>
+              
+              <span id="implementation-details-meet-and-ping-packets" class=anchor></span><h2 ><a href="#implementation-details-meet-and-ping-packets" class=anchor-link>*</a>Implementation details: MEET and PING packets</h2>
+              
+              <p>When a given node receives a <a href="/commands/cluster-meet">CLUSTER MEET</a> message, the node specified in the
+              command still does not know the node we sent the command to. So in order for
+              the node to force the receiver to accept it as a trusted node, it sends a
+              <code>MEET</code> packet instead of a <a href="/commands/ping">PING</a> packet. The two packets have exactly the
+              same format, but the former forces the receiver to acknowledge the node as
+              trusted.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#simple-string-reply">Simple string reply</a>: <code>OK</code> if the command was successful. If the address or port specified are invalid an error is returned.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/cluster-addslots'>
+                      CLUSTER ADDSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-count-failure-reports'>
+                      CLUSTER COUNT-FAILURE-REPORTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-countkeysinslot'>
+                      CLUSTER COUNTKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-delslots'>
+                      CLUSTER DELSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-failover'>
+                      CLUSTER FAILOVER
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-forget'>
+                      CLUSTER FORGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-getkeysinslot'>
+                      CLUSTER GETKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-info'>
+                      CLUSTER INFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-keyslot'>
+                      CLUSTER KEYSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-meet'>
+                      <strong>CLUSTER MEET</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-nodes'>
+                      CLUSTER NODES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicas'>
+                      CLUSTER REPLICAS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicate'>
+                      CLUSTER REPLICATE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-reset'>
+                      CLUSTER RESET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-saveconfig'>
+                      CLUSTER SAVECONFIG
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-set-config-epoch'>
+                      CLUSTER SET-CONFIG-EPOCH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-setslot'>
+                      CLUSTER SETSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slaves'>
+                      CLUSTER SLAVES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slots'>
+                      CLUSTER SLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readonly'>
+                      READONLY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readwrite'>
+                      READWRITE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

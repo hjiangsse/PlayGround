@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>CLUSTER SLOTS – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>CLUSTER SLOTS</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 3.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) where N is the total number of Cluster nodes</p>
+              </div>
+              <p><a href="/commands/cluster-slots">CLUSTER SLOTS</a> returns details about which cluster slots map to which
+              Redis instances. The command is suitable to be used by Redis Cluster client
+              libraries implementations in order to retrieve (or update when a redirection
+              is received) the map associating cluster <em>hash slots</em> with actual nodes
+              network coordinates (composed of an IP address and a TCP port), so that when
+              a command is received, it can be sent to what is likely the right instance
+              for the keys specified in the command.</p>
+              
+              <span id="nested-result-array" class=anchor></span><h2 ><a href="#nested-result-array" class=anchor-link>*</a>Nested Result Array</h2>
+              
+              <p>Each nested result is:</p>
+              
+              <ul>
+              <li>Start slot range</li>
+              <li>End slot range</li>
+              <li>Master for slot range represented as nested IP/Port array </li>
+              <li>First replica of master for slot range</li>
+              <li>Second replica</li>
+              <li>...continues until all replicas for this master are returned.</li>
+              </ul>
+              
+              <p>Each result includes all active replicas of the master instance
+              for the listed slot range.  Failed replicas are not returned.</p>
+              
+              <p>The third nested reply is guaranteed to be the IP/Port pair of
+              the master instance for the slot range.
+              All IP/Port pairs after the third nested reply are replicas
+              of the master.</p>
+              
+              <p>If a cluster instance has non-contiguous slots (e.g. 1-400,900,1800-6000) then
+              master and replica IP/Port results will be duplicated for each top-level
+              slot range reply.</p>
+              
+              <p><strong>Warning:</strong> Newer versions of Redis Cluster will output, for each Redis instance, not just the IP and port, but also the node ID as third element of the array. In future versions there could be more elements describing the node better. In general a client implementation should just rely on the fact that certain parameters are at fixed positions as specified, but more parameters may follow and should be ignored. Similarly a client library should try if possible to cope with the fact that older versions may just have the IP and port parameter.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>: nested list of slot ranges with IP/Port mappings.</p>
+              
+              <span id="sample-output-old-version" class=anchor></span><h3 ><a href="#sample-output-old-version" class=anchor-link>*</a>Sample Output (old version)</h3>
+              
+              <pre><code>127.0.0.1:7001&gt; cluster slots&#x000A;1) 1) (integer) 0&#x000A;   2) (integer) 4095&#x000A;   3) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7000&#x000A;   4) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7004&#x000A;2) 1) (integer) 12288&#x000A;   2) (integer) 16383&#x000A;   3) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7003&#x000A;   4) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7007&#x000A;3) 1) (integer) 4096&#x000A;   2) (integer) 8191&#x000A;   3) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7001&#x000A;   4) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7005&#x000A;4) 1) (integer) 8192&#x000A;   2) (integer) 12287&#x000A;   3) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7002&#x000A;   4) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 7006&#x000A;</code></pre>
+              
+              <span id="sample-output-new-version-includes-ids" class=anchor></span><h3 ><a href="#sample-output-new-version-includes-ids" class=anchor-link>*</a>Sample Output (new version, includes IDs)</h3>
+              
+              <pre><code>127.0.0.1:30001&gt; cluster slots&#x000A;1) 1) (integer) 0&#x000A;   2) (integer) 5460&#x000A;   3) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 30001&#x000A;      3) &quot;09dbe9720cda62f7865eabc5fd8857c5d2678366&quot;&#x000A;   4) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 30004&#x000A;      3) &quot;821d8ca00d7ccf931ed3ffc7e3db0599d2271abf&quot;&#x000A;2) 1) (integer) 5461&#x000A;   2) (integer) 10922&#x000A;   3) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 30002&#x000A;      3) &quot;c9d93d9f2c0c524ff34cc11838c2003d8c29e013&quot;&#x000A;   4) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 30005&#x000A;      3) &quot;faadb3eb99009de4ab72ad6b6ed87634c7ee410f&quot;&#x000A;3) 1) (integer) 10923&#x000A;   2) (integer) 16383&#x000A;   3) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 30003&#x000A;      3) &quot;044ec91f325b7595e76dbcb18cc688b6a5b434a1&quot;&#x000A;   4) 1) &quot;127.0.0.1&quot;&#x000A;      2) (integer) 30006&#x000A;      3) &quot;58e6e48d41228013e5d9c1c37c5060693925e97e&quot;&#x000A;</code></pre>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/cluster-addslots'>
+                      CLUSTER ADDSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-count-failure-reports'>
+                      CLUSTER COUNT-FAILURE-REPORTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-countkeysinslot'>
+                      CLUSTER COUNTKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-delslots'>
+                      CLUSTER DELSLOTS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-failover'>
+                      CLUSTER FAILOVER
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-forget'>
+                      CLUSTER FORGET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-getkeysinslot'>
+                      CLUSTER GETKEYSINSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-info'>
+                      CLUSTER INFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-keyslot'>
+                      CLUSTER KEYSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-meet'>
+                      CLUSTER MEET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-nodes'>
+                      CLUSTER NODES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicas'>
+                      CLUSTER REPLICAS
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-replicate'>
+                      CLUSTER REPLICATE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-reset'>
+                      CLUSTER RESET
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-saveconfig'>
+                      CLUSTER SAVECONFIG
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-set-config-epoch'>
+                      CLUSTER SET-CONFIG-EPOCH
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-setslot'>
+                      CLUSTER SETSLOT
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slaves'>
+                      CLUSTER SLAVES
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/cluster-slots'>
+                      <strong>CLUSTER SLOTS</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readonly'>
+                      READONLY
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/readwrite'>
+                      READWRITE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

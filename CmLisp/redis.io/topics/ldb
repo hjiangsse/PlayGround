@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Redis Lua scripts debugger – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics ldb'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="redis-lua-scripts-debugger" class=anchor></span><h1 ><a href="#redis-lua-scripts-debugger" class=anchor-link>*</a>Redis Lua scripts debugger</h1>
+            
+            <p>Starting with version 3.2 Redis includes a complete Lua debugger, that can be
+            used in order to make the task of writing complex Redis scripts much simpler.</p>
+            
+            <p>Because Redis 3.2 is still in beta, please download the <code>unstable</code> branch of Redis from Github and compile it in order to test the debugger. You can use Redis unstable in order to debug your scripts that you&#39;ll later run in a stable version of Redis, so the debugger is already usable in practical terms.</p>
+            
+            <p>The Redis Lua debugger, codename LDB, has the following important features:</p>
+            
+            <ul>
+            <li>It uses a server-client model, so it&#39;s a remote debugger. The Redis server acts as the debugging server, while the default client is <code>redis-cli</code>. However other clients can be developed by following the simple protocol implemented by the server.</li>
+            <li>By default every new debugging session is a forked session. It means that while the Redis Lua script is being debugged, the server does not block and is usable for development or in order to execute multiple debugging sessions in parallel. This also means that changes are <strong>rolled back</strong> after the script debugging session finished, so that&#39;s possible to restart a new debugging session again, using exactly the same Redis data set as the previous debugging session.</li>
+            <li>An alternative synchronous (non forked) debugging model is available on demand, so that changes to the dataset can be retained. In this mode the server blocks for the time the debugging session is active.</li>
+            <li>Support for step by step execution.</li>
+            <li>Support for static and dynamic breakpoints.</li>
+            <li>Support from logging the debugged script into the debugger console.</li>
+            <li>Inspection of Lua variables.</li>
+            <li>Tracing of Redis commands executed by the script.</li>
+            <li>Pretty printing of Redis and Lua values.</li>
+            <li>Infinite loops and long execution detection, which simulates a breakpoint.</li>
+            </ul>
+            
+            <span id="quick-start" class=anchor></span><h2 ><a href="#quick-start" class=anchor-link>*</a>Quick start</h2>
+            
+            <p>A simple way to get started with the Lua debugger is to watch this video
+            introduction:</p>
+            
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/IMvRfStaoyM" frameborder="0" allowfullscreen></iframe>
+            
+            <p><strong>Important note:</strong> please make sure to avoid debugging Lua scripts using your Redis production server. Use a development server instead. Also note that using the synchronous debugging mode (which is NOT the default) results into the Redis server blocking for all the time the debugging session lasts.</p>
+            
+            <p>To start a new debugging session using <code>redis-cli</code> do the following steps:</p>
+            
+            <ol>
+            <li>Create your script in some file with your preferred editor. Let&#39;s assume you are editing your Redis Lua script located at <code>/tmp/script.lua</code>.</li>
+            <li><p>Start a debugging session with:</p>
+            
+            <p>./redis-cli --ldb --eval /tmp/script.lua</p></li>
+            </ol>
+            
+            <p>Note that with the <code>--eval</code> option of <code>redis-cli</code> you can pass key names and arguments to the script, separated by a comma, like in the following example:</p>
+            
+            <pre><code>./redis-cli --ldb --eval /tmp/script.lua mykey somekey , arg1 arg2&#x000A;</code></pre>
+            
+            <p>You&#39;ll enter a special mode where <code>redis-cli</code> no longer accepts its normal
+            commands, but instead prints an help screen and passes the unmodified debugging
+            commands directly to Redis.</p>
+            
+            <p>The only commands which are not passed to the Redis debugger are:</p>
+            
+            <ul>
+            <li><code>quit</code> -- this will terminate the debugging session. It&#39;s like removing all the breakpoints and using the <code>continue</code> debugging command. Moreover the command will exit from <code>redis-cli</code>.</li>
+            <li><code>restart</code> -- the debugging session will restart from scratch, <strong>reloading the new version of the script from the file</strong>. So a normal debugging cycle involves modifying the script after some debugging, and calling <code>restart</code> in order to start debugging again with the new script changes.</li>
+            <li><code>help</code> -- this command is passed to the Redis Lua debugger, that will print a list of commands like the following:</li>
+            </ul>
+            
+            <pre><code>lua debugger&gt; help&#x000A;Redis Lua debugger help:&#x000A;[h]elp               Show this help.&#x000A;[s]tep               Run current line and stop again.&#x000A;[n]ext               Alias for step.&#x000A;[c]continue          Run till next breakpoint.&#x000A;[l]list              List source code around current line.&#x000A;[l]list [line]       List source code around [line].&#x000A;                     line = 0 means: current position.&#x000A;[l]list [line] [ctx] In this form [ctx] specifies how many lines&#x000A;                     to show before/after [line].&#x000A;[w]hole              List all source code. Alias for &#39;list 1 1000000&#39;.&#x000A;[p]rint              Show all the local variables.&#x000A;[p]rint &lt;var&gt;        Show the value of the specified variable.&#x000A;                     Can also show global vars KEYS and ARGV.&#x000A;[b]reak              Show all breakpoints.&#x000A;[b]reak &lt;line&gt;       Add a breakpoint to the specified line.&#x000A;[b]reak -&lt;line&gt;      Remove breakpoint from the specified line.&#x000A;[b]reak 0            Remove all breakpoints.&#x000A;[t]race              Show a backtrace.&#x000A;[e]eval &lt;code&gt;       Execute some Lua code (in a different callframe).&#x000A;[r]edis &lt;cmd&gt;        Execute a Redis command.&#x000A;[m]axlen [len]       Trim logged Redis replies and Lua var dumps to len.&#x000A;                     Specifying zero as &lt;len&gt; means unlimited.&#x000A;[a]abort             Stop the execution of the script. In sync&#x000A;                     mode dataset changes will be retained.&#x000A;&#x000A;Debugger functions you can call from Lua scripts:&#x000A;redis.debug()        Produce logs in the debugger console.&#x000A;redis.breakpoint()   Stop execution as if there was a breakpoint in the&#x000A;                     next line of code.&#x000A;</code></pre>
+            
+            <p>Note that when you start the debugger it will start in <strong>stepping mode</strong>. It will stop at the first line of the script that actually does something before executing it.</p>
+            
+            <p>From this point you usually call <code>step</code> in order to execute the line and go to the next line. While you step Redis will show all the commands executed by the server like in the following example:</p>
+            
+            <pre><code>* Stopped at 1, stop reason = step over&#x000A;-&gt; 1   redis.call(&#39;ping&#39;)&#x000A;lua debugger&gt; step&#x000A;&lt;redis&gt; ping&#x000A;&lt;reply&gt; &quot;+PONG&quot;&#x000A;* Stopped at 2, stop reason = step over&#x000A;</code></pre>
+            
+            <p>The <code>&lt;redis&gt;</code> and <code>&lt;reply&gt;</code> lines show the command executed by the line just
+            executed, and the reply from the server. Note that this happens only in stepping mode. If you use <code>continue</code> in order to execute the script till the next breakpoint, commands will not be dumped on the screen to prevent too much output.</p>
+            
+            <span id="termination-of-the-debugging-session" class=anchor></span><h2 ><a href="#termination-of-the-debugging-session" class=anchor-link>*</a>Termination of the debugging session</h2>
+            
+            <p>When the scripts terminates naturally, the debugging session ends and
+            <code>redis-cli</code> returns in its normal non-debugging mode. You can restart the
+            session using the <code>restart</code> command as usually.</p>
+            
+            <p>Another way to stop a debugging session is just interrupting <code>redis-cli</code>
+            manually by pressing <code>Ctrl+C</code>. Note that also any event breaking the
+            connection between <code>redis-cli</code> and the <code>redis-server</code> will interrupt the
+            debugging session.</p>
+            
+            <p>All the forked debugging sessions are terminated when the server is shut
+            down.</p>
+            
+            <span id="abbreviating-debugging-commands" class=anchor></span><h2 ><a href="#abbreviating-debugging-commands" class=anchor-link>*</a>Abbreviating debugging commands</h2>
+            
+            <p>Debugging can be a very repetitive task. For this reason every Redis
+            debugger command starts with a different character, and you can use the single
+            initial character in order to refer to the command.</p>
+            
+            <p>So for example instead of typing <code>step</code> you can just type <code>s</code>.</p>
+            
+            <span id="breakpoints" class=anchor></span><h2 ><a href="#breakpoints" class=anchor-link>*</a>Breakpoints</h2>
+            
+            <p>Adding and removing breakpoints is trivial as described in the online help.
+            Just use <code>b 1 2 3 4</code> to add a breakpoint in line 1, 2, 3, 4.
+            The command <code>b 0</code> removes all the breakpoints. Selected breakpoints can be
+            removed using as argument the line where the breakpoint we want to remove is, but prefixed by a minus sign. So for example <code>b -3</code> removes the breakpoint from line 3.</p>
+            
+            <p>Note that adding breakpoints to lines that Lua never executes, like declaration of local variables or comments, will not work. The breakpoint will be added but since this part of the script will never be executed, the program will never stop.</p>
+            
+            <span id="dynamic-breakpoints" class=anchor></span><h2 ><a href="#dynamic-breakpoints" class=anchor-link>*</a>Dynamic breakpoints</h2>
+            
+            <p>Using the <code>breakpoint</code> command it is possible to add breakpoints into specific
+            lines. However sometimes we want to stop the execution of the program only
+            when something special happens. In order to do so, you can use the
+            <code>redis.breakpoint()</code> function inside your Lua script. When called it simulates
+            a breakpoint in the next line that will be executed.</p>
+            
+            <pre><code>if counter &gt; 10 then redis.breakpoint() end&#x000A;</code></pre>
+            
+            <p>This feature is extremely useful when debugging, so that we can avoid to
+            continue the script execution manually multiple times until a given condition
+            is encountered.</p>
+            
+            <span id="synchronous-mode" class=anchor></span><h2 ><a href="#synchronous-mode" class=anchor-link>*</a>Synchronous mode</h2>
+            
+            <p>As explained previously, but default LDB uses forked sessions with rollback
+            of all the data changes operated by the script while it has being debugged.
+            Determinism is usually a good thing to have during debugging, so that successive
+            debugging sessions can be started without having to reset the database content
+            to its original state.</p>
+            
+            <p>However for tracking certain bugs, you may want to retain the changes performed
+            to the key space by each debugging session. When this is a good idea you
+            should start the debugger using a special option, <code>ldb-sync-mode</code>, in <code>redis-cli</code>.</p>
+            
+            <pre><code>./redis-cli --ldb-sync-mode --eval /tmp/script.lua&#x000A;</code></pre>
+            
+            <p><strong>Note that the Redis server will be unreachable during the debugging session in this mode</strong>, so use with care.</p>
+            
+            <p>In this special mode, the <code>abort</code> command can stop the script half-way taking the changes operated to the dataset. Note that this is different compared to ending the debugging session normally. If you just interrupt <code>redis-cli</code> the script will be fully executed and then the session terminated. Instead with <code>abort</code> you can interrupt the script execution in the middle and start a new debugging session if needed.</p>
+            
+            <span id="logging-from-scripts" class=anchor></span><h2 ><a href="#logging-from-scripts" class=anchor-link>*</a>Logging from scripts</h2>
+            
+            <p>The <code>redis.debug()</code> command is a powerful debugging facility that can be
+            called inside the Redis Lua script in order to log things into the debug
+            console:</p>
+            
+            <pre><code>lua debugger&gt; list&#x000A;-&gt; 1   local a = {1,2,3}&#x000A;   2   local b = false&#x000A;   3   redis.debug(a,b)&#x000A;lua debugger&gt; continue&#x000A;&lt;debug&gt; line 3: {1; 2; 3}, false&#x000A;</code></pre>
+            
+            <p>If the script is executed outside of a debugging session, <code>redis.debug()</code> has no effects at all. Note that the function accepts multiple arguments, that are separated by a comma and a space in the output.</p>
+            
+            <p>Tables and nested tables are displayed correctly in order to make values simple to observe for the programmer debugging the script.</p>
+            
+            <span id="inspecting-the-program-state-with-codeprintcode-and-codeevalcode" class=anchor></span><h2 ><a href="#inspecting-the-program-state-with-codeprintcode-and-codeevalcode" class=anchor-link>*</a>Inspecting the program state with <code>print</code> and <code>eval</code></h2>
+            
+            <p>While the <code>redis.debug()</code> function can be used in order to print values
+            directly from within the Lua script, often it is useful to observe the local
+            variables of a program while stepping or when stopped into a breakpoint.</p>
+            
+            <p>The <code>print</code> command does just that, and performs lookup in the call frames
+            starting from the current one back to the previous ones, up to top-level.
+            This means that even if we are into a nested function inside a Lua script,
+            we can still use <code>print foo</code> to look at the value of <code>foo</code> in the context
+            of the calling function. When called without a variable name, <code>print</code> will
+            print all variables and their respective values.</p>
+            
+            <p>The <code>eval</code> command executes small pieces of Lua scripts <strong>outside the context of the current call frame</strong> (evaluating inside the context of the current call frame is not possible with the current Lua internals). However you can use this command in order to test Lua functions.</p>
+            
+            <pre><code>lua debugger&gt; e redis.sha1hex(&#39;foo&#39;)&#x000A;&lt;retval&gt; &quot;0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33&quot;&#x000A;</code></pre>
+            
+            <span id="debugging-clients" class=anchor></span><h2 ><a href="#debugging-clients" class=anchor-link>*</a>Debugging clients</h2>
+            
+            <p>LDB uses the client-server model where the Redis servers acts as a debugging server that communicates using <a href="/topics/protocol">RESP</a>. While <code>redis-cli</code> is the default debug client, any <a href="/clients">client</a> can be used for debugging as long as it meets one of the following conditions:</p>
+            
+            <ol>
+            <li>The client provides a native interface for setting the debug mode and controlling the debug session.</li>
+            <li>The client provides an interface for sending arbitrary commands over RESP.</li>
+            <li>The client allows sending raw messages to the Redis server.</li>
+            </ol>
+            
+            <p>For example, the <a href="https://redislabs.com/blog/zerobrane-studio-plugin-for-redis-lua-scripts">Redis plugin</a> for <a href="http://studio.zerobrane.com/">ZeroBrane Studio</a> integrates with LDB using <a href="https://github.com/nrk/redis-lua">redis-lua</a>. The following Lua code is a simplified example of how the plugin achieves that:</p>
+            
+            <pre><code class="Lua">local redis = require &#39;redis&#39;&#x000A;&#x000A;-- add LDB&#39;s Continue command&#x000A;redis.commands[&#39;ldbcontinue&#39;] = redis.command(&#39;C&#39;)&#x000A;&#x000A;-- script to be debugged&#x000A;local script = [[&#x000A;  local x, y = tonumber(ARGV[1]), tonumber(ARGV[2])&#x000A;  local result = x * y&#x000A;  return result&#x000A;]]&#x000A;&#x000A;local client = redis.connect(&#39;127.0.0.1&#39;, 6379)&#x000A;client:script(&quot;DEBUG&quot;, &quot;YES&quot;)&#x000A;print(unpack(client:eval(script, 0, 6, 9)))&#x000A;client:ldbcontinue()&#x000A;</code></pre>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

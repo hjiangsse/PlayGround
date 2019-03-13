@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Redis Sponsors – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics sponsors'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="redis-sponsors" class=anchor></span><h1 ><a href="#redis-sponsors" class=anchor-link>*</a>Redis Sponsors</h1>
+            
+            <p>Starting from June 2015 the work <a href="http://twitter.com/antirez">Salvatore Sanfilippo</a> is doing in order to develop Redis is sponsored by <a href="https://redislabs.com">Redis Labs</a>.</p>
+            
+            <p>Past sponsorships:</p>
+            
+            <ul>
+            <li>The <a href="http://www.shuttleworthfoundation.org">Shuttleworth Foundation</a> donated 5000 USD to the Redis project in form of a flash grant. The details will be posted soon on a blog post documenting how the money was used.
+            <img src="http://redis.io/images/shuttleworth.png" alt="Shuttleworth Foundation"></li>
+            <li>From May 2013 to June 2015 the work <a href="http://twitter.com/antirez">Salvatore Sanfilippo</a> did in order to develop Redis was sponsored by <a href="http://gopivotal.com">Pivotal</a>.</li>
+            <li>Before May 2013 the project was sponsored by VMware with the work of <a href="http://twitter.com/antirez">Salvatore Sanfilippo</a> and <a href="http://twitter.com/pnoordhuis">Pieter Noordhuis</a>.</li>
+            <li><a href="http://vmware.com">VMware</a> and later <a href="http://pivotal.io">Pivotal</a> provided a 24 GB RAM workstation for me to run the <a href="http://ci.redis.io">Redis CI test</a> and other long running tests. Later I (Salvatore) equipped the server with an SSD drive in order to test in the same hardware with rotating and flash drives.</li>
+            <li><a href="http://linode.com">Linode</a> 15 January 2010, provided Virtual Machines for Redis testing in a virtualized environment.</li>
+            <li><a href="http://slicehost.com">Slicehost</a> 14 January 2010, provided Virtual Machines for Redis testing in a virtualized environment.</li>
+            <li><a href="http://citrusbyte.com">Citrusbyte</a> 18 Dec 2009, part of Virtual Memory. Citrusbyte is also the company developing the Redis-rb bindings for Redis and this very web site.</li>
+            <li><a href="http://www.hitmeister.de/">Hitmeister</a> 15 Dec 2009, part of Redis Cluster.</li>
+            <li><a href="http://engineyard.com">Engine Yard</a> 13 Dec 2009, for blocking POP (BLPOP) and part of the Virtual Memory implementation.</li>
+            </ul>
+            
+            <p>Also thanks to the following people or organizations that donated to the Project:</p>
+            
+            <ul>
+            <li>Emil Vladev</li>
+            <li><a href="http://bradjasper.com/">Brad Jasper</a></li>
+            <li><a href="http://www.mrkris.com/">Mrkris</a></li>
+            </ul>
+            
+            <p>We are grateful to <a href="http://redislabs.com">Redis Labs</a>, <a href="http://gopivotal.com">Pivotal</a>, <a href="http://vmware.com">VMware</a> and to the other companies and people that donated to the Redis project. Thank you.</p>
+            
+            <span id="redisio" class=anchor></span><h2 ><a href="#redisio" class=anchor-link>*</a>redis.io</h2>
+            
+            <p><a href="https://citrusbyte.com">Citrusbyte</a> sponsored the creation of the official
+            Redis logo (designed by <a href="http://carlosprioglio.com">Carlos Prioglio</a>) and
+            transferred its copyright to Salvatore Sanfilippo.</p>
+            
+            <p>They also sponsored the initial implementation of this site by
+            <a href="https://twitter.com/djanowski">Damian Janowski</a> and <a href="https://twitter.com/soveran">Michel
+            Martens</a>. Damian and Michel remain the current
+            maintainers.</p>
+            
+            <p>The <code>redis.io</code> domain was donated for a few years to the project by <a href="https://iwantmyname.com">I Want My
+            Name</a>. Now is sponsored by myself (Salvatore Sanfilippo).</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

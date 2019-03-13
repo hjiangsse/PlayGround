@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Introduction to Redis Streams – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics streams-intro'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="introduction-to-redis-streams" class=anchor></span><h1 ><a href="#introduction-to-redis-streams" class=anchor-link>*</a>Introduction to Redis Streams</h1>
+            
+            <p>The Stream is a new data type introduced with Redis 5.0, which models a <em>log data structure</em> in a more abstract way, however the essence of the log is still intact: like a log file, often implemented as a file open in append only mode, Redis streams are primarily an append only data structure. At least conceptually, because being Redis Streams an abstract data type represented in memory, they implement more powerful operations, to overcome the limits of the log file itself.</p>
+            
+            <p>What makes Redis streams the most complex type of Redis, despite the data structure itself being quite simple, is the fact that it implements additional, non mandatory features: a set of blocking operations allowing consumers to wait for new data added to a stream by producers, and in addition to that a concept called <strong>Consumer Groups</strong>.</p>
+            
+            <p>Consumer groups were initially introduced by the popular messaging system called Kafka (TM). Redis reimplements a similar idea in completely different terms, but the goal is the same: to allow a group of clients to cooperate consuming a different portion of the same stream of messages.</p>
+            
+            <span id="streams-basics" class=anchor></span><h2 ><a href="#streams-basics" class=anchor-link>*</a>Streams basics</h2>
+            
+            <p>For the goal of understanding what Redis streams are and how to use them, we will ignore all the advanced features, and instead focus on the data structure itself, in terms of commands used to manipulate and access it. This is, basically, the part which is common to most of the other Redis data types, like Lists, Sets, Sorted Sets and so forth. However, note that lists also have an optional more complex blocking API, exported by commands like <strong>BLPOP</strong> and similar. So streams are not much different than lists in this regard, it&#39;s just that the additional API is more complex and more powerful.</p>
+            
+            <p>Because streams are an append only data structure, the fundamental write command, called <strong>XADD</strong>, appends a new entry into the specified stream. A stream entry is not just a string, but is instead composed of one or multiple field-value pairs. This way, each entry of a stream is already structured, like an append only file written in CSV format where multiple separated fields are present in each line.</p>
+            
+            <pre><code>&gt; XADD mystream * sensor-id 1234 temperature 19.8&#x000A;1518951480106-0&#x000A;</code></pre>
+            
+            <p>The above call to the <strong>XADD</strong> command adds an entry <code>sensor-id: 123, temperature: 19.8</code> to the stream at key <code>mystream</code>, using an auto-generated entry ID, which is the one returned by the command, specifically <code>1518951480106-0</code>. It gets as first argument the key name <code>mystream</code>, the second argument is the entry ID that identifies every entry inside a stream. However, in this case, we passed <code>*</code> because we want the server to generate a new ID for us. Every new ID will be monotonically increasing, so in more simple terms, every new entry added will have a higher ID compared to all the past entries. Auto-generation of IDs by the server is almost always what you want, and the reasons for specifying an ID explicitly are very rare. We&#39;ll talk more about this later. The fact that each Stream entry has an ID is another similarity with log files, where line numbers, or the byte offset inside the file, can be used in order to identify a given entry. Returning back at our <strong>XADD</strong> example, after the key name and ID, the next arguments are the field-value pairs composing our stream entry.</p>
+            
+            <p>It is possible to get the number of items inside a Stream just using the <strong>XLEN</strong> command:</p>
+            
+            <pre><code>&gt; XLEN mystream&#x000A;(integer) 1&#x000A;</code></pre>
+            
+            <span id="entry-ids" class=anchor></span><h3 ><a href="#entry-ids" class=anchor-link>*</a>Entry IDs</h3>
+            
+            <p>The entry ID returned by the <strong>XADD</strong> command, and identifying univocally each entry inside a given stream, is composed of two parts:</p>
+            
+            <pre><code>&lt;millisecondsTime&gt;-&lt;sequenceNumber&gt;&#x000A;</code></pre>
+            
+            <p>The milliseconds time part is actually the local time in the local Redis node generating the stream ID, however if the current milliseconds time happens to be smaller than the previous entry time, then the previous entry time is used instead, so if a clock jumps backward the monotonically incrementing ID property still holds. The sequence number is used for entries created in the same millisecond. Since the sequence number is 64 bit wide, in practical terms there are no limits in the number of entries that can be generated within the same millisecond.</p>
+            
+            <p>The format of such IDs may look strange at first, and the gentle reader may wonder why the time is part of the ID. The reason is that Redis streams support range queries by ID. Because the ID is related to the time the entry is generated, this gives the ability to query for ranges of time basically for free. We will see this soon while covering the <strong>XRANGE</strong> command.</p>
+            
+            <p>If for some reason the user needs incremental IDs that are not related to time but are actually associated to another external system ID, as previously already observed, the <strong>XADD</strong> command can take an explicit ID instead of the <code>*</code> wildcard ID that triggers auto-generation, like in the following examples:</p>
+            
+            <pre><code>&gt; XADD somestream 0-1 field value&#x000A;0-1&#x000A;&gt; XADD somestream 0-2 foo bar&#x000A;0-2&#x000A;</code></pre>
+            
+            <p>Note that in this case, the minimum ID is 0-1 and that the command will not accept an ID equal or smaller than a previous one:</p>
+            
+            <pre><code>&gt; XADD somestream 0-1 foo bar&#x000A;(error) ERR The ID specified in XADD is equal or smaller than the target stream top item&#x000A;</code></pre>
+            
+            <span id="getting-data-from-streams" class=anchor></span><h2 ><a href="#getting-data-from-streams" class=anchor-link>*</a>Getting data from Streams</h2>
+            
+            <p>Now we are finally able to append entries in our stream via <strong>XADD</strong>. However, while appending data to a stream is quite obvious, the way streams can be queried in order to extract data is not so obvious. If we continue with the analogy of the log file, one obvious way is to mimic what we normally do with the Unix command <code>tail -f</code>, that is, we may start to listen in order to get the new messages that are appended to the stream. Note that unlike the blocking list operations of Redis, where a given element will reach a single client which is blocking in a <em>pop style</em> operation like <strong>BLPOP</strong>, with streams we want that multiple consumers can see the new messages appended to the Stream, like many <code>tail -f</code> processes can see what is added to a log. Using the traditional terminology we want the streams to be able to <em>fan out</em> messages to multiple clients.</p>
+            
+            <p>However, this is just one potential access mode. We could also see a stream in quite a different way: not as a messaging system, but as a <em>time series store</em>. In this case, maybe it&#39;s also useful to get the new messages appended, but another natural query mode is to get messages by ranges of time, or alternatively to iterate the messages using a cursor to incrementally check all the history. This is definitely another useful access mode.</p>
+            
+            <p>Finally, if we see a stream from the point of view of consumers, we may want to access the stream in yet another way, that is, as a stream of messages that can be partitioned to multiple consumers that are processing such messages, so that groups of consumers can only see a subset of the messages arriving in a single stream. In this way, it is possible to scale the message processing across different consumers, without single consumers having to process all the messages: each consumer will just get different messages to process. This is basically what Kafka (TM) does with consumer groups. Reading messages via consumer groups is yet another interesting mode to read from a Redis stream.</p>
+            
+            <p>Redis streams support all the three query modes described above via different commands. The next sections will show all them, starting from the simplest and more direct to use: range queries.</p>
+            
+            <span id="querying-by-range-xrange-and-xrevrange" class=anchor></span><h3 ><a href="#querying-by-range-xrange-and-xrevrange" class=anchor-link>*</a>Querying by range: XRANGE and XREVRANGE</h3>
+            
+            <p>To query the stream by range we are only required to specify two IDs, <em>start</em> and <em>end</em>. The range returned will include the elements having start or end as ID, so the range is inclusive. The two special IDs <code>-</code> and <code>+</code> respectively means the smallest and the greatest ID possible.</p>
+            
+            <pre><code>&gt; XRANGE mystream - +&#x000A;1) 1) 1518951480106-0&#x000A;   2) 1) &quot;sensor-id&quot;&#x000A;      2) &quot;1234&quot;&#x000A;      3) &quot;temperature&quot;&#x000A;      4) &quot;19.8&quot;&#x000A;2) 1) 1518951482479-0&#x000A;   2) 1) &quot;sensor-id&quot;&#x000A;      2) &quot;9999&quot;&#x000A;      3) &quot;temperature&quot;&#x000A;      4) &quot;18.2&quot;&#x000A;</code></pre>
+            
+            <p>Each entry returned is an array of two items: the ID and the list of field-value pairs. We already said that the entry IDs have a relation with the time, because the part at the left of the <code>-</code> character is the Unix time in milliseconds of the local node that created the stream entry, in the moment the entry was created (however note that Streams are replicated with fully specified <strong>XADD</strong> commands, so the slaves will have identical IDs to the master). This means that I could query a range of time using <strong>XRANGE</strong>. In order to do so, however, I may want to omit the sequence part of the ID: if omitted, in the start of the range it will be assumed to be 0, while in the end part it will be assumed to be the maximum sequence number available. This way, querying using just two milliseconds Unix times, we get all the entries that were generated in that range of time, in an inclusive way. For instance, I may want to query a two milliseconds period I could use:</p>
+            
+            <pre><code>&gt; XRANGE mystream 1518951480106 1518951480107&#x000A;1) 1) 1518951480106-0&#x000A;   2) 1) &quot;sensor-id&quot;&#x000A;      2) &quot;1234&quot;&#x000A;      3) &quot;temperature&quot;&#x000A;      4) &quot;19.8&quot;&#x000A;</code></pre>
+            
+            <p>I have only a single entry in this range, however in real data sets, I could query for ranges of hours, or there could be many items in just two milliseconds, and the result returned could be huge. For this reason, <strong>XRANGE</strong> supports an optional <strong>COUNT</strong> option at the end. By specifying a count, I can just get the first <em>N</em> items. If I want more, I can get the last ID returned, increment the sequence part by one, and query again. Let&#39;s see this in the following example. We start adding 10 items with <strong>XADD</strong> (I&#39;ll not show that, already assume that the stream <code>mystream</code> was populated with 10 items). To start my iteration, getting 2 items per command, I start with the full range, but with a count of 2.</p>
+            
+            <pre><code>&gt; XRANGE mystream - + COUNT 2&#x000A;1) 1) 1519073278252-0&#x000A;   2) 1) &quot;foo&quot;&#x000A;      2) &quot;value_1&quot;&#x000A;2) 1) 1519073279157-0&#x000A;   2) 1) &quot;foo&quot;&#x000A;      2) &quot;value_2&quot;&#x000A;</code></pre>
+            
+            <p>In order to continue the iteration with the next two items, I have to pick the last ID returned, that is <code>1519073279157-0</code> and add 1 to the sequence number part of the ID. Note that the sequence number is 64 bit so there is no need to check for overflows. The resulting ID, that is <code>1519073279157-1</code> in this case, can now be used as the new <em>start</em> argument for the next <strong>XRANGE</strong> call:</p>
+            
+            <pre><code>&gt; XRANGE mystream 1519073279157-1 + COUNT 2&#x000A;1) 1) 1519073280281-0&#x000A;   2) 1) &quot;foo&quot;&#x000A;      2) &quot;value_3&quot;&#x000A;2) 1) 1519073281432-0&#x000A;   2) 1) &quot;foo&quot;&#x000A;      2) &quot;value_4&quot;&#x000A;</code></pre>
+            
+            <p>And so forth. Since <strong>XRANGE</strong> complexity is <em>O(log(N))</em> to seek, and then <em>O(M)</em> to return M elements, with a small count the command has a logarithmic time complexity, which means that each step of the iteration is fast. So <strong>XRANGE</strong> is also the de facto <em>streams iterator</em> and does not require an <strong>XSCAN</strong> command.</p>
+            
+            <p>The command <strong>XREVRANGE</strong> is the equivalent of <strong>XRANGE</strong> but returning the elements in inverted order, so a practical use for <strong>XREVRANGE</strong> is to check what is the last item in a Stream:</p>
+            
+            <pre><code>&gt; XREVRANGE mystream + - COUNT 1&#x000A;1) 1) 1519073287312-0&#x000A;   2) 1) &quot;foo&quot;&#x000A;      2) &quot;value_10&quot;&#x000A;</code></pre>
+            
+            <p>Note that the <strong>XREVRANGE</strong> command takes the <em>start</em> and <em>stop</em> arguments in reverse order.</p>
+            
+            <span id="listening-for-new-items-with-xread" class=anchor></span><h2 ><a href="#listening-for-new-items-with-xread" class=anchor-link>*</a>Listening for new items with XREAD</h2>
+            
+            <p>When we do not want to access items by a range in a stream, usually what we want instead is to <em>subscribe</em> to new items arriving to the stream. This concept may appear related to Redis Pub/Sub, where you subscribe to a channel, or to Redis blocking lists, where you wait for a key to get new elements to fetch, but there are fundamental differences in the way you consume a stream:</p>
+            
+            <ol>
+            <li>A stream can have multiple clients (consumers) waiting for data. Every new item, by default, will be delivered to <em>every consumer</em> that is waiting for data in a given stream. This behavior is different than blocking lists, where each consumer will get a different element. However, the ability to <em>fan out</em> to multiple consumers is similar to Pub/Sub.</li>
+            <li>While in Pub/Sub messages are <em>fire and forget</em> and are never stored anyway, and while when using blocking lists, when a message is received by the client it is <em>popped</em> (effectively removed) form the list, streams work in a fundamentally different way. All the messages are appended in the stream indefinitely (unless the user explicitly asks to delete entries): different consumers will know what is a new message from its point of view by remembering the ID of the last message received.</li>
+            <li>Streams Consumer Groups provide a level of control that Pub/Sub or blocking lists cannot achieve, with different groups for the same stream, explicit acknowledge of processed items, ability to inspect the pending items, claiming of unprocessed messages, and coherent history visibility for each single client, that is only able to see its private past history of messages.</li>
+            </ol>
+            
+            <p>The command that provides the ability to listen for new messages arriving into a stream is called <strong>XREAD</strong>. It&#39;s a bit more complex than <strong>XRANGE</strong>, so we&#39;ll start showing simple forms, and later the whole command layout will be provided.</p>
+            
+            <pre><code>&gt; XREAD COUNT 2 STREAMS mystream 0&#x000A;1) 1) &quot;mystream&quot;&#x000A;   2) 1) 1) 1519073278252-0&#x000A;         2) 1) &quot;foo&quot;&#x000A;            2) &quot;value_1&quot;&#x000A;      2) 1) 1519073279157-0&#x000A;         2) 1) &quot;foo&quot;&#x000A;            2) &quot;value_2&quot;&#x000A;</code></pre>
+            
+            <p>The above is the non-blocking form of <strong>XREAD</strong>. Note that the <strong>COUNT</strong> option is not mandatory, in fact the only mandatory option of the command is the <strong>STREAMS</strong> option, that specifies a list of keys together with the corresponding maximum ID already seen for each stream by the calling consumer, so that the command will provide the client only with messages with an ID greater than the one we specified.</p>
+            
+            <p>In the above command we wrote <code>STREAMS mystream 0</code> so we want all the messages in the Stream <code>mystream</code> having an ID greater than <code>0-0</code>. As you can see in the example above, the command returns the key name, because actually it is possible to call this command with more than one key to read from different streams at the same time. I could write, for instance: <code>STREAMS mystream otherstream 0 0</code>. Note how after the <strong>STREAMS</strong> option we need to provide the keys names, and later the IDs. For this reason, the <strong>STREAMS</strong> option must always be the last one.</p>
+            
+            <p>Apart from the fact that <strong>XREAD</strong> can access multiple streams at once, and that we are able to specify the last ID we own to just get newer messages, in this simple form the command is not doing something so different compared to <strong>XRANGE</strong>. However, the interesting part is that we can turn <strong>XREAD</strong> in a <em>blocking command</em> easily, by specifying the <strong>BLOCK</strong> argument:</p>
+            
+            <pre><code>&gt; XREAD BLOCK 0 STREAMS mystream $&#x000A;</code></pre>
+            
+            <p>Note that in the example above, other than removing <strong>COUNT</strong>, I specified the new <strong>BLOCK</strong> option with a timeout of 0 milliseconds (that means to never timeout). Moreover, instead of passing a normal ID for the stream <code>mystream</code> I passed the special ID <code>$</code>. This special ID means that <strong>XREAD</strong> should use as last ID the maximum ID already stored in the stream <code>mystream</code>, so that we will receive only <em>new</em> messages, starting from the time we started listening. This is similar to the <code>tail -f</code> Unix command in some way.</p>
+            
+            <p>Note that when the <strong>BLOCK</strong> option is used, we do not have to use the special ID <code>$</code>. We can use any valid ID. If the command is able to serve our request immediately without blocking, it will do so, otherwise it will block. Normally if we want to consume the stream starting from new entries, we start with the ID <code>$</code>, and after that we continue using the ID of the last message received to make the next call, and so forth.</p>
+            
+            <p>The blocking form of <strong>XREAD</strong> is also able to listen to multiple Streams, just by specifying multiple key names. If the request can be served synchronously because there is at least one stream with elements greater than the corresponding ID we specified, it returns with the results. Otherwise, the command will block and will return the items of the first stream getting new data (according to the specified ID).</p>
+            
+            <p>Similarly to blocking list operations, blocking stream reads are <em>fair</em> from the point of view of clients waiting for data, since the semantics is FIFO style. The first client that blocked for a given stream is the first that will be unblocked as new items are available.</p>
+            
+            <p><strong>XREAD</strong> has no other options than <strong>COUNT</strong> and <strong>BLOCK</strong>, so it&#39;s a pretty basic command with a specific purpose to attack consumers to one or multiple streams. More powerful features to consume streams are available using the consumer groups API, however reading via consumer groups is implemented by a different command called <strong>XREADGROUP</strong>, covered in the next section of this guide.</p>
+            
+            <span id="consumer-groups" class=anchor></span><h2 ><a href="#consumer-groups" class=anchor-link>*</a>Consumer groups</h2>
+            
+            <p>When the task at hand is to consume the same stream from different clients, then <strong>XREAD</strong> already offers a way to  <em>fan-out</em> to N clients, potentially also using slaves in order to provide more read scalability. However in certain problems what we want to do is not to provide the same stream of messages to many clients, but to provide a <em>different subset</em> of messages from the same stream to many clients. An obvious case where this is useful is the case of slow to process messages: the ability to have N different workers that will receive different parts of the stream allow to scale message processing, by routing different messages to different workers that are ready to do more work.</p>
+            
+            <p>In practical terms, if we imagine having three consumers C1, C2, C3, and a stream that contains the messages 1, 2, 3, 4, 5, 6, 7 then what we want is to serve the messages like in the following diagram:</p>
+            
+            <pre><code>1 -&gt; C1&#x000A;2 -&gt; C2&#x000A;3 -&gt; C3&#x000A;4 -&gt; C1&#x000A;5 -&gt; C2&#x000A;6 -&gt; C3&#x000A;7 -&gt; C1&#x000A;</code></pre>
+            
+            <p>In order to obtain this effect, Redis uses a concept called <em>consumer groups</em>. It is very important to understand that Redis consumer groups have nothing to do from the point of view of the implementation with Kafka (TM) consumer groups, but they are only similar from the point of view of the concept they implement, so I decided to do not change terminology compared to the software product that initially popularized such idea.</p>
+            
+            <p>A consumer group is like a <em>pseudo consumer</em> that gets data from a stream, and actually serves multiple consumers, providing certain guarantees:</p>
+            
+            <ol>
+            <li>Each message is served to a different consumer so that it is not possible that the same message is delivered to multiple consumers.</li>
+            <li>Consumers are identified, within a consumer group, by a name, which is a case-sensitive string that the clients implementing consumers must choose. This means that even after a disconnect, the stream consumer group retains all the state, since the client will claim again to be the same consumer. However, this also means that it is up to the client to provide a unique identifier.</li>
+            <li>Each consumer group has the concept of the <em>first ID never consumed</em> so that, when a consumer asks for new messages, it can provide just messages that were never delivered previously.</li>
+            <li>Consuming a message however requires explicit acknowledge using a specific command, to say: this message was correctly processed, so can be evicted from the consumer group.</li>
+            <li>A consumer group tracks all the messages that are currently pending, that is, messages that were delivered to some consumer of the consumer group, but are yet to be acknowledged as processed. Thanks to this feature, when accessing the history of messages of a stream, each consumer <em>will only see messages that were delivered to it</em>.</li>
+            </ol>
+            
+            <p>In some way a consumer group can be imagined as some <em>amount of state</em> about a stream:</p>
+            
+            <pre><code>+----------------------------------------+&#x000A;| consumer_group_name: mygroup           |&#x000A;| consumer_group_stream: somekey         |&#x000A;| last_delivered_id: 1292309234234-92    |&#x000A;|                                        |&#x000A;| consumers:                             |&#x000A;|    &quot;consumer-1&quot; with pending messages  |&#x000A;|       1292309234234-4                  |&#x000A;|       1292309234232-8                  |&#x000A;|    &quot;consumer-42&quot; with pending messages |&#x000A;|       ... (and so forth)               |&#x000A;+----------------------------------------+&#x000A;</code></pre>
+            
+            <p>If you see this from this point of view, it is very simple to understand what a consumer group can do, how it is able to just provide consumers with their history of pending messages, and how consumers asking for new messages will just be served with message IDs greater than <code>last_delivered_id</code>. At the same time, if you look at the consumer group as an auxiliary data structure for Redis streams, it is obvious that a single stream can have multiple consumer groups, that have a different set of consumers. Actually, it is even possible for the same stream to have clients reading without consumer groups via <strong>XREAD</strong>, and clients reading via <strong>XREADGROUP</strong> in different consumer groups.</p>
+            
+            <p>Now it&#39;s time to zoom in to see the fundamental consumer group commands, that are the following:</p>
+            
+            <ul>
+            <li><strong>XGROUP</strong> is used in order to create, destroy and manage consumer groups.</li>
+            <li><strong>XREADGROUP</strong> is used to read from a stream via a consumer group.</li>
+            <li><strong>XACK</strong> is the command that allows a consumer to mark a pending message as correctly processed.</li>
+            </ul>
+            
+            <span id="creating-a-consumer-group" class=anchor></span><h2 ><a href="#creating-a-consumer-group" class=anchor-link>*</a>Creating a consumer group</h2>
+            
+            <p>Assuming I have a key <code>mystream</code> of type stream already existing, in order to create a consumer group I need to do just the following:</p>
+            
+            <pre><code>&gt; XGROUP CREATE mystream mygroup $&#x000A;OK&#x000A;</code></pre>
+            
+            <p>Note: <em>Currently it is not possible to create consumer groups for non-existing streams, however it is possible that in the short future we&#39;ll add an option to the *</em>XGROUP** command in order to create an empty stream in such cases.*</p>
+            
+            <p>As you can see in the command above when creating the consumer group we have to specify an ID, which in the example is just <code>$</code>. This is needed because the consumer group, among the other states, must have an idea about what message to serve next at the first consumer connecting, that is, what is the current <em>last message ID</em> when the group was just created? If we provide <code>$</code> as we did, then only new messages arriving in the stream from now on will be provided to the consumers in the group. If we specify <code>0</code> instead the consumer group will consume <em>all</em> the messages in the stream history to start with. Of course, you can specify any other valid ID. What you know is that the consumer group will start delivering messages that are greater than the ID you specify. Because <code>$</code> means the current greatest ID in the stream, specifying <code>$</code> will have the effect of consuming only new messages.</p>
+            
+            <p>Now that the consumer group is created we can immediately start trying to read messages via the consumer group, by using the <strong>XREADGROUP</strong> command. We&#39;ll read from the consumers, that we will call Alice and Bob, to see how the system will return different messages to Alice and Bob.</p>
+            
+            <p><strong>XREADGROUP</strong> is very similar yo <strong>XREAD</strong> and provides the same <strong>BLOCK</strong> option, otherwise it is a synchronous command. However there is a <em>mandatory</em> option that must be always specified, which is <strong>GROUP</strong> and has two arguments: the name of the consumer group, and the name of the consumer that is attempting to read. The option <strong>COUNT</strong> is also supported and is identical to the one in <strong>XREAD</strong>.</p>
+            
+            <p>Before reading from the stream, let&#39;s put some messages inside:</p>
+            
+            <pre><code>&gt; XADD mystream * message apple&#x000A;1526569495631-0&#x000A;&gt; XADD mystream * message orange&#x000A;1526569498055-0&#x000A;&gt; XADD mystream * message strawberry&#x000A;1526569506935-0&#x000A;&gt; XADD mystream * message apricot&#x000A;1526569535168-0&#x000A;&gt; XADD mystream * message banana&#x000A;1526569544280-0&#x000A;</code></pre>
+            
+            <p>Note: <em>here message is the field name, and the fruit is the associated value, remember that stream items are small dictionaries.</em></p>
+            
+            <p>It is time to try reading something using the consumer group:</p>
+            
+            <pre><code>&gt; XREADGROUP GROUP mygroup Alice COUNT 1 STREAMS mystream &gt;&#x000A;1) 1) &quot;mystream&quot;&#x000A;   2) 1) 1) 1526569495631-0&#x000A;         2) 1) &quot;message&quot;&#x000A;            2) &quot;apple&quot;&#x000A;</code></pre>
+            
+            <p><strong>XREADGROUP</strong> replies are just like <strong>XREAD</strong> replies. Note however the <code>GROUP &lt;group-name&gt; &lt;consumer-name&gt;</code> provided above, it states that I want to read from the stream using the consumer group <code>mygroup</code> and I&#39;m the consumer <code>Alice</code>. Every time a consumer performs an operation with a consumer group, it must specify its name uniquely identifying this consumer inside the group.</p>
+            
+            <p>There is another very important detail in the command line above, after the mandatory <strong>STREAMS</strong> option the ID requested for the key <code>mystream</code> is the special ID <code>&gt;</code>. This special ID is only valid in the context of consumer groups, and it means: <strong>messages never delivered to other consumers so far</strong>.</p>
+            
+            <p>This is almost always what you want, however it is also possible to specify a real ID, such as <code>0</code> or any other valid ID, in this case however what happens is that we request to <strong>XREADGROUP</strong> to just provide us with the <strong>history of pending messages</strong>, and in such case, will never see new messages in the group. So basically <strong>XREADGROUP</strong> has the following behavior based on the ID we specify:</p>
+            
+            <ul>
+            <li>If the ID is the special ID <code>&gt;</code> then the command will return only new messages never delivered to other consumers so far, and as a side effect, will update the consumer group <em>last ID</em>.</li>
+            <li>If the ID is any other valid numerical ID, then the command will let us access our <em>history of pending messages</em>. That is, the set of messages that were delivered to this specified consumer (identified by the provided name), and never acknowledged so far with <strong>XACK</strong>.</li>
+            </ul>
+            
+            <p>We can test this behavior immediately specifying an ID of 0, without any <strong>COUNT</strong> option: we&#39;ll just see the only pending message, that is, the one about apples:</p>
+            
+            <pre><code>&gt; XREADGROUP GROUP mygroup Alice STREAMS mystream 0&#x000A;1) 1) &quot;mystream&quot;&#x000A;   2) 1) 1) 1526569495631-0&#x000A;         2) 1) &quot;message&quot;&#x000A;            2) &quot;apple&quot;&#x000A;</code></pre>
+            
+            <p>However, if we acknowledge the message as processed, it will no longer be part of the pending messages history, so the system will no longer report anything:</p>
+            
+            <pre><code>&gt; XACK mystream mygroup 1526569495631-0&#x000A;(integer) 1&#x000A;&gt; XREADGROUP GROUP mygroup Alice STREAMS mystream 0&#x000A;1) 1) &quot;mystream&quot;&#x000A;   2) (empty list or set)&#x000A;</code></pre>
+            
+            <p>Don&#39;t worry if you yet don&#39;t know how <strong>XACK</strong> works, the concept is just that processed messages are no longer part of the history that we can access.</p>
+            
+            <p>Now it&#39;s the turn of Bob to read something:</p>
+            
+            <pre><code>&gt; XREADGROUP GROUP mygroup Bob COUNT 2 STREAMS mystream &gt;&#x000A;1) 1) &quot;mystream&quot;&#x000A;   2) 1) 1) 1526569498055-0&#x000A;         2) 1) &quot;message&quot;&#x000A;            2) &quot;orange&quot;&#x000A;      2) 1) 1526569506935-0&#x000A;         2) 1) &quot;message&quot;&#x000A;            2) &quot;strawberry&quot;&#x000A;</code></pre>
+            
+            <p>Bob asked for a maximum of two messages and is reading via the same group <code>mygroup</code>. So what happens is that Redis reports just <em>new</em> messages. As you can see the &quot;apple&quot; message is not delivered, since it was already delivered to Alice, so Bob gets orange and strawberry, and so forth.</p>
+            
+            <p>This way Alice, Bob, and any other consumer in the group, are able to read different messages from the same stream, to read their history of yet to process messages, or to mark messages as processed. This allows creating different topologies and semantics to consume messages from a stream.</p>
+            
+            <p>There are a few things to keep in mind:</p>
+            
+            <ul>
+            <li>Consumers are auto-created the first time they are mentioned, no need for explicit creation.</li>
+            <li>Even with <strong>XREADGROUP</strong> you can read from multiple keys at the same time, however for this to work, you need to create a consumer group with the same name in every stream. This is not a common need, but it is worth to mention that the feature is technically available.</li>
+            <li><strong>XREADGROUP</strong> is a <em>write command</em> because even if it reads from the stream, the consumer group is modified as a side effect of reading, so it can be only called in master instances.</li>
+            </ul>
+            
+            <p>An example of consumer implementation, using consumer groups, written in the Ruby language could be the following. The Ruby code is written in a way to be readable from virtually any experienced programmer programming in some other language and not knowing Ruby:</p>
+            
+            <pre><code class="ruby">require &#39;redis&#39;&#x000A;&#x000A;if ARGV.length == 0&#x000A;    puts &quot;Please specify a consumer name&quot;&#x000A;    exit 1&#x000A;end&#x000A;&#x000A;ConsumerName = ARGV[0]&#x000A;GroupName = &quot;mygroup&quot;&#x000A;r = Redis.new&#x000A;&#x000A;def process_message(id,msg)&#x000A;    puts &quot;[#{ConsumerName}] #{id} = #{msg.inspect}&quot;&#x000A;end&#x000A;&#x000A;$lastid = &#39;0-0&#39;&#x000A;&#x000A;puts &quot;Consumer #{ConsumerName} starting...&quot;&#x000A;check_backlog = true&#x000A;while true&#x000A;    # Pick the ID based on the iteration: the first time we want to&#x000A;    # read our pending messages, in case we crashed and are recovering.&#x000A;    # Once we consumer our history, we can start getting new messages.&#x000A;    if check_backlog&#x000A;        myid = $lastid&#x000A;    else&#x000A;        myid = &#39;&gt;&#39;&#x000A;    end&#x000A;&#x000A;    items = r.xreadgroup(&#39;GROUP&#39;,GroupName,ConsumerName,&#39;BLOCK&#39;,&#39;2000&#39;,&#39;COUNT&#39;,&#39;10&#39;,&#39;STREAMS&#39;,:my_stream_key,myid)&#x000A;&#x000A;    if items == nil&#x000A;        puts &quot;Timeout!&quot;&#x000A;        next&#x000A;    end&#x000A;&#x000A;    # If we receive an empty reply, it means we were consuming our history&#x000A;    # and that the history is now empty. Let&#39;s start to consume new messages.&#x000A;    check_backlog = false if items[0][1].length == 0&#x000A;&#x000A;    items[0][1].each{|i|&#x000A;        id,fields = i&#x000A;&#x000A;        # Process the message&#x000A;        process_message(id,fields)&#x000A;&#x000A;        # Acknowledge the message as processed&#x000A;        r.xack(:my_stream_key,GroupName,id)&#x000A;&#x000A;        $lastid = id&#x000A;    }&#x000A;end&#x000A;</code></pre>
+            
+            <p>As you can see the idea here is to start consuming the history, that is, our list of pending messages. This is useful because the consumer may have crashed before, so in the event of a restart we want to read again messages that were delivered to us without getting acknowledged. This way we can process a message multiple times or one time (at least in the case of consumers failures, but there are also the limits of Redis persistence and replication involved, see the specific section about this topic).</p>
+            
+            <p>Once the history was consumed, and we get an empty list of messages, we can switch to use the <code>&gt;</code> special ID in order to consume new messages.</p>
+            
+            <span id="recovering-from-permanent-failures" class=anchor></span><h2 ><a href="#recovering-from-permanent-failures" class=anchor-link>*</a>Recovering from permanent failures</h2>
+            
+            <p>The example above allows us to write consumers that participate to the same consumer group, taking each a subset of messages to process, and recovering from failures re-reading the pending messages that were delivered just to them. However in the real world consumers may permanently fail and never recover. What happens to the pending messages of the consumer that never recovers after stopping for any reason?</p>
+            
+            <p>Redis consumer groups offer a feature that is used exactly in this situations in order to <em>claim</em> the pending messages of a given consumer so that such messages will change ownership and will be re-assigned to a different consumer. The feature is very explicit, a consumer has to inspect the list of pending messages, and will have to claim specific messages using a special command, otherwise the server will take the messages pending forever assigned to the old consumer, in this way different applications can choose if to use such a feature or not, and exactly the way to use it.</p>
+            
+            <p>The first step of this process is just a command that provides observability of pending entries in the consumer group and is called <strong>XPENDING</strong>. This is just a read-only command which is always safe to call and will not change ownership of any message. In its simplest form, the command is just called with two arguments, which are the name of the stream and the name of the consumer group.</p>
+            
+            <pre><code>&gt; XPENDING mystream mygroup&#x000A;1) (integer) 2&#x000A;2) 1526569498055-0&#x000A;3) 1526569506935-0&#x000A;4) 1) 1) &quot;Bob&quot;&#x000A;      2) &quot;2&quot;&#x000A;</code></pre>
+            
+            <p>When called in this way the command just outputs the total number of pending messages in the consumer group, just two messages in this case, the lower and higher message ID among the pending messages, and finally a list of consumers and the number of pending messages they have. We have just Bob with two pending messages because the only message that Alice requested was acknowledged using <strong>XACK</strong>.</p>
+            
+            <p>We can ask for more info by giving more arguments to <strong>XPENDING</strong>, because the full command signature is the following:</p>
+            
+            <pre><code>XPENDING &lt;key&gt; &lt;groupname&gt; [&lt;start-id&gt; &lt;end-id&gt; &lt;count&gt; [&lt;conusmer-name&gt;]]&#x000A;</code></pre>
+            
+            <p>By providing a start and end ID (that can be just <code>-</code> and <code>+</code> as in <strong>XRANGE</strong>) and a count to control the amount of information returned by the command, we are able to know more about the pending messages. The optional final argument, the consumer group name, is used if we want to limit the output to just messages pending for a given consumer group, but we&#39;ll not use this feature in the following example.</p>
+            
+            <pre><code>&gt; XPENDING mystream mygroup - + 10&#x000A;1) 1) 1526569498055-0&#x000A;   2) &quot;Bob&quot;&#x000A;   3) (integer) 74170458&#x000A;   4) (integer) 1&#x000A;2) 1) 1526569506935-0&#x000A;   2) &quot;Bob&quot;&#x000A;   3) (integer) 74170458&#x000A;   4) (integer) 1&#x000A;</code></pre>
+            
+            <p>Now we have the detail for each message: the ID, the consumer name, the <em>idle time</em> in milliseconds, which is how much milliseconds have passed since the last time the message was delivered to some consumer, and finally the number of times that a given message was delivered. We have two messages from Bob, and they are idle for 74170458 milliseconds, about 20 hours.</p>
+            
+            <p>Note that nobody prevents us from checking what the first message content was, just using <strong>XRANGE</strong>.</p>
+            
+            <pre><code>&gt; XRANGE mystream 1526569498055-0 1526569498055-0&#x000A;1) 1) 1526569498055-0&#x000A;   2) 1) &quot;message&quot;&#x000A;      2) &quot;orange&quot;&#x000A;</code></pre>
+            
+            <p>We have just to repeat the same ID twice in the arguments. Now that we have some idea, Alice may decide that after 20 hours of not processing messages, Bob will probably not recover in time, and it&#39;s time to <em>claim</em> such messages and resume the processing in place of Bob. To do so, we use the <strong>XCLAIM</strong> command.</p>
+            
+            <p>This command is very complex and full of options in its full form, since it is used for replication of consumer groups changes, but we&#39;ll use just the arguments that we need normally. In this case it is as simple as calling it like that:</p>
+            
+            <pre><code>XCLAIM &lt;key&gt; &lt;group&gt; &lt;consumer&gt; &lt;min-idle-time&gt; &lt;ID-1&gt; &lt;ID-2&gt; ... &lt;ID-N&gt;&#x000A;</code></pre>
+            
+            <p>Basically we say, for this specific key and group, I want that the message IDs specified will change ownership, and will be assigned to the specified consumer name <code>&lt;consumer&gt;</code>. However, we also provide a minimum idle time, so that the operation will only work if the idle time of the mentioned messages is greater than the specified idle time. This is useful because maybe two clients are retrying to claim a message at the same time:</p>
+            
+            <pre><code>Client 1: XCLAIM mystream mygroup Alice 3600000 1526569498055-0&#x000A;Clinet 2: XCLAIM mystream mygroup Lora 3600000 1526569498055-0&#x000A;</code></pre>
+            
+            <p>However claiming a message, as a side effect will reset its idle time! And will increment its number of deliveries counter, so the second client will fail claiming it. In this way we avoid trivial re-processing of messages (even if in the general case you cannot obtain exactly once processing).</p>
+            
+            <p>This is the result of the command execution:</p>
+            
+            <pre><code>&gt; XCLAIM mystream mygroup Alice 3600000 1526569498055-0&#x000A;1) 1) 1526569498055-0&#x000A;   2) 1) &quot;message&quot;&#x000A;      2) &quot;orange&quot;&#x000A;</code></pre>
+            
+            <p>The message was successfully claimed by Alice, that can now process the message and acknowledge it, and move things forward even if the original consumer is not recovering.</p>
+            
+            <p>It is clear from the example above that as a side effect of successfully claiming a given message, the <strong>XCLAIM</strong> command also returns it. However this is not mandatory. The <strong>JUSTID</strong> option can be used in order to return just the IDs of the message successfully claimed. This is useful if you want to reduce the bandwidth used between the client and the server, but also the performance of the command, and you are not interested in the message because later your consumer is implemented in a way that will rescan the history of pending messages from time to time.</p>
+            
+            <p>Claiming may also be implemented by a separated process: one that just checks the list of pending messages, and assigns idle messages to consumers that appear to be active. Active consumers can be obtained using one of the observability features of Redis streams. This is the topic of the next section.</p>
+            
+            <span id="claiming-and-the-delivery-counter" class=anchor></span><h2 ><a href="#claiming-and-the-delivery-counter" class=anchor-link>*</a>Claiming and the delivery counter</h2>
+            
+            <p>The counter that you observe in the <strong>XPENDING</strong> output is the number of deliveries of each message. Such counter is incremented in two ways: when a message is successfully claimed via <strong>XCLAIM</strong> or when an <strong>XREADGROUP</strong> call is used in order to access the history of pending messages.</p>
+            
+            <p>When there are failures, it is normal that messages are delivered multiple times, but eventually they usually get processed. However there is sometimes a problem to process a given specific message, because it is corrupted or crafted in a way that triggers a bug in the processing code. In such a case what happens is that consumers will continuously fail to process this particular message. Because we have the counter of the delivery attempts, we can use that counter to detect messages that for some reason are not processable at all. So once the deliveries counter reaches a given large number that you chose, it is probably wiser to put such messages in another stream and send a notification to the system administrator. This is basically the way that Redis streams implement the concept of the <em>dead letter</em>.</p>
+            
+            <span id="streams-observability" class=anchor></span><h2 ><a href="#streams-observability" class=anchor-link>*</a>Streams observability</h2>
+            
+            <p>Messaging systems that lack observability are very hard to work with. Not knowing who is consuming messages, what messages are pending, the set of consumer groups active in a given stream, makes everything opaque. For this reason, Redis streams and consumer groups, have different ways to observe what is happening. We already covered <strong>XPENDING</strong>, which allows us to inspect the list of messages that are under processing at a given moment, together with their idle time and number of deliveries.</p>
+            
+            <p>However we may want to do more than that, and the <strong>XINFO</strong> command is an observability interface that can be used with sub-commands in order to get information about streams or consumer groups.</p>
+            
+            <p>This command uses subcommands in order to show different informations about the status of the stream and its consumer groups. For instance using <strong>XINFO STREAM <key></strong> reports information about the stream itself.</p>
+            
+            <pre><code>&gt; XINFO STREAM mystream&#x000A; 1) length&#x000A; 2) (integer) 13&#x000A; 3) radix-tree-keys&#x000A; 4) (integer) 1&#x000A; 5) radix-tree-nodes&#x000A; 6) (integer) 2&#x000A; 7) groups&#x000A; 8) (integer) 2&#x000A; 9) first-entry&#x000A;10) 1) 1524494395530-0&#x000A;    2) 1) &quot;a&quot;&#x000A;       2) &quot;1&quot;&#x000A;       3) &quot;b&quot;&#x000A;       4) &quot;2&quot;&#x000A;11) last-entry&#x000A;12) 1) 1526569544280-0&#x000A;    2) 1) &quot;message&quot;&#x000A;       2) &quot;banana&quot;&#x000A;</code></pre>
+            
+            <p>The output shows information about how the stream is encoded internally, and also shows the first and the last message in the stream. Another information available is the number of consumer groups associated with this stream value. We can dig further asking for more information about the consumer groups.</p>
+            
+            <pre><code>&gt; XINFO GROUPS mystream&#x000A;1) 1) name&#x000A;   2) &quot;mygroup&quot;&#x000A;   3) consumers&#x000A;   4) (integer) 2&#x000A;   5) pending&#x000A;   6) (integer) 2&#x000A;2) 1) name&#x000A;   2) &quot;some-other-group&quot;&#x000A;   3) consumers&#x000A;   4) (integer) 1&#x000A;   5) pending&#x000A;   6) (integer) 0&#x000A;</code></pre>
+            
+            <p>As you can see in this and in the previous output, the <strong>XINFO</strong> command outputs a sequence of field-value items. Because it is an observability command this allows the human user to immediately understand what information is reported, and allows the command to report more information in the future by adding more fields without breaking the compatibility with older clients. Other commands that must be more bandwidth efficient instead, like <strong>XPENDING</strong>, just report the information without the field names.</p>
+            
+            <p>The output of the example above, where the <strong>GROUPS</strong> subcommand is used, should be clear observing the field names. We can check more in detail the state of a specific consumer group by checking the consumers that are registered in such group.</p>
+            
+            <pre><code>&gt; XINFO CONSUMERS mystream mygroup&#x000A;1) 1) name&#x000A;   2) &quot;Alice&quot;&#x000A;   3) pending&#x000A;   4) (integer) 1&#x000A;   5) idle&#x000A;   6) (integer) 9104628&#x000A;2) 1) name&#x000A;   2) &quot;Bob&quot;&#x000A;   3) pending&#x000A;   4) (integer) 1&#x000A;   5) idle&#x000A;   6) (integer) 83841983&#x000A;</code></pre>
+            
+            <p>In case you do not remember the syntax of the command, just ask for help to the command itself:</p>
+            
+            <pre><code>&gt; XINFO HELP&#x000A;1) XINFO &lt;subcommand&gt; arg arg ... arg. Subcommands are:&#x000A;2) CONSUMERS &lt;key&gt; &lt;groupname&gt;  -- Show consumer groups of group &lt;groupname&gt;.&#x000A;3) GROUPS &lt;key&gt;                 -- Show the stream consumer groups.&#x000A;4) STREAM &lt;key&gt;                 -- Show information about the stream.&#x000A;5) HELP                         -- Print this help.&#x000A;</code></pre>
+            
+            <span id="differences-with-kafka-tm-partitions" class=anchor></span><h2 ><a href="#differences-with-kafka-tm-partitions" class=anchor-link>*</a>Differences with Kafka (TM) partitions</h2>
+            
+            <p>Consumer groups in Redis streams may resemble in some way Kafka (TM) partitioning-based consumer groups, however note that Redis streams are practically very different. The partitions are only <em>logical</em> and the messages are just put into a single Redis key, so the way the different clients are served is based on who is ready to process new messages, and not from which partition clients are reading. For instance, if the consumer C3 at some point fails permanently, Redis will continue to serve C1 and C2 will all the new messages arriving, as if now there are only two <em>logical</em> partitions.</p>
+            
+            <p>Similarly, if a given consumer is much faster at processing messages than the other consumers, this consumer will receive proportionally more messages in the same unit of time. This is possible since Redis tracks all the unacknowledged messages explicitly, and remembers who received which message and the ID of the first message never delivered to any consumer.</p>
+            
+            <p>However, this also means that in Redis if you really want to partition messages about the same stream into multiple Redis instances, you have to use multiple keys and some sharding system such as Redis Cluster or some other application-specific sharding system. A single Redis stream is not automatically partitioned to multiple instances.</p>
+            
+            <p>We could say that schematically the following is true:</p>
+            
+            <ul>
+            <li>If you use 1 stream -&gt; 1 consumer, you are processing messages in order.</li>
+            <li>If you use N stream with N consumers, so only a given consumer hits a subset of the N streams, you can scale the above model of 1 stream -&gt; 1 consumer.</li>
+            <li>If you use 1 stream -&gt; N consumers, you are load balancing to N consumers, however in that case, messages about the same logical item may be consumed out of order, because a given consumer may process message 3 faster than another consumer is processing message 4.</li>
+            </ul>
+            
+            <p>So basically Kafka partitions are more similar to using N different Redis keys.
+            While Redis consumer groups are a server-side load balancing system of messages from a given stream to N different consumers.</p>
+            
+            <span id="capped-streams" class=anchor></span><h2 ><a href="#capped-streams" class=anchor-link>*</a>Capped Streams</h2>
+            
+            <p>Many applications do not want to collect data into a stream forever. Sometimes it is useful to have at maximum a given number of items inside a stream, other times once a given size is reached, it is useful to move data from Redis to a storage which is not in memory and not as fast but suited to take the history for potentially decades to come. Redis streams have some support for this. One the <strong>MAXLEN</strong> option of the <strong>XADD</strong> command. Such option is very simple to use:</p>
+            
+            <pre><code>&gt; XADD mystream MAXLEN 2 * value 1&#x000A;1526654998691-0&#x000A;&gt; XADD mystream MAXLEN 2 * value 2&#x000A;1526654999635-0&#x000A;&gt; XADD mystream MAXLEN 2 * value 3&#x000A;1526655000369-0&#x000A;&gt; XLEN mystream&#x000A;(integer) 2&#x000A;&gt; XRANGE mystream - +&#x000A;1) 1) 1526654999635-0&#x000A;   2) 1) &quot;value&quot;&#x000A;      2) &quot;2&quot;&#x000A;2) 1) 1526655000369-0&#x000A;   2) 1) &quot;value&quot;&#x000A;      2) &quot;3&quot;&#x000A;</code></pre>
+            
+            <p>Using <strong>MAXLEN</strong> the old entries are automatically evicted when the specified length is reached, so that the stream is taken at a constant size. There is currently no option to tell the stream to just retain items that are not older than a given amount, because such command, in order to run consistently, would have to potentially block for a lot of time in order to evict items. Imagine for example what happens if there is an insertion spike, then a long pause, and another insertion, all with the same maximum time. The stream would block to evict the data that became too old during the pause. So it is up to the user to do some planning and understand what is the maximum stream length desired. Moreover, while the length of the stream is proportional to the memory used, trimming by time is less simple to control and anticipate: it depends on the insertion rate that is a variable often changing over time (and when it does not change, then to just trim by size is trivial).</p>
+            
+            <p>However trimming with <strong>MAXLEN</strong> can be expensive: streams are represented by macro nodes into a radix tree, in order to be very memory efficient. Altering the single macro node, consisting of a few tens of elements, is not optimal. So it is possible to give the command in the following special form:</p>
+            
+            <pre><code>XADD mystream MAXLEN ~ 1000 * ... entry fields here ...&#x000A;</code></pre>
+            
+            <p>The <code>~</code> argument between the <strong>MAXLEN</strong> option and the actual count means, I don&#39;t really need this to be exactly 1000 items. It can be 1000 or 1010 or 1030, just make sure to save at least 1000 items. With this argument, the trimming is performed only when we can remove a whole node. This makes it much more efficient, and it is usually what you want.</p>
+            
+            <p>There is also the <strong>XTRIM</strong> command available, which performs something very similar to what the <strong>MAXLEN</strong> option does above, but this command does not need to add anything, can be run against any stream in a standalone way.</p>
+            
+            <pre><code>&gt; XTRIM mystream MAXLEN 10&#x000A;</code></pre>
+            
+            <p>Or, as for the <strong>XADD</strong> option:</p>
+            
+            <pre><code>&gt; XTRIM mystream MAXLEN ~ 10&#x000A;</code></pre>
+            
+            <p>However, <strong>XTRIM</strong> is designed to accept different trimming strategies, even if currently only <strong>MAXLEN</strong> is implemented. Given that this is an explicit command, it is possible that in the future it will allow to specify trimming by time, because the user calling this command in a stand-alone way is supposed to know what she or he is doing.</p>
+            
+            <p>One useful eviction strategy that <strong>XTRIM</strong> should have is probably the ability to remove by a range of IDs. This is currently not possible, but will be likely implemented in the future in order to more easily use <strong>XRANGE</strong> and <strong>XTRIM</strong> together to move data from Redis to other storage systems if needed.</p>
+            
+            <span id="special-ids-in-the-streams-api" class=anchor></span><h2 ><a href="#special-ids-in-the-streams-api" class=anchor-link>*</a>Special IDs in the streams API</h2>
+            
+            <p>You may have noticed that there are several special IDs that can be
+            used in the Redis API. Here is a short recap, so that they can make more
+            sense in the future.</p>
+            
+            <p>The first two special IDs are <code>-</code> and <code>+</code>, and are used in range queries with the <a href="/commands/xrange">XRANGE</a> command. Those two IDs respectively means the smallest ID possible (that is basically <code>0-1</code>) and the greatest ID possible (that is <code>18446744073709551615-18446744073709551615</code>). As you can see it is a lot cleaner to write <code>-</code> and <code>+</code> instead of those numbers.</p>
+            
+            <p>Then there are APIs where we want to say, the ID of the item with the greatest ID inside the stream. This is what <code>$</code> means. So for instance if I want only new entires with <a href="/commands/xreadgroup">XREADGROUP</a> I use such ID to tell that I already have all the existing entries, but not the news that will be inserted in the future. Similarly when I create or set the ID of a consumer group, I can set the last delivered item to <code>$</code> in order to just deliver new entires to the consumers using the group.</p>
+            
+            <p>As you can see <code>$</code> does not mean <code>+</code>, they are two different things, as <code>+</code> is the greatest ID possible in every possible stream, while <code>$</code> is the greatest ID in a given stream containing given entries. Moreover APIs will usually only understand <code>+</code> or <code>$</code>, yet it was useful to avoid loading a given symbol of multiple meanings.</p>
+            
+            <p>Another special ID is <code>&gt;</code>, that has a special meaning only in the context of consumer groups and only when the <a href="/commands/xreadgroup">XREADGROUP</a> command is used. Such special ID means that we want only entires that were never delivered to other consumers so far. So basically the <code>&gt;</code> ID is the <em>last delivered ID</em> of a consumer group.</p>
+            
+            <p>Finally the special ID <code>*</code>, that can be used only with the <a href="/commands/xadd">XADD</a> command, means to auto select an ID for us for the new entry that we are going to create.</p>
+            
+            <p>So we have <code>-</code>, <code>+</code>, <code>$</code>, <code>&gt;</code> and <code>*</code>, and all have a different meanings, and most of the times, can only be used in different contexts.</p>
+            
+            <span id="persistence-replication-and-message-safety" class=anchor></span><h2 ><a href="#persistence-replication-and-message-safety" class=anchor-link>*</a>Persistence, replication and message safety</h2>
+            
+            <p>A Stream, like any other Redis data structure, is asynchronously replicated to slaves and persisted into AOF and RDB files. However what may not be so obvious is that also consumer groups full state is propagated to AOF, RDB and slaves, so if a message is pending in the master, also the slave will have the same information. Similarly, after a restart, the AOF will restore the consumer groups state.</p>
+            
+            <p>However note that Redis streams and consumer groups are persisted and replicated using the Redis default replication, so:</p>
+            
+            <ul>
+            <li>AOF must be used with a strong fsync policy if persistence of messages is important in your application.</li>
+            <li>By default the asynchronous replication will not guarantee that <strong>XADD</strong> commands or consumer groups state changes are replicated: after a failover something can be missing depending on the ability of slaves to receive the data from the master.</li>
+            <li>The <strong>WAIT</strong> command may be used in order to force the propagation of the changes to a set of slaves. However note that while this makes very unlikely that data is lost, the Redis failover process as operated by Sentinel or Redis Cluster performs only a <em>best effort</em> check to failover to the slave which is the most updated, and under certain specific failures may promote a slave that lacks some data.</li>
+            </ul>
+            
+            <p>So when designing application using Redis streams and consumer groups, make sure to understand the semantical properties your application should have during failures, and configure things accordingly, evaluating if it is safe enough for your use case.</p>
+            
+            <span id="removing-single-items-from-a-stream" class=anchor></span><h2 ><a href="#removing-single-items-from-a-stream" class=anchor-link>*</a>Removing single items from a stream</h2>
+            
+            <p>Streams also have a special command to remove items from the middle of a stream, just by ID. Normally for an append only data structure this may look like an odd feature, but it is actually useful for applications involving, for instance, privacy regulations. The command is called <strong>XDEL</strong>, and will just get the name of the stream followed by the IDs to delete:</p>
+            
+            <pre><code>&gt; XRANGE mystream - + COUNT 2&#x000A;1) 1) 1526654999635-0&#x000A;   2) 1) &quot;value&quot;&#x000A;      2) &quot;2&quot;&#x000A;2) 1) 1526655000369-0&#x000A;   2) 1) &quot;value&quot;&#x000A;      2) &quot;3&quot;&#x000A;&gt; XDEL mystream 1526654999635-0&#x000A;(integer) 1&#x000A;&gt; XRANGE mystream - + COUNT 2&#x000A;1) 1) 1526655000369-0&#x000A;   2) 1) &quot;value&quot;&#x000A;      2) &quot;3&quot;&#x000A;</code></pre>
+            
+            <p>However in the current implementation, memory is not really reclaimed until a macro node is completely empty, so you should not abuse this feature.</p>
+            
+            <span id="zero-length-streams" class=anchor></span><h2 ><a href="#zero-length-streams" class=anchor-link>*</a>Zero length streams</h2>
+            
+            <p>A difference between streams and other Redis data structures is that when the other data structures have no longer elements, as a side effect of calling commands that remove elements, the key itself will be removed. So for instance, a sorted set will be completely removed when a call to <strong>ZREM</strong> will remove the last element in the sorted set. Streams instead are allowed to stay at zero elements, both as a result of using a <strong>MAXLEN</strong> option with a count of zero (<strong>XADD</strong> and <strong>XTRIM</strong> commands), or because <strong>XDEL</strong> was called.</p>
+            
+            <p>The reason why such an asymmetry exists is because Streams may have associated consumer groups, and we do not want to lose the state that the consumer groups define just because there are no longer items inside the stream. Currently the stream is not deleted even when it has no associated consumer groups, but this may change in the future.</p>
+            
+            <span id="total-latency-of-consuming-a-message" class=anchor></span><h2 ><a href="#total-latency-of-consuming-a-message" class=anchor-link>*</a>Total latency of consuming a message</h2>
+            
+            <p>Non blocking stream commands like XRANGE and XREAD or XREADGROUP without the BLOCK option are server synchronously like any other Redis command, so to discuss latency of such commands is meaningless: more interesting is to check the time complexity of the commands in the Redis documentation. It should be enough to say that stream commands are at least as fast as sorted set commands when extracting ranges, and that <a href="/commands/xadd">XADD</a> is very fast and can easily insert from half million to one million of items per second in an average machine if pipelining is used.</p>
+            
+            <p>However latency becomes an interesting parameter if we want to understand the delay of processing the message, in the context of blocking consumers in a consumer group, from the moment the message is produced via <a href="/commands/xadd">XADD</a>, to the moment the message is obtained by the consumer because <a href="/commands/xreadgroup">XREADGROUP</a> returned with the message.</p>
+            
+            <span id="how-serving-blocked-consumers-work" class=anchor></span><h2 ><a href="#how-serving-blocked-consumers-work" class=anchor-link>*</a>How serving blocked consumers work</h2>
+            
+            <p>Before providing the results of performed tests, it is interesting to understand what model Redis uses in order to route stream messages (and in general actually how any blocking operation waiting for data is managed).</p>
+            
+            <ul>
+            <li>The blocked client is referenced in an hash table that maps keys for which there is at least one blocking consumer, to a list of consumers that are waiting for such key. This way, given a key that received data, we can resolve all the clients that are waiting for such data.</li>
+            <li>When a write happens, in this case when the <a href="/commands/xadd">XADD</a> command is called, it calls the <code>signalKeyAsReady()</code> function. This function will put the key into a list of keys that need to be processed, because such keys may have new data for consumers blocked. Note that such <em>ready keys</em> will be processed later, so in the course of the same event loop cycle, it is possible that the key will receive other writes.</li>
+            <li>Finally, before returning into the event loop, the <em>ready keys</em> are finally processed. For each key the list of clients waiting for data is ran, and if applicable, such clients will receive the new data that arrived. In the case of streams the data is the messages in the applicable range requested by the consumer.</li>
+            </ul>
+            
+            <p>As you can see, basically, before returning to the event loop both the client calling <a href="/commands/xadd">XADD</a> that the clients blocked to consume messages, will have their reply in the output buffers, so the caller of <a href="/commands/xadd">XADD</a> should receive the reply from Redis about at the same time the consumers will receive the new messages.</p>
+            
+            <p>This model is <em>push based</em>, since adding data to the consumers buffers will be performed directly by the action of calling <a href="/commands/xadd">XADD</a>, so the latency tends to be quite predictable.</p>
+            
+            <span id="latency-tests-results" class=anchor></span><h2 ><a href="#latency-tests-results" class=anchor-link>*</a>Latency tests results</h2>
+            
+            <p>In order to check this latency characteristics a test was performed using multiple instances of Ruby programs pushing messages having as an additional field the computer millisecond time, and Ruby programs reading the messages from the consumer group and processing them. The message processing step consisted in comparing the current computer time with the message timestamp, in order to understand the total latency.</p>
+            
+            <p>Such programs were not optimized and were executed in a small two core instance also running Redis, in order to try to provide the latency figures you could expect in non optimal conditions. Messages were produced at a rate of 10k per second, with ten simultaneous consumers consuming and acknowledging the messages from the same Redis stream and consumer group.</p>
+            
+            <p>Results obtained:</p>
+            
+            <pre><code>Processed between 0 and 1 ms -&gt; 74.11%&#x000A;Processed between 1 and 2 ms -&gt; 25.80%&#x000A;Processed between 2 and 3 ms -&gt; 0.06%&#x000A;Processed between 3 and 4 ms -&gt; 0.01%&#x000A;Processed between 4 and 5 ms -&gt; 0.02%&#x000A;</code></pre>
+            
+            <p>So 99.9% of requests have a latency &lt;= 2 milliseconds, with the outliers that remain still very close to the average.</p>
+            
+            <p>Adding a few millions of not acknowledged messages in the stream does not change the gist of the benchmark, with most queries still processed with very short latency.</p>
+            
+            <p>A few remarks:</p>
+            
+            <ul>
+            <li>Here we processed up to 10k messages per iteration, this means that the <code>COUNT</code> parameter of XREADGROUP was set to 10000. This adds a lot of latency but is needed in order to allow the slow consumers to be able to keep with the message flow. So you can expect a real world latency that is a lot smaller.</li>
+            <li>The system used for this benchmark is very slow compared to today&#39;s standards.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

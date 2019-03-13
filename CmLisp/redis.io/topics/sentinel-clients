@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Guidelines for Redis clients with support for Redis Sentinel – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics sentinel-clients'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <p><strong>WARNING:</strong> This document is a draft and the guidelines that it contains may change in the future as the Sentinel project evolves.</p>
+            
+            <span id="guidelines-for-redis-clients-with-support-for-redis-sentinel" class=anchor></span><h1 ><a href="#guidelines-for-redis-clients-with-support-for-redis-sentinel" class=anchor-link>*</a>Guidelines for Redis clients with support for Redis Sentinel</h1>
+            
+            <p>Redis Sentinel is a monitoring solution for Redis instances that handles
+            automatic failover of Redis masters and service discovery (who is the current
+            master for a given group of instances?). Since Sentinel is both responsible
+            to reconfigure instances during failovers, and to provide configurations to
+            clients connecting to Redis masters or slaves, clients require to have
+            explicit support for Redis Sentinel.</p>
+            
+            <p>This document is targeted at Redis clients developers that want to support Sentinel in their clients implementation with the following goals:</p>
+            
+            <ul>
+            <li>Automatic configuration of clients via Sentinel.</li>
+            <li>Improved safety of Redis Sentinel automatic failover.</li>
+            </ul>
+            
+            <p>For details about how Redis Sentinel works, please check the <a href="/topics/sentinel">Redis Documentation</a>, as this document only contains information needed for Redis client developers, and it is expected that readers are familiar with the way Redis Sentinel works.</p>
+            
+            <span id="redis-service-discovery-via-sentinel" class=anchor></span><h1 ><a href="#redis-service-discovery-via-sentinel" class=anchor-link>*</a>Redis service discovery via Sentinel</h1>
+            
+            <p>Redis Sentinel identify every master with a name like &quot;stats&quot; or &quot;cache&quot;.
+            Every name actually identifies a <em>group of instances</em>, composed of a master
+            and a variable number of slaves.</p>
+            
+            <p>The address of the Redis master that is used for a specific purpose inside a network may change after events like an automatic failover, a manually triggered failover (for instance in order to upgrade a Redis instance), and other reasons.</p>
+            
+            <p>Normally Redis clients have some kind of hard-coded configuration that specifies the address of a Redis master instance within a network as IP address and port number. However if the master address changes, manual intervention in every client is needed.</p>
+            
+            <p>A Redis client supporting Sentinel can automatically discover the address of a Redis master from the master name using Redis Sentinel. So instead of a hard coded IP address and port, a client supporting Sentinel should optionally be able to take as input:</p>
+            
+            <ul>
+            <li>A list of ip:port pairs pointing to known Sentinel instances.</li>
+            <li>The name of the service, like &quot;cache&quot; or &quot;timelines&quot;.</li>
+            </ul>
+            
+            <p>This is the procedure a client should follow in order to obtain the master address starting from the list of Sentinels and the service name.</p>
+            
+            <span id="step-1-connecting-to-the-first-sentinel" class=anchor></span><h2 ><a href="#step-1-connecting-to-the-first-sentinel" class=anchor-link>*</a>Step 1: connecting to the first Sentinel</h2>
+            
+            <p>The client should iterate the list of Sentinel addresses. For every address it should try to connect to the Sentinel, using a short timeout (in the order of a few hundreds of milliseconds). On errors or timeouts the next Sentinel address should be tried.</p>
+            
+            <p>If all the Sentinel addresses were tried without success, an error should be returned to the client.</p>
+            
+            <p>The first Sentinel replying to the client request should be put at the start of the list, so that at the next reconnection, we&#39;ll try first the Sentinel that was reachable in the previous connection attempt, minimizing latency.</p>
+            
+            <span id="step-2-ask-for-master-address" class=anchor></span><h2 ><a href="#step-2-ask-for-master-address" class=anchor-link>*</a>Step 2: ask for master address</h2>
+            
+            <p>Once a connection with a Sentinel is established, the client should retry to execute the following command on the Sentinel:</p>
+            
+            <pre><code>SENTINEL get-master-addr-by-name master-name&#x000A;</code></pre>
+            
+            <p>Where <em>master-name</em> should be replaced with the actual service name specified by the user.</p>
+            
+            <p>The result from this call can be one of the following two replies:</p>
+            
+            <ul>
+            <li>An ip:port pair.</li>
+            <li>A null reply. This means Sentinel does not know this master.</li>
+            </ul>
+            
+            <p>If an ip:port pair is received, this address should be used to connect to the Redis master. Otherwise if a null reply is received, the client should try the next Sentinel in the list.</p>
+            
+            <span id="step-3-call-the-role-command-in-the-target-instance" class=anchor></span><h2 ><a href="#step-3-call-the-role-command-in-the-target-instance" class=anchor-link>*</a>Step 3: call the ROLE command in the target instance</h2>
+            
+            <p>Once the client discovered the address of the master instance, it should
+            attempt a connection with the master, and call the <a href="/commands/role">ROLE</a> command in order
+            to verify the role of the instance is actually a master.</p>
+            
+            <p>If the <a href="/commands/role">ROLE</a> commands is not available (it was introduced in Redis 2.8.12), a client may resort to the <code>INFO replication</code> command parsing the <code>role:</code> field of the output.</p>
+            
+            <p>If the instance is not a master as expected, the client should wait a short amount of time (a few hundreds of milliseconds) and should try again starting from Step 1.</p>
+            
+            <span id="handling-reconnections" class=anchor></span><h1 ><a href="#handling-reconnections" class=anchor-link>*</a>Handling reconnections</h1>
+            
+            <p>Once the service name is resolved into the master address and a connection is established with the Redis master instance, every time a reconnection is needed, the client should resolve again the address using Sentinels restarting from Step 1. For instance Sentinel should contacted again the following cases:</p>
+            
+            <ul>
+            <li>If the client reconnects after a timeout or socket error.</li>
+            <li>If the client reconnects because it was explicitly closed or reconnected by the user.</li>
+            </ul>
+            
+            <p>In the above cases and any other case where the client lost the connection with the Redis server, the client should resolve the master address again.</p>
+            
+            <span id="sentinel-failover-disconnection" class=anchor></span><h1 ><a href="#sentinel-failover-disconnection" class=anchor-link>*</a>Sentinel failover disconnection</h1>
+            
+            <p>Starting with Redis 2.8.12, when Redis Sentinel changes the configuration of
+            an instance, for example promoting a slave to a master, demoting a master to
+            replicate to the new master after a failover, or simply changing the master
+            address of a stale slave instance, it sends a <code>CLIENT KILL type normal</code>
+            command to the instance in order to make sure all the clients are disconnected
+            from the reconfigured instance. This will force clients to resolve the master
+            address again.</p>
+            
+            <p>If the client will contact a Sentinel with yet not updated information, the verification of the Redis instance role via the <a href="/commands/role">ROLE</a> command will fail, allowing the client to detect that the contacted Sentinel provided stale information, and will try again.</p>
+            
+            <p>Note: it is possible that a stale master returns online at the same time a client contacts a stale Sentinel instance, so the client may connect with a stale master, and yet the ROLE output will match. However when the master is back again Sentinel will try to demote it to slave, triggering a new disconnection. The same reasoning applies to connecting to stale slaves that will get reconfigured to replicate with a different master.</p>
+            
+            <span id="connecting-to-slaves" class=anchor></span><h1 ><a href="#connecting-to-slaves" class=anchor-link>*</a>Connecting to slaves</h1>
+            
+            <p>Sometimes clients are interested to connect to slaves, for example in order to scale read requests. This protocol supports connecting to slaves by modifying step 2 slightly. Instead of calling the following command:</p>
+            
+            <pre><code>SENTINEL get-master-addr-by-name master-name&#x000A;</code></pre>
+            
+            <p>The clients should call instead:</p>
+            
+            <pre><code>SENTINEL slaves master-name&#x000A;</code></pre>
+            
+            <p>In order to retrieve a list of slave instances.</p>
+            
+            <p>Symmetrically the client should verify with the <a href="/commands/role">ROLE</a> command that the
+            instance is actually a slave, in order to avoid scaling read queries with
+            the master.</p>
+            
+            <span id="connection-pools" class=anchor></span><h1 ><a href="#connection-pools" class=anchor-link>*</a>Connection pools</h1>
+            
+            <p>For clients implementing connection pools, on reconnection of a single connection, the Sentinel should be contacted again, and in case of a master address change all the existing connections should be closed and connected to the new address.</p>
+            
+            <span id="error-reporting" class=anchor></span><h1 ><a href="#error-reporting" class=anchor-link>*</a>Error reporting</h1>
+            
+            <p>The client should correctly return the information to the user in case of errors. Specifically:</p>
+            
+            <ul>
+            <li>If no Sentinel can be contacted (so that the client was never able to get the reply to <code>SENTINEL get-master-addr-by-name</code>), an error that clearly states that Redis Sentinel is unreachable should be returned.</li>
+            <li>If all the Sentinels in the pool replied with a null reply, the user should be informed with an error that Sentinels don&#39;t know this master name.</li>
+            </ul>
+            
+            <span id="sentinels-list-automatic-refresh" class=anchor></span><h1 ><a href="#sentinels-list-automatic-refresh" class=anchor-link>*</a>Sentinels list automatic refresh</h1>
+            
+            <p>Optionally once a successful reply to <code>get-master-addr-by-name</code> is received, a client may update its internal list of Sentinel nodes following this procedure:</p>
+            
+            <ul>
+            <li>Obtain a list of other Sentinels for this master using the command <code>SENTINEL sentinels &lt;master-name&gt;</code>.</li>
+            <li>Add every ip:port pair not already existing in our list at the end of the list.</li>
+            </ul>
+            
+            <p>It is not needed for a client to be able to make the list persistent updating its own configuration. The ability to upgrade the in-memory representation of the list of Sentinels can be already useful to improve reliability.</p>
+            
+            <span id="subscribe-to-sentinel-events-to-improve-responsiveness" class=anchor></span><h1 ><a href="#subscribe-to-sentinel-events-to-improve-responsiveness" class=anchor-link>*</a>Subscribe to Sentinel events to improve responsiveness</h1>
+            
+            <p>The <a href="/topics/sentinel">Sentinel documentation</a> shows how clients can connect to
+            Sentinel instances using Pub/Sub in order to subscribe to changes in the
+            Redis instances configurations.</p>
+            
+            <p>This mechanism can be used in order to speedup the reconfiguration of clients,
+            that is, clients may listen to Pub/Sub in order to know when a configuration
+            change happened in order to run the three steps protocol explained in this
+            document in order to resolve the new Redis master (or slave) address.</p>
+            
+            <p>However update messages received via Pub/Sub should not substitute the
+            above procedure, since there is no guarantee that a client is able to
+            receive all the update messages.</p>
+            
+            <span id="additional-information" class=anchor></span><h1 ><a href="#additional-information" class=anchor-link>*</a>Additional information</h1>
+            
+            <p>For additional information or to discuss specific aspects of this guidelines, please drop a message to the <a href="https://groups.google.com/group/redis-db">Redis Google Group</a>.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

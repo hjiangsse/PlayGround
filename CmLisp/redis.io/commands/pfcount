@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>PFCOUNT – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>PFCOUNT</span>
+            <span class='arg'>key [key ...]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 2.8.9.</strong></p>
+                <p><strong>Time complexity:</strong> O(1) with a very small average constant time when called with a single key. O(N) with N being the number of keys, and much bigger constant times, when called with multiple keys.</p>
+              </div>
+              <p>When called with a single key, returns the approximated cardinality computed by the HyperLogLog data structure stored at the specified variable, which is 0 if the variable does not exist.</p>
+              
+              <p>When called with multiple keys, returns the approximated cardinality of the union of the HyperLogLogs passed, by internally merging the HyperLogLogs stored at the provided keys into a temporary HyperLogLog.</p>
+              
+              <p>The HyperLogLog data structure can be used in order to count <strong>unique</strong> elements in a set using just a small constant amount of memory, specifically 12k bytes for every HyperLogLog (plus a few bytes for the key itself).</p>
+              
+              <p>The returned cardinality of the observed set is not exact, but approximated with a standard error of 0.81%.</p>
+              
+              <p>For example in order to take the count of all the unique search queries performed in a day, a program needs to call <a href="/commands/pfadd">PFADD</a> every time a query is processed. The estimated number of unique queries can be retrieved with <a href="/commands/pfcount">PFCOUNT</a> at any time.</p>
+              
+              <p>Note: as a side effect of calling this function, it is possible that the HyperLogLog is modified, since the last 8 bytes encode the latest computed cardinality
+              for caching purposes. So <a href="/commands/pfcount">PFCOUNT</a> is technically a write command.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#integer-reply">Integer reply</a>, specifically:</p>
+              
+              <ul>
+              <li>The approximated number of unique elements observed via <a href="/commands/pfadd">PFADD</a>.</li>
+              </ul>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='e11a1c04a73515627c941681f29d285c'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>PFADD hll foo bar zap</span>
+                <pre>(integer) 1</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>PFADD hll zap zap zap</span>
+                <pre>(integer) 0</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>PFADD hll foo bar</span>
+                <pre>(integer) 0</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>PFCOUNT hll</span>
+                <pre>(integer) 3</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>PFADD some-other-hll 1 2 3</span>
+                <pre>(integer) 1</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>PFCOUNT hll some-other-hll</span>
+                <pre>(integer) 6</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+              
+              
+              <span id="performances" class=anchor></span><h2 ><a href="#performances" class=anchor-link>*</a>Performances</h2>
+              
+              <p>When <a href="/commands/pfcount">PFCOUNT</a> is called with a single key, performances are excellent even if
+              in theory constant times to process a dense HyperLogLog are high. This is
+              possible because the <a href="/commands/pfcount">PFCOUNT</a> uses caching in order to remember the cardinality
+              previously computed, that rarely changes because most <a href="/commands/pfadd">PFADD</a> operations will
+              not update any register. Hundreds of operations per second are possible.</p>
+              
+              <p>When <a href="/commands/pfcount">PFCOUNT</a> is called with multiple keys, an on-the-fly merge of the
+              HyperLogLogs is performed, which is slow, moreover the cardinality of the union
+              can&#39;t be cached, so when used with multiple keys <a href="/commands/pfcount">PFCOUNT</a> may take a time in
+              the order of magnitude of the millisecond, and should be not abused.</p>
+              
+              <p>The user should take in mind that single-key and multiple-keys executions of
+              this command are semantically different and have different performances.</p>
+              
+              <span id="hyperloglog-representation" class=anchor></span><h2 ><a href="#hyperloglog-representation" class=anchor-link>*</a>HyperLogLog representation</h2>
+              
+              <p>Redis HyperLogLogs are represented using a double representation: the <em>sparse</em> representation suitable for HLLs counting a small number of elements (resulting in a small number of registers set to non-zero value), and a <em>dense</em> representation suitable for higher cardinalities. Redis automatically switches from the sparse to the dense representation when needed.</p>
+              
+              <p>The sparse representation uses a run-length encoding optimized to store efficiently a big number of registers set to zero. The dense representation is a Redis string of 12288 bytes in order to store 16384 6-bit counters. The need for the double representation comes from the fact that using 12k (which is the dense representation memory requirement) to encode just a few registers for smaller cardinalities is extremely suboptimal.</p>
+              
+              <p>Both representations are prefixed with a 16 bytes header, that includes a magic, an encoding / version field, and the cached cardinality estimation computed, stored in little endian format (the most significant bit is 1 if the estimation is invalid since the HyperLogLog was updated since the cardinality was computed).</p>
+              
+              <p>The HyperLogLog, being a Redis string, can be retrieved with <a href="/commands/get">GET</a> and restored with <a href="/commands/set">SET</a>. Calling <a href="/commands/pfadd">PFADD</a>, <a href="/commands/pfcount">PFCOUNT</a> or <a href="/commands/pfmerge">PFMERGE</a> commands with a corrupted HyperLogLog is never a problem, it may return random values but does not affect the stability of the server. Most of the times when corrupting a sparse representation, the server recognizes the corruption and returns an error.</p>
+              
+              <p>The representation is neutral from the point of view of the processor word size and endianness, so the same representation is used by 32 bit and 64 bit processor, big endian or little endian.</p>
+              
+              <p>More details about the Redis HyperLogLog implementation can be found in <a href="http://antirez.com/news/75">this blog post</a>. The source code of the implementation in the <code>hyperloglog.c</code> file is also easy to read and understand, and includes a full specification for the exact encoding used for the sparse and dense representations.</p>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/pfadd'>
+                      PFADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pfcount'>
+                      <strong>PFCOUNT</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/pfmerge'>
+                      PFMERGE
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

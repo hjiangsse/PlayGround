@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Hacking Strings – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class='topics internals-sds'>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <article id='topic'>
+            <span id="hacking-strings" class=anchor></span><h1 ><a href="#hacking-strings" class=anchor-link>*</a>Hacking Strings</h1>
+            
+            <p>The implementation of Redis strings is contained in <code>sds.c</code> (<code>sds</code> stands for Simple Dynamic Strings).</p>
+            
+            <p>The C structure <code>sdshdr</code> declared in <code>sds.h</code> represents a Redis string:</p>
+            
+            <pre><code>struct sdshdr {&#x000A;    long len;&#x000A;    long free;&#x000A;    char buf[];&#x000A;};&#x000A;</code></pre>
+            
+            <p>The <code>buf</code> character array stores the actual string.</p>
+            
+            <p>The <code>len</code> field stores the length of <code>buf</code>. This makes obtaining the length
+            of a Redis string an <span class="math">O(1) </span>operation.</p>
+            
+            <p>The <code>free</code> field stores the number of additional bytes available for use.</p>
+            
+            <p>Together the <code>len</code> and <code>free</code> field can be thought of as holding the metadata of the <code>buf</code> character array.</p>
+            
+            <span id="creating-redis-strings" class=anchor></span><h2 ><a href="#creating-redis-strings" class=anchor-link>*</a>Creating Redis Strings</h2>
+            
+            <p>A new data type named <code>sds</code> is defined in <code>sds.h</code> to be a synonym for a character pointer:</p>
+            
+            <pre><code>typedef char *sds;&#x000A;</code></pre>
+            
+            <p><code>sdsnewlen</code> function defined in <code>sds.c</code> creates a new Redis String:</p>
+            
+            <pre><code>sds sdsnewlen(const void *init, size_t initlen) {&#x000A;    struct sdshdr *sh;&#x000A;&#x000A;    sh = zmalloc(sizeof(struct sdshdr)+initlen+1);&#x000A;#ifdef SDS_ABORT_ON_OOM&#x000A;    if (sh == NULL) sdsOomAbort();&#x000A;#else&#x000A;    if (sh == NULL) return NULL;&#x000A;#endif&#x000A;    sh-&gt;len = initlen;&#x000A;    sh-&gt;free = 0;&#x000A;    if (initlen) {&#x000A;        if (init) memcpy(sh-&gt;buf, init, initlen);&#x000A;        else memset(sh-&gt;buf,0,initlen);&#x000A;    }&#x000A;    sh-&gt;buf[initlen] = &#39;\0&#39;;&#x000A;    return (char*)sh-&gt;buf;&#x000A;}&#x000A;</code></pre>
+            
+            <p>Remember a Redis string is a variable of type <code>struct sdshdr</code>. But <code>sdsnewlen</code> returns a character pointer!!</p>
+            
+            <p>That&#39;s a trick and needs some explanation.</p>
+            
+            <p>Suppose I create a Redis string using <code>sdsnewlen</code> like below:</p>
+            
+            <pre><code>sdsnewlen(&quot;redis&quot;, 5);&#x000A;</code></pre>
+            
+            <p>This creates a new variable of type <code>struct sdshdr</code> allocating memory for <code>len</code> and <code>free</code>
+            fields as well as for the <code>buf</code> character array.</p>
+            
+            <pre><code>sh = zmalloc(sizeof(struct sdshdr)+initlen+1); // initlen is length of init argument.&#x000A;</code></pre>
+            
+            <p>After <code>sdsnewlen</code> successfully creates a Redis string the result is something like:</p>
+            
+            <pre><code>-----------&#x000A;|5|0|redis|&#x000A;-----------&#x000A;^   ^&#x000A;sh  sh-&gt;buf&#x000A;</code></pre>
+            
+            <p><code>sdsnewlen</code> returns <code>sh-&gt;buf</code> to the caller.</p>
+            
+            <p>What do you do if you need to free the Redis string pointed by <code>sh</code>?</p>
+            
+            <p>You want the pointer <code>sh</code> but you only have the pointer <code>sh-&gt;buf</code>.</p>
+            
+            <p>Can you get the pointer <code>sh</code> from <code>sh-&gt;buf</code>?</p>
+            
+            <p>Yes. Pointer arithmetic. Notice from the above ASCII art that if you subtract
+            the size of two longs from <code>sh-&gt;buf</code> you get the pointer <code>sh</code>.</p>
+            
+            <p>The <code>sizeof</code> two longs happens to be the size of <code>struct sdshdr</code>.</p>
+            
+            <p>Look at <code>sdslen</code> function and see this trick at work:</p>
+            
+            <pre><code>size_t sdslen(const sds s) {&#x000A;    struct sdshdr *sh = (void*) (s-(sizeof(struct sdshdr)));&#x000A;    return sh-&gt;len;&#x000A;}&#x000A;</code></pre>
+            
+            <p>Knowing this trick you could easily go through the rest of the functions in <code>sds.c</code>.</p>
+            
+            <p>The Redis string implementation is hidden behind an interface that accepts only character pointers. The users of Redis strings need not care about how its implemented and treat Redis strings as a character pointer.</p>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>

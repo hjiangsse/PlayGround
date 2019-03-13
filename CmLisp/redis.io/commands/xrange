@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>XRANGE – Redis</title>
+    <link href='/styles.css' rel='stylesheet'>
+    <link href='/images/favicon.png' rel='shortcut icon'>
+    <link href='/opensearch.xml' rel='search' title='Look up a Redis command' type='application/opensearchdescription+xml'>
+    <meta content='width=device-width, minimum-scale=1.0, maximum-scale=1.0' name='viewport'>
+    <script>
+       var _gaq = _gaq || [];
+       _gaq.push(['_setAccount', 'UA-20243082-1']);
+       _gaq.push(['_trackPageview']);
+      
+       (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+  </head>
+  <body class=''>
+    <div class='mobile-menu slideout-menu'>
+      <header class='menu-header'></header>
+      <section class='menu-section'>
+        <ul class='menu-section-list'>
+          <li>
+            <a class='home' href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/commands'>Commands</a>
+          </li>
+          <li>
+            <a href='/clients'>Clients</a>
+          </li>
+          <li>
+            <a href='/documentation'>Documentation</a>
+          </li>
+          <li>
+            <a href='/community'>Community</a>
+          </li>
+          <li>
+            <a href='/download'>Download</a>
+          </li>
+          <li>
+            <a href='/modules'>Modules</a>
+          </li>
+          <li>
+            <a href='/support'>Support</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class='site-wrapper'>
+      <header class='site-header'>
+        <nav class='container'>
+          <div class='mobile-header'>
+            <button class='btn-hamburger js-slideout-toggle'>
+              <span class='fa fa-bars'></span>
+            </button>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+          </div>
+          <div class='desktop-header'>
+            <a class='home' href='/'>
+              <img alt='Redis' src='/images/redis-white.png'>
+            </a>
+            <a href='/commands'>Commands</a>
+            <a href='/clients'>Clients</a>
+            <a href='/documentation'>Documentation</a>
+            <a href='/community'>Community</a>
+            <a href='/download'>Download</a>
+            <a href='/modules'>Modules</a>
+            <a href='/support'>Support</a>
+          </div>
+        </nav>
+      </header>
+      <div class='site-content'>
+        <div class='text'>
+          <h1 class='command'>
+            <span class='name'>XRANGE</span>
+            <span class='arg'>key</span>
+            <span class='arg'>start</span>
+            <span class='arg'>end</span>
+            <span class='arg'>[COUNT count]</span>
+          </h1>
+          <article>
+            <div class='article-main'>
+              <div class='metadata'>
+                <p><strong>Available since 5.0.0.</strong></p>
+                <p><strong>Time complexity:</strong> O(N) with N being the number of elements being returned. If N is constant (e.g. always asking for the first 10 elements with COUNT), you can consider it O(1).</p>
+              </div>
+              <p>The command returns the stream entries matching a given range of IDs.
+              The range is specified by a minimum and maximum ID. All the entires having
+              an ID between the two specified or exactly one of the two IDs specified
+              (closed interval) are returned.</p>
+              
+              <p>The <a href="/commands/xrange">XRANGE</a> command has a number of applications:</p>
+              
+              <ul>
+              <li>Returning items in a specific time range. This is possible because
+              Stream IDs are <a href="/topics/streams-intro">related to time</a>.</li>
+              <li>Iteratating a stream incrementally, returning just
+              a few items at every iteration. However it is semantically much more
+              robust than the <a href="/commands/scan">SCAN</a> family of functions.</li>
+              <li>Fetching a single entry from a stream, providing the ID of the entry
+              to fetch two times: as start and end of the query interval.</li>
+              </ul>
+              
+              <p>The command also has a reciprocal command returning items in the
+              reverse order, called <a href="/commands/xrevrange">XREVRANGE</a>, which is otherwise identical.</p>
+              
+              <span id="code-code-and-code-code-special-ids" class=anchor></span><h2 ><a href="#code-code-and-code-code-special-ids" class=anchor-link>*</a><code>-</code> and <code>+</code> special IDs</h2>
+              
+              <p>The <code>-</code> and <code>+</code> special IDs mean respectively the minimum ID possible
+              and the maximum ID possible inside a stream, so the following command
+              will just return every entry in the stream:</p>
+              
+              <pre><code>&gt; XRANGE somestream - +&#x000A;1) 1) 1526985054069-0&#x000A;   2) 1) &quot;duration&quot;&#x000A;      2) &quot;72&quot;&#x000A;      3) &quot;event-id&quot;&#x000A;      4) &quot;9&quot;&#x000A;      5) &quot;user-id&quot;&#x000A;      6) &quot;839248&quot;&#x000A;2) 1) 1526985069902-0&#x000A;   2) 1) &quot;duration&quot;&#x000A;      2) &quot;415&quot;&#x000A;      3) &quot;event-id&quot;&#x000A;      4) &quot;2&quot;&#x000A;      5) &quot;user-id&quot;&#x000A;      6) &quot;772213&quot;&#x000A;... other entries here ...&#x000A;</code></pre>
+              
+              <p>The <code>-</code> ID is effectively just exactly as specifying <code>0-0</code>, while
+              <code>+</code> is equivalent to <code>18446744073709551615-18446744073709551615</code>, however
+              they are nicer to type.</p>
+              
+              <span id="incomplete-ids" class=anchor></span><h2 ><a href="#incomplete-ids" class=anchor-link>*</a>Incomplete IDs</h2>
+              
+              <p>Stream IDs are composed of two parts, a Unix millisecond time stamp and a
+              sequence number for entries inserted in the same millisecond. It is possible
+              to use <a href="/commands/xrange">XRANGE</a> specifying just the first part of the ID, the millisecond time,
+              like in the following example:</p>
+              
+              <pre><code>&gt; XRANGE somestream 1526985054069 1526985055069&#x000A;</code></pre>
+              
+              <p>In this case, <a href="/commands/xrange">XRANGE</a> will auto-complete the start interval with <code>-0</code>
+              and end interval with <code>-18446744073709551615</code>, in order to return all the
+              entries that were generated between a given millisecond and the end of
+              the other specified millisecond. This also means that repeating the same
+              millisecond two times, we get all the entries within such millisecond,
+              because the sequence number range will be from zero to the maximum.</p>
+              
+              <p>Used in this way <a href="/commands/xrange">XRANGE</a> works as a range query command to obtain entries
+              in a specified time. This is very handy in order to access the history
+              of past events in a stream.</p>
+              
+              <span id="returning-a-maximum-number-of-entries" class=anchor></span><h2 ><a href="#returning-a-maximum-number-of-entries" class=anchor-link>*</a>Returning a maximum number of entries</h2>
+              
+              <p>Using the <strong>COUNT</strong> option it is possible to reduce the number of entries
+              reported. This is a very important feature even if it may look marginal,
+              because it allows, for instance, to model operations such as <em>give me
+              the entry greater or equal to the following</em>:</p>
+              
+              <pre><code>&gt; XRANGE somestream 1526985054069-0 + COUNT 1&#x000A;1) 1) 1526985054069-0&#x000A;   2) 1) &quot;duration&quot;&#x000A;      2) &quot;72&quot;&#x000A;      3) &quot;event-id&quot;&#x000A;      4) &quot;9&quot;&#x000A;      5) &quot;user-id&quot;&#x000A;      6) &quot;839248&quot;&#x000A;</code></pre>
+              
+              <p>In the above case the entry <code>1526985054069-0</code> exists, otherwise the server
+              would have sent us the next one. Using <code>COUNT</code> is also the base in order to
+              use <a href="/commands/xrange">XRANGE</a> as an iterator.</p>
+              
+              <span id="iterating-a-stream" class=anchor></span><h2 ><a href="#iterating-a-stream" class=anchor-link>*</a>Iterating a stream</h2>
+              
+              <p>In order to iterate a stream, we can proceed as follows. Let&#39;s assume that
+              we want two elements per iteration. We start fetching the first two
+              elements, which is trivial:</p>
+              
+              <pre><code>&gt; XRANGE writers - + COUNT 2&#x000A;1) 1) 1526985676425-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Virginia&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Woolf&quot;&#x000A;2) 1) 1526985685298-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Jane&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Austen&quot;&#x000A;</code></pre>
+              
+              <p>Then instead of starting the iteration again from <code>-</code>, as the start
+              of the range we use the entry ID of the <em>last</em> entry returned by the
+              previous <a href="/commands/xrange">XRANGE</a> call, adding the sequence part of the ID by one.</p>
+              
+              <p>The ID of the last entry is <code>1526985685298-0</code>, so we just add 1 to the
+              sequence to obtain <code>1526985685298-1</code>, and continue our iteration:</p>
+              
+              <pre><code>&gt; XRANGE writers 1526985685298-1 + COUNT 2&#x000A;1) 1) 1526985691746-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Toni&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Morris&quot;&#x000A;2) 1) 1526985712947-0&#x000A;   2) 1) &quot;name&quot;&#x000A;      2) &quot;Agatha&quot;&#x000A;      3) &quot;surname&quot;&#x000A;      4) &quot;Christie&quot;&#x000A;</code></pre>
+              
+              <p>And so forth. Eventually this will allow to visit all the entries in the
+              stream. Obviously, we can start the iteration from any ID, or even from
+              a specific time, by providing a given incomplete start ID. Moreover, we
+              can limit the iteration to a given ID or time, by providing an end
+              ID or incomplete ID instead of <code>+</code>.</p>
+              
+              <p>The command <a href="/commands/xread">XREAD</a> is also able to iterate the stream.
+              The command <a href="/commands/xrevrange">XREVRANGE</a> can iterate the stream reverse, from higher IDs
+              (or times) to lower IDs (or times).</p>
+              
+              <span id="fetching-single-items" class=anchor></span><h2 ><a href="#fetching-single-items" class=anchor-link>*</a>Fetching single items</h2>
+              
+              <p>If you look for an <code>XGET</code> command you&#39;ll be disappointed because <a href="/commands/xrange">XRANGE</a>
+              is effectively the way to go in order to fetch a single entry from a
+              stream. All you have to do is to specify the ID two times in the arguments
+              of XRANGE:</p>
+              
+              <pre><code>&gt; XRANGE mystream 1526984818136-0 1526984818136-0&#x000A;1) 1) 1526984818136-0&#x000A;   2) 1) &quot;duration&quot;&#x000A;      2) &quot;1532&quot;&#x000A;      3) &quot;event-id&quot;&#x000A;      4) &quot;5&quot;&#x000A;      5) &quot;user-id&quot;&#x000A;      6) &quot;7782813&quot;&#x000A;</code></pre>
+              
+              <span id="additional-information-about-streams" class=anchor></span><h2 ><a href="#additional-information-about-streams" class=anchor-link>*</a>Additional information about streams</h2>
+              
+              <p>For further information about Redis streams please check our
+              <a href="/topics/streams-intro">introduction to Redis Streams document</a>.</p>
+              
+              <span id="return-value" class=anchor></span><h2 ><a href="#return-value" class=anchor-link>*</a>Return value</h2>
+              
+              <p><a href="/topics/protocol#array-reply">Array reply</a>, specifically:</p>
+              
+              <p>The command returns the entries with IDs matching the specified range.
+              The returned entries are complete, that means that the ID and all the fields
+              they are composed are returned. Moreover, the entries are returned with
+              their fields and values in the exact same order as <a href="/commands/xadd">XADD</a> added them.</p>
+              
+              <span id="examples" class=anchor></span><h2 ><a href="#examples" class=anchor-link>*</a>Examples</h2>
+              
+              <div class='example' data-session='9b8c3629481d19079fa52cdf301bd41b'>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Virginia surname Woolf</span>
+                <pre>"1552459516762-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Jane surname Austen</span>
+                <pre>"1552459516763-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Toni surname Morris</span>
+                <pre>"1552459516763-1"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Agatha surname Christie</span>
+                <pre>"1552459516764-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XADD writers * name Ngozi surname Adichie</span>
+                <pre>"1552459516765-0"</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XLEN writers</span>
+                <pre>(integer) 5</pre>
+                <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                <span class='monospace command'>XRANGE writers - + COUNT 2</span>
+                <pre>1) 1) "1552459516762-0"&#x000A;   2) 1) "name"&#x000A;      2) "Virginia"&#x000A;      3) "surname"&#x000A;      4) "Woolf"&#x000A;2) 1) "1552459516763-0"&#x000A;   2) 1) "name"&#x000A;      2) "Jane"&#x000A;      3) "surname"&#x000A;      4) "Austen"</pre><form>
+                  <span class='monospace prompt'>redis&gt;&nbsp;</span>
+                  <input autocomplete='off' name='command' spellcheck='false' type='text'>
+                </form></div>
+            </div>
+            <div class='article-aside'>
+              <aside>
+                <h2>
+                  Related commands
+                </h2>
+                <ul>
+                  <li>
+                    <a href='/commands/xack'>
+                      XACK
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xadd'>
+                      XADD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xclaim'>
+                      XCLAIM
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xdel'>
+                      XDEL
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xgroup'>
+                      XGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xinfo'>
+                      XINFO
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xlen'>
+                      XLEN
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xpending'>
+                      XPENDING
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrange'>
+                      <strong>XRANGE</strong>
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xread'>
+                      XREAD
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xreadgroup'>
+                      XREADGROUP
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xrevrange'>
+                      XREVRANGE
+                    </a>
+                  </li>
+                  <li>
+                    <a href='/commands/xtrim'>
+                      XTRIM
+                    </a>
+                  </li>
+                </ul>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </div>
+      <footer class='site-footer'>
+        <div class='container'>
+          <p>
+            This website is
+            <a href="https://github.com/antirez/redis-io">open source software</a>.
+            See all <a href="/topics/sponsors">credits</a>.
+          </p>
+          <div class='sponsor'>
+            Sponsored by
+            <a href='https://redislabs.com/'>
+              <img alt='Redis Labs' height='25' src='/images/redislabs.png' title='Get a Managed Redis' width='128'>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js'></script>
+    <script src='/app.js?1480208557'></script>
+  </body>
+</html>
