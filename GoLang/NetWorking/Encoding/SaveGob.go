@@ -2,38 +2,40 @@ package main
 
 import (
 	"fmt"
-	"encoding/json"
 	"os"
+	"encoding/gob"
 )
-
-type Name struct {
-	Family string
-	Personal string
-}
-
-type Email struct {
-	Kind string
-	Address string
-}
 
 type Person struct {
 	Name Name
 	Email []Email
 }
 
-func main() {
-	person := Person{
-		Name: Name{"Newmarch", "Jan"},
-		Email: []Email{Email{Kind: "home", Address:"hjiang@sse.com.cn"},
-			Email{Kind: "work", Address:"jiangheng039@126.com"}}}
-	saveJSON("person.json", person)
+type Name struct {
+	Family   string
+	Personal string
 }
 
-func saveJSON(fileName string, key interface{}) {
+type Email struct {
+	Kind    string
+	Address string
+}
+
+func main() {
+	person := Person{
+		Name: Name{Family: "Newmarch", Personal: "Jan"},
+		Email: []Email{Email{Kind: "home", Address: "jan@newmarch.name"},
+			Email{Kind: "work", Address: "hjiang@sse.com.cn"}},
+	}
+
+	saveGob("person.gob", person)
+}
+
+func saveGob(fileName string, key interface{}) {
 	outFile, err := os.Create(fileName)
 	checkError(err)
 
-	encoder := json.NewEncoder(outFile)
+	encoder := gob.NewEncoder(outFile)
 	err = encoder.Encode(key)
 	checkError(err)
 

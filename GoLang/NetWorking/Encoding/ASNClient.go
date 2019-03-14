@@ -53,3 +53,37 @@ func checkError(err error) {
 		os.Exit(1)
 	}
 }
+package main
+
+import (
+	"fmt"
+	"os"
+	"encoding/gob"
+)
+
+type Person struct {
+	Name Name
+	Email []Email
+}
+
+type Name struct {
+	Family   string
+	Personal string
+}
+
+type Email strict {
+	Kind    string
+	Address string
+}
+
+func main() {
+	person := Person{
+		Name: Name{Family: "Newmarch", Personal: "Jan"},
+		Email: []Email{Email{Kind: "home", Address: "jan@newmarch.name"},
+			Email{Kind: "work", Address: "hjiang@sse.com.cn"}},
+	}
+}
+
+func saveGob(filename string, key interface{}) {
+
+}
