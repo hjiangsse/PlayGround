@@ -1,0 +1,54 @@
+#!/usr/bin/python3
+
+import random as ran
+import sys, getopt
+
+#generate k random numbers less than n
+def gen_k_random_less_n(k , n):
+    #initialize a array which element is 0...n-1
+    arr = [];
+    for i in range(0,n):
+        arr.append(i);
+
+    for i in range(0,k):
+        r = i + max(1,int(ran.random() * (n-i-1)));
+        tmp = arr[i]
+        arr[i] = arr[r]
+        arr[r] = tmp
+
+    return arr[0:k]
+
+#helper for this program
+def helper():
+    print("Usage: prog -k k -n n");
+    print("Will generate k unique positive numbers.")
+    print("All numbers less than n.");
+
+def main(argv):
+    k = 0;
+    n = 0;
+    outfile = '';
+    try:
+        opts, args = getopt.getopt(argv,"hk:n:o:");
+    except getopt.GetoptError:
+        print('genrandom -k k -n n -o outfile');
+        sys.exit(2);
+
+    for opt,arg in opts:
+        if opt == '-h':
+            helper();
+            sys.exit();
+        elif opt in ("-k"):
+            k = int(arg);
+        elif opt in ("-n"):
+            n = int(arg);
+        elif opt in ("-o"):
+            outfile = arg;
+
+    res = gen_k_random_less_n(k,n);
+    with open(outfile, "w") as file:
+        for i in res:
+            file.write(str(i) + "\n");
+
+if __name__ == "__main__":
+    main(sys.argv[1:]);
