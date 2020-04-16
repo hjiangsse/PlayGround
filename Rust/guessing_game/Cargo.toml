@@ -1,8 +1,10 @@
 [package]
 name = "guessing_game"
 version = "0.1.0"
-authors = ["hjiangsse <hjiang@sse.com.cn>"]
+authors = ["hjiang <hjiang@sse.com.cn>"]
 edition = "2018"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
-rand = "0.6.5"
+rand = "0.7"
