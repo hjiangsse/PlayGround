@@ -24,7 +24,7 @@ fn largest<T>(lst: &[T]) -> T {
 
     largest
 }
-*/
+
 
 struct Point<T> {
     x: T,
@@ -62,34 +62,11 @@ impl<T, U> NewPoint<T, U> {
     }
 }
 
-fn main() {
-    /*
-    let number_lst = vec![23, 11, 23, 34];
-    let result = largest(&number_lst);
-    println!("The largest number in number_lst: {}", largest(&number_lst));
-     */
-    let will_work = Point { x: 5, y: 10 };
-    println!("the x coordinate is {}", will_work.x);
-    println!("the y coordinate is {}", will_work.y);
+struct A;
 
-    println!(
-        "The x and y of will work: {} {}",
-        will_work.x(),
-        will_work.y()
-    );
+struct Single(A);
 
-    let float_point = Point { x: 5.2, y: 10.3 };
-    println!(
-        "The distance of float point from original: {}",
-        float_point.distance_from_origin()
-    );
+struct SingleGen<T>(T);
+*/
 
-    let new_work = NewPoint { x: 5, y: 10.1 };
-    println!("the x coordinate is {}", new_work.x);
-    println!("the y coordinate is {}", new_work.y);
-
-    let final_work = NewPoint { x: 10.2, y: "a" };
-    let mixuped = new_work.mixup(final_work);
-    println!("the x of mixup: {}", mixuped.x);
-    println!("the y of mixup: {}", mixuped.y);
-}
+fn main() {}

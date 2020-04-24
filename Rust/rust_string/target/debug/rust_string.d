@@ -1,1 +1,1 @@
-/Users/hjiang/project/rust_string/target/debug/rust_string: /Users/hjiang/project/rust_string/src/main.rs
+/Users/hjiang/github/playground/Rust/rust_string/target/debug/rust_string: /Users/hjiang/github/playground/Rust/rust_string/src/main.rs
