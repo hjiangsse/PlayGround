@@ -2,9 +2,9 @@
 # It is not intended for manual editing.
 [[package]]
 name = "artest"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de9190a73966b450c49d902bee2329007e52b20e3ecb376f84460ae9517a9eaa"
+checksum = "52a64e3da5e2b93ebd9be93186309360d905ec99df359f4a41e573f97a44c457"
 
 [[package]]
 name = "use_art"

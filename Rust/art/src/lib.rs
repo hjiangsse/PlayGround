@@ -28,6 +28,15 @@ pub mod kinds {
         Green,
         Purple,
     }
+
+    /// Print a primary color
+    pub fn print_primary_color(color: &PrimaryColor) {
+        match color {
+            PrimaryColor::Red => println!("Primary color is red!"),
+            PrimaryColor::Yellow => println!("Primary color is yellow!"),
+            PrimaryColor::Blue => println!("Primary color is blue!"),
+        }
+    }
 }
 
 pub mod utils {
@@ -36,6 +45,8 @@ pub mod utils {
     /// Combines two primary colors in equal amounts to create
     /// a secondary color.
     pub fn mix(c1: PrimaryColor, c2: PrimaryColor) -> SecondaryColor {
+        print_primary_color(&c1);
+        print_primary_color(&c2);
         SecondaryColor::Orange
     }
 }

@@ -1,6 +1,6 @@
-use artest::kinds::PrimaryColor;
+use artest::PrimaryColor;
 //use artest::kinds::SecondaryColor;
-use artest::utils::mix;
+use artest::mix;
 
 fn main() {
     let red = PrimaryColor::Red;
