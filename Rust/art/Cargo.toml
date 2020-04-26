@@ -1,6 +1,6 @@
 [package]
 name = "artest"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["hjiang <hjiang@sse.com.cn>"]
 edition = "2018"
 description = "this is the first lib uploaded to crate.io from hjiang"
