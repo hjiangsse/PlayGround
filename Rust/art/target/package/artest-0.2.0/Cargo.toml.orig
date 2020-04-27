@@ -1,10 +1,11 @@
 [package]
-name = "use_art"
-version = "0.1.0"
+name = "artest"
+version = "0.2.0"
 authors = ["hjiang <hjiang@sse.com.cn>"]
 edition = "2018"
+description = "this is the first lib uploaded to crate.io from hjiang"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-artest = "0.3.0"
