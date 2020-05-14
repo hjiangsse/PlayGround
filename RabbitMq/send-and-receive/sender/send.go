@@ -12,13 +12,15 @@ func main() {
 	failOnError(err, "Failed to connect to RabbitMq")
 	defer conn.Close()
 
-	//create a channel
+	//create a channel, which encapsulates most APIs get things done
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to create channel")
 	defer ch.Close()
 
 	//declare a queue for us to send to,
 	//then publish messages to this queue
+	//queue has a name, just like "subject" in nats
+	//or "topic" in nsqd
 	q, err := ch.QueueDeclare(
 		"hello", //name
 		false,   //durale
