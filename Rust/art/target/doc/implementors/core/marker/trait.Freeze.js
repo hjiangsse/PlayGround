@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["artest"] = [{"text":"impl Freeze for <a class=\"enum\" href=\"artest/kinds/enum.PrimaryColor.html\" title=\"enum artest::kinds::PrimaryColor\">PrimaryColor</a>","synthetic":true,"types":["artest::kinds::PrimaryColor"]},{"text":"impl Freeze for <a class=\"enum\" href=\"artest/kinds/enum.SecondaryColor.html\" title=\"enum artest::kinds::SecondaryColor\">SecondaryColor</a>","synthetic":true,"types":["artest::kinds::SecondaryColor"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

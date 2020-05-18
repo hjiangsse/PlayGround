@@ -19,15 +19,19 @@ func main() {
 	failOnError(err, "Failed to create channel")
 	defer ch.Close()
 
+	err = ch.Qos(1, 0, false)
+	failOnError(err, "Failed to set Qos")
+
 	//declare a queue for us to send to,
 	//then publish messages to this queue
 	q, err := ch.QueueDeclare(
-		"hello", //name
-		false,   //durale
-		false,   //delete when unused
-		false,   //exclusive
-		false,   //no wait
-		nil,     //arguments
+		"hello-tasks-dur", //name
+		//false,         //durale
+		true,  //durale
+		false, //delete when unused
+		false, //exclusive
+		false, //no wait
+		nil,   //arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 
@@ -38,9 +42,9 @@ func main() {
 		false,  //mandatory
 		false,  //immediate
 		amqp.Publishing{
-			DeliveryMode: amqp.Persistent,
-			ContentType:  "text/plain",
-			Body:         []byte(msgBody),
+			//DeliveryMode: amqp.Persistent,
+			ContentType: "text/plain",
+			Body:        []byte(msgBody),
 		})
 	failOnError(err, "Failed to publish a message")
 }
@@ -48,7 +52,7 @@ func main() {
 func bodyFrom(args []string) string {
 	var s string
 	if (len(args) < 2) || os.Args[1] == "" {
-		s = "hello"
+		s = "hello..."
 	} else {
 		s = strings.Join(args[1:], " ")
 	}

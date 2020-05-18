@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["PrimaryColor","The primary colors according to the RYB color model"],["SecondaryColor","The secondary colors according to the RYB color model."]],"fn":[["print_primary_color","Print a primary color"]]});

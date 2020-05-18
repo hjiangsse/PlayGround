@@ -19,13 +19,14 @@ func main() {
 	failOnError(err, "Failed to connect to RabbitMq")
 	defer conn.Close()
 
-	//create a channel
+	//create a channel, which encapsulates most APIs get things done
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to create channel")
 	defer ch.Close()
 
 	//declare a queue for us to send to,
 	//then publish messages to this queue
+<<<<<<< HEAD
 	/*
 		q, err := ch.QueueDeclare(
 			"hello", //name
@@ -56,6 +57,31 @@ func main() {
 	end := time.Now()
 	elapse := end.Sub(start)
 	fmt.Printf("elapsed time: %v, send %v messages", elapse, msgnum)
+=======
+	//queue has a name, just like "subject" in nats
+	//or "topic" in nsqd
+	q, err := ch.QueueDeclare(
+		"hello", //name
+		false,   //durale
+		false,   //delete when unused
+		false,   //exclusive
+		false,   //no wait
+		nil,     //arguments
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	msgBody := "Hello RabbitMq"
+	err = ch.Publish(
+		"",     //exchange
+		q.Name, //routine key
+		false,  //mandatory
+		false,  //immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(msgBody),
+		})
+	failOnError(err, "Failed to publish a message")
+>>>>>>> ed9876371f1184a34242642d3e3c498ca77d08b8
 }
 
 func failOnError(err error, msg string) {
