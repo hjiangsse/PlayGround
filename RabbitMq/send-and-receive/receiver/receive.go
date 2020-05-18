@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/streadway/amqp"
 )
@@ -17,20 +19,22 @@ func main() {
 	failOnError(err, "Failed to create channel")
 	defer ch.Close()
 
-	//declare a queue for us to send to,
-	//then publish messages to this queue
-	q, err := ch.QueueDeclare(
-		"hello", //name
-		false,   //durale
-		false,   //delete when unused
-		false,   //exclusive
-		false,   //no wait
-		nil,     //arguments
-	)
-	failOnError(err, "Failed to declare a queue")
+	/*
+		//declare a queue for us to send to,
+		//then publish messages to this queue
+		q, err := ch.QueueDeclare(
+			"hello", //name
+			false,   //durale
+			false,   //delete when unused
+			false,   //exclusive
+			false,   //no wait
+			nil,     //arguments
+		)
+		failOnError(err, "Failed to declare a queue")
+	*/
 
 	msgs, err := ch.Consume(
-		q.Name,
+		"q.example",
 		"",
 		true,  //auto ack
 		false, //exclusive
@@ -44,7 +48,11 @@ func main() {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Recived a message: %s\n", d.Body)
+			send, _ := strconv.ParseInt(string(d.Body), 10, 64)
+			recv := time.Now().UnixNano()
+			eltime := recv - send
+
+			log.Printf("Recived a message time elapsed: %v\n", eltime)
 		}
 	}()
 

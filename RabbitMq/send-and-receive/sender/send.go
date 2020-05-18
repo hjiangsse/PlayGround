@@ -1,9 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/streadway/amqp"
+)
+
+const (
+	msgnum = 100
 )
 
 func main() {
@@ -19,27 +26,36 @@ func main() {
 
 	//declare a queue for us to send to,
 	//then publish messages to this queue
-	q, err := ch.QueueDeclare(
-		"hello", //name
-		false,   //durale
-		false,   //delete when unused
-		false,   //exclusive
-		false,   //no wait
-		nil,     //arguments
-	)
-	failOnError(err, "Failed to declare a queue")
+	/*
+		q, err := ch.QueueDeclare(
+			"hello", //name
+			false,   //durale
+			false,   //delete when unused
+			false,   //exclusive
+			false,   //no wait
+			nil,     //arguments
+		)
+		failOnError(err, "Failed to declare a queue")
+	*/
 
-	msgBody := "Hello RabbitMq"
-	err = ch.Publish(
-		"",     //exchange
-		q.Name, //routine key
-		false,  //mandatory
-		false,  //immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(msgBody),
-		})
-	failOnError(err, "Failed to publish a message")
+	//msgBody := "Hello RabbitMq"
+	start := time.Now()
+	for i := 1; i <= msgnum; i++ {
+		err = ch.Publish(
+			"",          //exchange
+			"q.example", //routine key
+			false,       //mandatory
+			false,       //immediate
+			amqp.Publishing{
+				ContentType: "text/plain",
+				Body:        []byte(strconv.FormatInt(time.Now().UnixNano(), 10)),
+			})
+		failOnError(err, "Failed to publish a message")
+		time.Sleep(500 * time.Millisecond)
+	}
+	end := time.Now()
+	elapse := end.Sub(start)
+	fmt.Printf("elapsed time: %v, send %v messages", elapse, msgnum)
 }
 
 func failOnError(err error, msg string) {
