@@ -1,0 +1,14 @@
+goos: linux
+goarch: amd64
+BenchmarkFib320-8   	   30199	     40072 ns/op
+BenchmarkFib320-8   	   30363	     39531 ns/op
+BenchmarkFib320-8   	   30345	     39329 ns/op
+BenchmarkFib320-8   	   30361	     39246 ns/op
+BenchmarkFib320-8   	   30436	     39241 ns/op
+BenchmarkFib320-8   	   30556	     39231 ns/op
+BenchmarkFib320-8   	   30408	     39167 ns/op
+BenchmarkFib320-8   	   30546	     39243 ns/op
+BenchmarkFib320-8   	   30609	     39155 ns/op
+BenchmarkFib320-8   	   30616	     39161 ns/op
+PASS
+ok  	_/home/hjiang/github/playground/golang/high_performance/benching	15.968s
