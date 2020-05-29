@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 maximum' :: (Ord a) => [a] -> a
 maximum' [] =  error "can not get maximum from empty list"
 maximum' [x] = x
@@ -46,3 +47,27 @@ haskquick (pv:xs) =
   let smaller = haskquick [a | a <- xs, a <= pv]
       bigger = haskquick [a | a <- xs, a > pv]
   in  smaller ++ [pv] ++ bigger
+
+-- haskell folds
+foldlsum :: (Num a) => [a] -> a
+foldlsum xs = foldl (\a b -> a + b) 0 xs
+
+foldlsum' :: (Num a) => [a] -> a
+foldlsum' = foldl (+) 0
+
+-- my foldl
+myfoldl :: (a -> a -> a) -> a -> [a] -> a
+myfoldl f acc xs
+  | null xs = acc
+  | otherwise = myfoldl f (f acc h) t
+  where h = head xs
+        t = tail xs
+
+myelem' :: (Eq a) => a -> [a] -> Bool
+myelem' y ys = foldl (\acc x -> if x == y then True else acc) False ys
+
+-- test foldr
+mymap :: (a -> b) -> [a] -> [b]
+mymap f xs = foldr (\x acc -> f x : acc) [] xs
+
+
