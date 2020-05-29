@@ -317,6 +317,59 @@ fn right_rotate_tree(tree: &mut RedBlackNode, x: u32) -> RedBlackNode {
     }
 }
 
+// after insert a red node into red-black tree
+// the new tree will not compatible with the
+// property of red-black tree, need re-balance
+/*
+fn balance(tree: &RedBlackNode) -> RedBlackNode {
+    match tree {
+        RedBlackNode::Cons(c_root, z, left, D, _) => {
+            if let Color::Black = c_root {
+                match **left {
+                    RedBlackNode::Cons(c, y, left, C, _) => {
+                        if let Color::Red = c {
+                            match *left {
+                                RedBlackNode::Cons(c, x, A, B, _) => {
+                                    if let Color::Red = c {
+                                        let mut new_left = RedBlackNode::Cons(
+                                            Color::Black,
+                                            x,
+                                            A,
+                                            B,
+                                            Box::new(RedBlackNode::Nil),
+                                        );
+                                        let mut new_right = RedBlackNode::Cons(
+                                            Color::Black,
+                                            z,
+                                            C,
+                                            D,
+                                            Box::new(RedBlackNode::Nil),
+                                        );
+                                        let mut balanced = RedBlackNode::new(Color::Red, y);
+                                        set_left(&mut balanced, &new_left);
+                                        set_right(&mut balanced, &new_right);
+                                        set_parent(&mut new_left, &balanced);
+                                        set_parent(&mut new_left, &balanced);
+
+                                        return balanced;
+                                    }
+                                    RedBlackNode::Nil {
+                                        return (*tree).clone();
+                                    }
+                                }
+                            }
+                            RedBlackNode::Nil {
+                                        return (*tree).clone();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+*/
+
 fn main() {
     let mut root = RedBlackNode::new(Color::Black, 4);
     let mut root_left = RedBlackNode::new(Color::Red, 3);
