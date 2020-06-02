@@ -69,5 +69,3 @@ myelem' y ys = foldl (\acc x -> if x == y then True else acc) False ys
 -- test foldr
 mymap :: (a -> b) -> [a] -> [b]
 mymap f xs = foldr (\x acc -> f x : acc) [] xs
-
-
