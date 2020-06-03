@@ -1,0 +1,7 @@
+{
+  "keys":["hello", "MAX"],
+  "srcpath":".",
+  "respath":"./res",
+  "filtername":["file2.txt"],
+  "scanmode":["word", "contain"]
+}
