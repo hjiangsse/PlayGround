@@ -1,1 +1,1 @@
-./test/file3.txt,1,hjiang _MAX_LEN
+./test/file3.txt,1,hjiang _MAX_LEN MAX MAX
