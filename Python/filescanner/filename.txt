@@ -1,5 +1,0 @@
-./filescan.py:13   ,    resfilename = key + ".txt"
-./filescan.py:14   ,    resfilefd = open(resfilename, "w")
-./filescan.py:20   ,    for filename in files:
-./filescan.py:21   ,        fname = os.path.join(root, filename)
-./test/file1.txt:1   ,filename file1.txt

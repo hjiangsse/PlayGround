@@ -1,2 +1,1 @@
-./test/file3.txt,6,this is a[100] hjiang
 ./test/file3.txt,7,hahah [100] heheh

@@ -1,7 +1,8 @@
 {
-  "keys":["hello", "MAX", "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", ".*\\[\\d+\\].*"],
+  "keys":["hello", "this", "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$", ".*\\[\\d+\\].*"],
   "srcpath":".",
   "respath":"./res",
   "filtername":["file2.txt"],
+  "filtersuffix":[".a", ".o", ".exe"],
   "scanmode":["word"]
 }

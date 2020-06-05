@@ -61,6 +61,11 @@ for root, subdirs, files in os.walk(configs["srcpath"]):
     for filename in files:
         if filename == "configs.json" or filename in configs["filtername"]:
             continue
+        
+        _, ext = os.path.splitext(filename)
+        if ext in configs["filtersuffix"]:
+            continue
+        
         fname = os.path.join(root, filename)
         # match all keywords for current file lines
         with open(fname) as fp:
