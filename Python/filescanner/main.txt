@@ -1,0 +1,4 @@
+/Users/hjiang/github/small_tools/transblog/LICENSE:44,      of this License, Derivative Works shall not include works that remain
+/Users/hjiang/github/small_tools/transblog/main.go:15,package main
+/Users/hjiang/github/small_tools/transblog/main.go:19,func main() {
+/Users/hjiang/github/small_tools/transblog/cmd/root.go:44,// This is called by main.main(). It only needs to happen once to the rootCmd.
