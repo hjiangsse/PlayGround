@@ -1,0 +1,8 @@
+
+/home/hjiang/github/playground/TestMakefile/miniproject/foo.h,0
+
+/home/hjiang/github/playground/TestMakefile/miniproject/bar.c,44
+int main(int argc, char **argv) {main3,18
+
+/home/hjiang/github/playground/TestMakefile/miniproject/foo.c,32
+void tell_foo() {tell_foo3,18

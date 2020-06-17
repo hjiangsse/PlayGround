@@ -1,0 +1,10 @@
+#!/bin/bash
+
+Animals=(1)
+Animals+=("Dog")
+
+Animals+=(2 "Cat" 3 "Mouse")
+
+for i in "${Animals[@]}"; do
+    echo $i
+done
