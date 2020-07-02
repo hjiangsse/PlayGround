@@ -1,0 +1,14 @@
+[Unit]
+Description=ZHANAN demo service
+After=network.target
+StartLimitIntervalSet=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=hjiang
+ExecStart=/home/hjiang/bin/zhanan
+
+[Install]
+WantedBy=multi-user.target
